@@ -1,0 +1,31 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【 MyTextInput 控件使用说明书 】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+■ LabVIEW 引用方式：
+  1. 在前面板放置一个 [.NET 容器] (位于.NET与ActiveX选板)。
+  2. 右键容器 -> 插入 .NET 控件... -> 右上角 [浏览...]
+  3. 选择刚刚导出的 DLL 文件：D:\Tyler\Labview\C# Ui\UI\MyTextInput.dll
+  4. 从对象列表中选择对应的包装程序集类型：
+     -> MyTextInput.TextInputPanel
+  5. 点击确定即可将此漂亮控件载入 LabVIEW！
+  * (注：如果要覆盖旧版本的 DLL，必须彻底退出全部 LabVIEW 进程后重启)
+
+■ 控件开放的 API 接口 (可通过【属性节点/调用节点/事件回调】访问)：
+【属性】
+- Text (String) : 获取或设置输入框的文本
+- LabelText (String) : 获取或设置标签文字
+
+【方法】
+- SetLabelVisible(Boolean visible) : 隐藏/显示标签文字
+- SetScrollBarVisible(Boolean visible) : 启用/关闭多行模式和长文本的垂直滚动条
+
+【事件】
+- ValueChanged : 当输入框内的文本发生改变时触发（输出 OldValue, NewValue）
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 导出附带信息
+名称: MyTextInput
+时间: 2026-02-24 15:25:54
+主色调: #FFFFFF (底板), #3A3F50 (文字), #FFFFFF (渐变)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

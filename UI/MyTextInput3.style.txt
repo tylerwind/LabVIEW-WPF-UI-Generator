@@ -1,0 +1,7 @@
+控件名称: MyTextInput3
+命名空间: MyTextInput3.TextInputPanel
+导出时间: 2026-02-24 13:35:45
+背景: #FFFFFF
+渐变: #FFFFFF → #FFFFFF
+字色: #3A3F50
+DLL: D:\Tyler\Labview\C# Ui\UI\MyTextInput3.dll

@@ -1,0 +1,32 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【 MyNumericDisplay 控件使用说明书 】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+■ LabVIEW 引用方式：
+  1. 在前面板放置一个 [.NET 容器] (位于.NET与ActiveX选板)。
+  2. 右键容器 -> 插入 .NET 控件... -> 右上角 [浏览...]
+  3. 选择刚刚导出的 DLL 文件：D:\Tyler\Labview\C# Ui\UI\MyNumericDisplay.dll
+  4. 从对象列表中选择对应的包装程序集类型：
+     -> MyNumericDisplay.NumericDisplayPanel
+  5. 点击确定即可将此漂亮控件载入 LabVIEW！
+  * (注：如果要覆盖旧版本的 DLL，必须彻底退出全部 LabVIEW 进程后重启)
+
+■ 控件开放的 API 接口 (可通过【属性节点/调用节点/事件回调】访问)：
+【属性】
+- ValueStr (String) : 获取或设置显示的当前值（字符串类型，因为带有格式化形式）
+- LabelText (String) : 获取或设置标签文字
+- Unit (String) : 获取或设置单位文本 (如 V, mA)
+
+【方法】
+- WriteDouble(Double value, String format) : 配合格式化字符串写入数值（如 format="F2" 代表保留两位小数）
+- WriteString(String value) : 直接写入字符串形式的值
+- Clear() : 清空数值显示
+- SetLabelVisible(Boolean visible) : 显示或隐藏标签
+- SetUnitVisible(Boolean visible) : 显示或隐藏单位
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 导出附带信息
+名称: MyNumericDisplay
+时间: 2026-02-24 15:26:05
+主色调: #FFFFFF (底板), #3A3F50 (文字), #FFFFFF (渐变)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

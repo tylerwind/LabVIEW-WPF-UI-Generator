@@ -1,0 +1,97 @@
+<UserControl x:Class="WpfTextInput.TextInputControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent"
+             HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch">
+
+    <UserControl.Resources>
+        <CubicEase x:Key="EaseOut" EasingMode="EaseOut"/>
+
+        <DropShadowEffect x:Key="CardShadow"
+                          BlurRadius="{{ShadowBlur}}"
+                          ShadowDepth="{{ShadowDepth}}"
+                          Direction="315"
+                          Color="{{ShadowColor}}"
+                          Opacity="{{ShadowOpacity}}"/>
+
+        <Storyboard x:Key="FocusIn">
+            <ColorAnimation Storyboard.TargetName="InputBorderBrush"
+                            Storyboard.TargetProperty="Color"
+                            To="{{FocusBorderColor}}" Duration="0:0:0.25"/>
+            <ColorAnimation Storyboard.TargetName="AccentLine"
+                            Storyboard.TargetProperty="Color"
+                            To="{{AccentColor}}" Duration="0:0:0.3"
+                            EasingFunction="{StaticResource EaseOut}"/>
+        </Storyboard>
+        <Storyboard x:Key="FocusOut">
+            <ColorAnimation Storyboard.TargetName="InputBorderBrush"
+                            Storyboard.TargetProperty="Color"
+                            To="{{BorderColor}}" Duration="0:0:0.2"/>
+            <ColorAnimation Storyboard.TargetName="AccentLine"
+                            Storyboard.TargetProperty="Color"
+                            To="{{GradientStart}}" Duration="0:0:0.25"
+                            EasingFunction="{StaticResource EaseOut}"/>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <!-- 外层留出阴影扩散空间，让阴影自然消散不被截断 -->
+    <Grid Margin="{{ShadowMargin}}">
+        <!-- 主卡片 + 阴影 -->
+        <Border x:Name="MainCard"
+                CornerRadius="{{CornerRadius}}"
+                Padding="{{CardPadding}}"
+                Effect="{StaticResource CardShadow}">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{{GradientStart}}" Offset="0"/>
+                    <GradientStop Color="{{GradientMid}}" Offset="0.5"/>
+                    <GradientStop Color="{{GradientEnd}}" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.BorderBrush>
+                <SolidColorBrush x:Name="InputBorderBrush" Color="{{BorderColor}}"/>
+            </Border.BorderBrush>
+            <Border.BorderThickness>
+                <Thickness>{{BorderThickness}}</Thickness>
+            </Border.BorderThickness>
+
+            <DockPanel LastChildFill="True">
+                <TextBlock x:Name="LabelBlock"
+                           DockPanel.Dock="Top"
+                           Text="标签"
+                           FontFamily="{{FontFamily}}"
+                           FontSize="{{LabelFontSize}}"
+                           FontWeight="SemiBold"
+                           Foreground="{{LabelColor}}"
+                           Margin="4,0,0,4"/>
+
+                <Border DockPanel.Dock="Bottom"
+                        Height="2"
+                        CornerRadius="1"
+                        Margin="8,2,8,0">
+                    <Border.Background>
+                        <SolidColorBrush x:Name="AccentLine" Color="{{GradientStart}}"/>
+                    </Border.Background>
+                </Border>
+
+                <TextBox x:Name="InputBox"
+                         FontFamily="{{FontFamily}}"
+                         FontSize="{{FontSize}}"
+                         Foreground="{{FontColor}}"
+                         CaretBrush="{{CaretColor}}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="10,4,10,4"
+                         AcceptsReturn="False"
+                         TextWrapping="NoWrap"
+                         VerticalContentAlignment="Center"
+                         VerticalAlignment="Stretch"
+                         HorizontalAlignment="Stretch"
+                         GotFocus="InputBox_GotFocus"
+                         LostFocus="InputBox_LostFocus"
+                         TextChanged="InputBox_TextChanged"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

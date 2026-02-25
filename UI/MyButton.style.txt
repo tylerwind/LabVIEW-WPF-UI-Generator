@@ -1,0 +1,36 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【 MyButton 控件使用说明书 】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+■ LabVIEW 引用方式：
+  1. 在前面板放置一个 [.NET 容器] (位于.NET与ActiveX选板)。
+  2. 右键容器 -> 插入 .NET 控件... -> 右上角 [浏览...]
+  3. 选择刚刚导出的 DLL 文件：D:\Tyler\Labview\C# Ui\UI\MyButton.dll
+  4. 从对象列表中选择对应的包装程序集类型：
+     -> MyButton.ButtonPanel
+  5. 点击确定即可将此漂亮控件载入 LabVIEW！
+  * (注：如果要覆盖旧版本的 DLL，必须彻底退出全部 LabVIEW 进程后重启)
+
+■ 控件开放的 API 接口 (可通过【属性节点/调用节点/事件回调】访问)：
+【属性】
+- LabelText (String) : 按钮上显示的文本
+- Value (Boolean) : 按钮此时是否处于按下的激活状态（支持只读与外部修改）
+- Behavior (Enum/Int32) : 控制动作发生的时机逻辑。
+   0: SwitchWhenPressed (按下时切换并保持状态)
+   1: SwitchWhenReleased (抬起时切换并保持状态)
+   2: SwitchUntilReleased (保持按下直到抬起)
+   3: LatchWhenPressed (按下时即触发瞬时脉冲，发出 false..true..false)
+   4: LatchWhenReleased (抬起时才触发瞬时脉冲，发出 false..true..false)
+
+【方法】
+- SetLabelVisible(Boolean visible) : 显示或隐藏文字
+
+【事件】
+- Click : 当按钮被点击时触发（无特殊参数）
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 导出附带信息
+名称: MyButton
+时间: 2026-02-24 22:13:46
+主色调: #FFFFFF (底板), #3A3F50 (文字), #F5F5F5 (渐变)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

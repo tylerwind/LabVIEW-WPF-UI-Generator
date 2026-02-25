@@ -1,0 +1,16 @@
+{
+  "ControlBackground":"#FFFFFF",
+  "GradientStart":"#FFFFFF",
+  "GradientMid":"#FFFFFF",
+  "GradientEnd":"#FFFFFF",
+  "BorderColor":"#DDE0E6",
+  "BorderThickness":0,"CornerRadius":12,"ShadowBlur":10,"ShadowDepth":4,"ShadowColor":"#A3A9B5",
+  "ShadowOpacity":0.5,"HighlightColor":"#FFFFFF",
+  "HighlightOpacity":0.65,"FontFamily":"Segoe UI",
+  "FontSize":14,"FontColor":"#3A3F50",
+  "CaretColor":"#5A6070",
+  "LabelColor":"#8A90A0",
+  "LabelFontSize":11,"FocusBorderColor":"#B0B8C8",
+  "AccentColor":"Transparent",
+  "CardPadding":"12,8,12,6"
+}

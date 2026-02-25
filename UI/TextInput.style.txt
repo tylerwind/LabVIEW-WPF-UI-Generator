@@ -1,0 +1,7 @@
+控件名称: TextInput
+命名空间: TextInput.TextInputPanel
+导出时间: 2026-02-24 13:41:21
+背景: #FAFAFA
+渐变: #FAFAFA → #FAFAFA
+字色: #3A3F50
+DLL: D:\Tyler\Labview\C# Ui\UI\TextInput.dll

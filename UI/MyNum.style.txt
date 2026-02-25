@@ -1,0 +1,7 @@
+控件名称: MyNum
+命名空间: MyNum.TextInputPanel
+导出时间: 2026-02-24 14:42:31
+背景: #FFFFFF
+渐变: #FFFFFF → #FFFFFF
+字色: #3A3F50
+DLL: D:\Tyler\Labview\C# Ui\UI\MyNum.dll
