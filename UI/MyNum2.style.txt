@@ -1,7 +1,0 @@
-控件名称: MyNum2
-命名空间: MyNum2.TextInputPanel
-导出时间: 2026-02-24 14:54:24
-背景: #1E1E2E
-渐变: #2A2A3C → #202032
-字色: #E0E0F0
-DLL: D:\Tyler\Labview\C# Ui\UI\MyNum2.dll
