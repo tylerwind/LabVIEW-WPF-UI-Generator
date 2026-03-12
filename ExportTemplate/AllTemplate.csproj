@@ -41,15 +41,79 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <!-- TextInput -->
     <Compile Include="TextInputControl.xaml.cs">
       <DependentUpon>TextInputControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="TextInputHost.cs" />
     <Compile Include="TextInputPanel.cs" />
     <Compile Include="ValueChangedEventArgs.cs" />
+    <!-- NumericDisplay -->
+    <Compile Include="NumericDisplayControl.xaml.cs">
+      <DependentUpon>NumericDisplayControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="NumericDisplayPanel.cs" />
+    <!-- ComboBox -->
+    <Compile Include="ComboBoxControl.xaml.cs">
+      <DependentUpon>ComboBoxControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ComboBoxPanel.cs" />
+    <!-- Slider -->
+    <Compile Include="SliderControl.xaml.cs">
+      <DependentUpon>SliderControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SliderPanel.cs" />
+    <!-- Button -->
+    <Compile Include="ButtonControl.xaml.cs">
+      <DependentUpon>ButtonControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ButtonPanel.cs" />
+    <!-- LED -->
+    <Compile Include="LedControl.xaml.cs">
+      <DependentUpon>LedControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LedPanel.cs" />
+    <!-- Toggle -->
+    <Compile Include="ToggleSwitchControl.xaml.cs">
+      <DependentUpon>ToggleSwitchControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ToggleSwitchPanel.cs" />
+    <!-- ProgressBar -->
+    <Compile Include="ProgressBarControl.xaml.cs">
+      <DependentUpon>ProgressBarControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProgressBarPanel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="TextInputControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="NumericDisplayControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ComboBoxControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SliderControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ButtonControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="LedControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ToggleSwitchControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ProgressBarControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

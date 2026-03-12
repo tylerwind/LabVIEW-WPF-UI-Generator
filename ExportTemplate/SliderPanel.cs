@@ -57,7 +57,15 @@ namespace WpfSlider
 
         private void WpfControl_ValueChanged(double oldValue, double newValue)
         {
-            ValueChanged?.Invoke(oldValue, newValue);
+            try
+            {
+                ValueChanged?.Invoke(oldValue, newValue);
+            }
+            catch (Exception ex)
+            {
+                string path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SliderCrashLog.txt");
+                System.IO.File.AppendAllText(path, DateTime.Now.ToString() + " : " + ex.ToString() + Environment.NewLine);
+            }
         }
 
         #region 给 LabVIEW 或外部代码暴露的属性与方法

@@ -91,6 +91,13 @@ namespace ControlDesigner.Models
         private string _accentColor = "#7A8AA8";
         public string AccentColor { get => _accentColor; set => Set(ref _accentColor, value); }
 
+        // === LED ===
+        private string _ledOnColor = "#4CAF50";
+        public string LedOnColor { get => _ledOnColor; set => Set(ref _ledOnColor, value); }
+
+        private string _ledOffColor = "#808080";
+        public string LedOffColor { get => _ledOffColor; set => Set(ref _ledOffColor, value); }
+
         // === 间距 ===
         private string _cardPadding = "12,8,12,6";
         public string CardPadding { get => _cardPadding; set => Set(ref _cardPadding, value); }

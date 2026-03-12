@@ -115,6 +115,9 @@ namespace ControlDesigner
             TxtFocusBorder.Text = _style.FocusBorderColor;
             TxtAccentColor.Text = _style.AccentColor;
 
+            if (TxtLedOnColor != null) TxtLedOnColor.Text = _style.LedOnColor;
+            if (TxtLedOffColor != null) TxtLedOffColor.Text = _style.LedOffColor;
+
             UpdateSliderLabels();
             _suppressUpdate = false;
         }
@@ -157,28 +160,31 @@ namespace ControlDesigner
 
         private void SyncStyleFromUI()
         {
-            _style.ControlBackground = TxtControlBg.Text.Trim();
-            _style.GradientStart = TxtGradStart.Text.Trim();
-            _style.GradientMid = TxtGradMid.Text.Trim();
-            _style.GradientEnd = TxtGradEnd.Text.Trim();
+            _style.ControlBackground = CleanColorString(TxtControlBg.Text);
+            _style.GradientStart = CleanColorString(TxtGradStart.Text);
+            _style.GradientMid = CleanColorString(TxtGradMid.Text);
+            _style.GradientEnd = CleanColorString(TxtGradEnd.Text);
 
-            _style.BorderColor = TxtBorderColor.Text.Trim();
+            _style.BorderColor = CleanColorString(TxtBorderColor.Text);
             _style.BorderThickness = SliderBorderW.Value;
             _style.CornerRadius = SliderCorner.Value;
 
-            _style.ShadowColor = TxtShadowColor.Text.Trim();
+            _style.ShadowColor = CleanColorString(TxtShadowColor.Text);
             _style.ShadowBlur = SliderShadowBlur.Value;
             _style.ShadowDepth = SliderShadowDepth.Value;
             _style.ShadowOpacity = SliderShadowOp.Value;
 
             _style.FontFamily = TxtFontFamily.Text.Trim();
             _style.FontSize = SliderFontSize.Value;
-            _style.FontColor = TxtFontColor.Text.Trim();
-            _style.LabelColor = TxtLabelColor.Text.Trim();
+            _style.FontColor = CleanColorString(TxtFontColor.Text);
+            _style.LabelColor = CleanColorString(TxtLabelColor.Text);
             _style.LabelFontSize = SliderLabelSize.Value;
 
-            _style.FocusBorderColor = TxtFocusBorder.Text.Trim();
-            _style.AccentColor = TxtAccentColor.Text.Trim();
+            _style.FocusBorderColor = CleanColorString(TxtFocusBorder.Text);
+            _style.AccentColor = CleanColorString(TxtAccentColor.Text);
+
+            if (TxtLedOnColor != null) _style.LedOnColor = CleanColorString(TxtLedOnColor.Text);
+            if (TxtLedOffColor != null) _style.LedOffColor = CleanColorString(TxtLedOffColor.Text);
         }
 
         private void UpdateSliderLabels()
@@ -206,6 +212,8 @@ namespace ControlDesigner
             SetSwatchColor(SwatchLabelColor, TxtLabelColor.Text);
             SetSwatchColor(SwatchFocusBorder, TxtFocusBorder.Text);
             SetSwatchColor(SwatchAccentColor, TxtAccentColor.Text);
+            if (SwatchLedOn != null) SetSwatchColor(SwatchLedOn, TxtLedOnColor.Text);
+            if (SwatchLedOff != null) SetSwatchColor(SwatchLedOff, TxtLedOffColor.Text);
         }
 
         private void SetSwatchColor(Border swatch, string hex)
@@ -250,6 +258,8 @@ namespace ControlDesigner
                 case "SwatchLabelColor": return TxtLabelColor;
                 case "SwatchFocusBorder": return TxtFocusBorder;
                 case "SwatchAccentColor": return TxtAccentColor;
+                case "SwatchLedOn": return TxtLedOnColor;
+                case "SwatchLedOff": return TxtLedOffColor;
                 default: return null;
             }
         }
@@ -289,14 +299,7 @@ namespace ControlDesigner
             // 外层容器
             var outerGrid = new Grid { Margin = new Thickness(20) };
 
-            // 高光层
-            var highlight = new Border
-            {
-                CornerRadius = new CornerRadius(cr),
-                Margin = new Thickness(-2, -2, 2, 2),
-                Background = TryParseBrush(_style.HighlightColor, Brushes.White),
-                Opacity = _style.HighlightOpacity,
-            };
+            // 高光层已移除
 
             // 阴影层
             var shadowLayer = new Border
@@ -448,7 +451,11 @@ namespace ControlDesigner
             }
             else if (_currentControlType == ControlType.SliderInput)
             {
-                var grid = new Grid();
+                // 滑动杆预览: 进度条风格填充+拖动把手+实时数值
+                var sliderStack = new StackPanel { Margin = new Thickness(4) };
+
+                // 标签行
+                var headerGrid = new Grid { Margin = new Thickness(2, 0, 2, 4) };
                 var lbl = new TextBlock
                 {
                     Text = "标签",
@@ -458,7 +465,7 @@ namespace ControlDesigner
                     Foreground = TryParseBrush(_style.LabelColor, Brushes.Gray),
                     HorizontalAlignment = HorizontalAlignment.Left
                 };
-                var val = new TextBlock
+                var valBlock = new TextBlock
                 {
                     Text = "50.00",
                     FontFamily = new FontFamily(_style.FontFamily),
@@ -467,29 +474,77 @@ namespace ControlDesigner
                     Foreground = TryParseBrush(_style.LabelColor, Brushes.Gray),
                     HorizontalAlignment = HorizontalAlignment.Right
                 };
-                grid.Children.Add(lbl);
-                grid.Children.Add(val);
+                headerGrid.Children.Add(lbl);
+                headerGrid.Children.Add(valBlock);
 
-                DockPanel.SetDock(grid, Dock.Top);
+                // 轨道容器
+                Color accentCol = TryParseColor(_style.AccentColor, Color.FromRgb(122, 138, 168));
+                var trackContainer = new Grid { Height = 20, Margin = new Thickness(2, 0, 2, 0), Cursor = System.Windows.Input.Cursors.Hand };
 
-                var slider = new Slider
+                // 背景轨道
+                var trackBg = new Border
                 {
-                    Foreground = TryParseBrush(_style.FontColor, Brushes.Black),
-                    Background = Brushes.Transparent,
-                    Padding = new Thickness(10, 4, 10, 4),
-                    Minimum = 0,
-                    Maximum = 100,
-                    Value = 50,
+                    Height = 6, CornerRadius = new CornerRadius(3),
                     VerticalAlignment = VerticalAlignment.Center,
-                    HorizontalAlignment = HorizontalAlignment.Stretch
+                    Background = new SolidColorBrush(Color.FromArgb(50, 180, 180, 180))
                 };
 
-                // 由于之前已经加过了 Label，Slider 不需要再显示默认顶部的标签
-                dock.Children.Remove(label);
-                
-                dock.Children.Add(grid);
-                dock.Children.Add(accentLine);
-                dock.Children.Add(slider);
+                // 填充轨道
+                var fillBar = new Border
+                {
+                    Height = 6, CornerRadius = new CornerRadius(3),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Background = new LinearGradientBrush(accentCol, TryParseColor(_style.FocusBorderColor, Colors.SteelBlue), 0)
+                };
+
+                // 圆形把手
+                var thumbTranslate = new TranslateTransform(0, 0);
+                var thumbEl = new Border
+                {
+                    Width = 16, Height = 16, CornerRadius = new CornerRadius(8),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    RenderTransform = thumbTranslate,
+                    Background = Brushes.White,
+                    Effect = new DropShadowEffect { BlurRadius = 4, ShadowDepth = 1, Direction = 270, Color = Colors.Gray, Opacity = 0.4 }
+                };
+
+                trackContainer.Children.Add(trackBg);
+                trackContainer.Children.Add(fillBar);
+                trackContainer.Children.Add(thumbEl);
+
+                double currentRatio = 0.5;
+                Action<double> updateVisual = null;
+                updateVisual = (ratio) =>
+                {
+                    currentRatio = Math.Max(0, Math.Min(1, ratio));
+                    double trackW = trackContainer.ActualWidth;
+                    if (trackW <= 0) return;
+                    fillBar.Width = Math.Max(0, trackW * currentRatio);
+                    thumbTranslate.X = Math.Max(0, trackW * currentRatio - 8);
+                    valBlock.Text = (currentRatio * 100).ToString("F2");
+                };
+
+                trackContainer.SizeChanged += (s, ev) => updateVisual(currentRatio);
+                trackContainer.MouseLeftButtonDown += (s, ev) =>
+                {
+                    updateVisual(ev.GetPosition(trackContainer).X / trackContainer.ActualWidth);
+                    trackContainer.CaptureMouse();
+                };
+                trackContainer.MouseMove += (s, ev) =>
+                {
+                    if (ev.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+                        updateVisual(ev.GetPosition(trackContainer).X / trackContainer.ActualWidth);
+                };
+                trackContainer.MouseLeftButtonUp += (s, ev) => trackContainer.ReleaseMouseCapture();
+
+                sliderStack.Children.Add(headerGrid);
+                sliderStack.Children.Add(trackContainer);
+
+                outerGrid.Children.Clear();
+                outerGrid.Children.Add(sliderStack);
+                return outerGrid;
             }
             else if (_currentControlType == ControlType.ButtonInput)
             {
@@ -509,14 +564,203 @@ namespace ControlDesigner
                     button.Style = customStyle;
                 }
 
-                outerGrid.Children.Clear(); // 按钮样式自带外部阴影和框体，不需要叠加默认的 card 组建
+                outerGrid.Children.Clear();
                 outerGrid.Children.Add(button);
+                return outerGrid;
+            }
+            else if (_currentControlType == ControlType.LedIndicator)
+            {
+                // LED 预览: 无卡片，可点击切换亮灭
+                var ledGrid = new Grid { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                ledGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                ledGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var lbl = new TextBlock
+                {
+                    Text = "指示灯",
+                    FontFamily = new FontFamily(_style.FontFamily),
+                    FontSize = _style.FontSize,
+                    Foreground = TryParseBrush(_style.FontColor, Brushes.Black),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Margin = new Thickness(0, 0, 12, 0)
+                };
+                Grid.SetColumn(lbl, 0);
+
+                Color onCol = TryParseColor(_style.LedOnColor, Color.FromRgb(76, 175, 80));
+                Color offCol = TryParseColor(_style.LedOffColor, Colors.Gray);
+
+                var ledContainer = new Grid { Width = 32, Height = 32, Cursor = System.Windows.Input.Cursors.Hand };
+                // 凹槽底座
+                var ledBase = new System.Windows.Shapes.Ellipse
+                {
+                    Margin = new Thickness(-2),
+                    Fill = new RadialGradientBrush(
+                        new GradientStopCollection { new GradientStop(Color.FromArgb(80, 200, 200, 200), 0.7), new GradientStop(Colors.Transparent, 1.0) })
+                };
+                // 灯体
+                bool isOn = true;
+                var ledBulb = new System.Windows.Shapes.Ellipse
+                {
+                    Fill = new RadialGradientBrush(onCol, Color.FromArgb(180, onCol.R, onCol.G, onCol.B))
+                };
+                // 高光
+                var ledHL = new System.Windows.Shapes.Ellipse
+                {
+                    Margin = new Thickness(5, 4, 9, 14), Opacity = 0.45,
+                    Fill = new RadialGradientBrush(
+                        new GradientStopCollection { new GradientStop(Colors.White, 0), new GradientStop(Colors.Transparent, 1) })
+                    { Center = new Point(0.5, 0.3), GradientOrigin = new Point(0.5, 0.2) }
+                };
+                // 外发光
+                var halo = new System.Windows.Shapes.Ellipse
+                {
+                    Margin = new Thickness(-6), Opacity = _style.ShadowOpacity, IsHitTestVisible = false,
+                    Fill = new SolidColorBrush(onCol),
+                    Effect = new System.Windows.Media.Effects.BlurEffect { Radius = _style.ShadowBlur }
+                };
+
+                ledContainer.Children.Add(ledBase);
+                ledContainer.Children.Add(ledBulb);
+                ledContainer.Children.Add(ledHL);
+                ledContainer.Children.Add(halo);
+
+                // 点击切换
+                ledContainer.MouseLeftButtonDown += (s, ev) => {
+                    isOn = !isOn;
+                    if (isOn)
+                    {
+                        ledBulb.Fill = new RadialGradientBrush(onCol, Color.FromArgb(180, onCol.R, onCol.G, onCol.B));
+                        halo.Opacity = 0.4;
+                    }
+                    else
+                    {
+                        ledBulb.Fill = new SolidColorBrush(offCol);
+                        halo.Opacity = 0;
+                    }
+                };
+
+                Grid.SetColumn(ledContainer, 1);
+                ledGrid.Children.Add(lbl);
+                ledGrid.Children.Add(ledContainer);
+
+                outerGrid.Children.Clear();
+                outerGrid.Children.Add(ledGrid);
+                return outerGrid;
+            }
+            else if (_currentControlType == ControlType.ToggleSwitch)
+            {
+                // Toggle 预览: 无卡片，可点击切换
+                var toggleGrid = new Grid { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Cursor = System.Windows.Input.Cursors.Hand };
+                toggleGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                toggleGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var lbl = new TextBlock
+                {
+                    Text = "开关",
+                    FontFamily = new FontFamily(_style.FontFamily),
+                    FontSize = _style.FontSize,
+                    Foreground = TryParseBrush(_style.FontColor, Brushes.Black),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Margin = new Thickness(0, 0, 12, 0)
+                };
+                Grid.SetColumn(lbl, 0);
+
+                var trackGrid = new Grid { Width = 48, Height = 26, VerticalAlignment = VerticalAlignment.Center };
+                var trackBrush = new SolidColorBrush(Color.FromRgb(200, 204, 208));
+                var track = new Border { CornerRadius = new CornerRadius(13), Background = trackBrush };
+                var thumbTranslate = new TranslateTransform(0, 0);
+                var thumb = new Border
+                {
+                    Width = 22, Height = 22, CornerRadius = new CornerRadius(11),
+                    HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(2, 0, 0, 0),
+                    Background = Brushes.White,
+                    RenderTransform = thumbTranslate,
+                    Effect = new DropShadowEffect { BlurRadius = 4, ShadowDepth = 1, Direction = 315, Color = Colors.Gray, Opacity = 0.3 }
+                };
+                trackGrid.Children.Add(track);
+                trackGrid.Children.Add(thumb);
+
+                bool isOn = false;
+                Color accentCol = TryParseColor(_style.AccentColor, Color.FromRgb(74, 144, 226));
+
+                trackGrid.MouseLeftButtonDown += (s, ev) => {
+                    isOn = !isOn;
+                    var dur = TimeSpan.FromSeconds(0.2);
+                    thumbTranslate.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(isOn ? 22 : 0, dur));
+                    trackBrush.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(isOn ? accentCol : Color.FromRgb(200, 204, 208), dur));
+                };
+
+                Grid.SetColumn(trackGrid, 1);
+                toggleGrid.Children.Add(lbl);
+                toggleGrid.Children.Add(trackGrid);
+
+                outerGrid.Children.Clear();
+                outerGrid.Children.Add(toggleGrid);
+                return outerGrid;
+            }
+            else if (_currentControlType == ControlType.ProgressBarInput)
+            {
+                // 进度条预览: 无卡片，点击轨道设置进度
+                var progStack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Center, Width = 280 };
+
+                var headerGrid = new Grid { Margin = new Thickness(2, 0, 2, 4) };
+                var pctBlock = new TextBlock
+                {
+                    Text = "65%",
+                    FontFamily = new FontFamily(_style.FontFamily),
+                    FontSize = _style.LabelFontSize, FontWeight = FontWeights.SemiBold,
+                    Foreground = TryParseBrush(_style.FontColor, Brushes.Black),
+                    HorizontalAlignment = HorizontalAlignment.Right
+                };
+                var lblBlock = new TextBlock
+                {
+                    Text = "进度",
+                    FontFamily = new FontFamily(_style.FontFamily),
+                    FontSize = _style.LabelFontSize, FontWeight = FontWeights.SemiBold,
+                    Foreground = TryParseBrush(_style.LabelColor, Brushes.Gray),
+                    HorizontalAlignment = HorizontalAlignment.Left
+                };
+                headerGrid.Children.Add(lblBlock);
+                headerGrid.Children.Add(pctBlock);
+
+                Color accentCol = TryParseColor(_style.AccentColor, Color.FromRgb(74, 144, 226));
+                var trackBorder = new Border
+                {
+                    Height = 10, CornerRadius = new CornerRadius(5), Margin = new Thickness(2, 0, 2, 0),
+                    Background = new SolidColorBrush(Color.FromArgb(50, 180, 180, 180)),
+                    Cursor = System.Windows.Input.Cursors.Hand
+                };
+                var fillBar = new Border
+                {
+                    CornerRadius = new CornerRadius(5), HorizontalAlignment = HorizontalAlignment.Left,
+                    Background = new LinearGradientBrush(accentCol, TryParseColor(_style.FocusBorderColor, Colors.SteelBlue), 0)
+                };
+                var trackContent = new Grid();
+                trackContent.Children.Add(fillBar);
+                trackBorder.Child = trackContent;
+
+                // 点击轨道设置进度
+                trackBorder.MouseLeftButtonDown += (s, ev) => {
+                    double x = ev.GetPosition(trackBorder).X;
+                    double ratio = Math.Max(0, Math.Min(1, x / trackBorder.ActualWidth));
+                    fillBar.Width = Math.Max(0, trackBorder.ActualWidth * ratio);
+                    pctBlock.Text = $"{ratio * 100:F0}%";
+                };
+                // 初始化填充 (65%)
+                trackBorder.SizeChanged += (s, ev) => {
+                    fillBar.Width = Math.Max(0, ev.NewSize.Width * 0.65);
+                };
+
+                progStack.Children.Add(headerGrid);
+                progStack.Children.Add(trackBorder);
+
+                outerGrid.Children.Clear();
+                outerGrid.Children.Add(progStack);
                 return outerGrid;
             }
 
             card.Child = dock;
 
-            outerGrid.Children.Add(highlight);
             outerGrid.Children.Add(shadowLayer);
             outerGrid.Children.Add(card);
 
@@ -608,21 +852,21 @@ namespace ControlDesigner
     </Setter>
 </Style>";
 
-            // 替换所有占位符
-            xaml = xaml.Replace("{{FontColor}}", _style.FontColor);
-            xaml = xaml.Replace("{{HighlightColor}}", _style.HighlightColor);
-            xaml = xaml.Replace("{{AccentColor}}", _style.AccentColor);
-            xaml = xaml.Replace("{{ControlBackground}}", _style.ControlBackground);
-            xaml = xaml.Replace("{{BorderColor}}", _style.BorderColor);
+            // 替换所有占位符 (注入前清洗)
+            xaml = xaml.Replace("{{FontColor}}", CleanColorString(_style.FontColor));
+            xaml = xaml.Replace("{{HighlightColor}}", CleanColorString(_style.HighlightColor));
+            xaml = xaml.Replace("{{AccentColor}}", CleanColorString(_style.AccentColor));
+            xaml = xaml.Replace("{{ControlBackground}}", CleanColorString(_style.ControlBackground));
+            xaml = xaml.Replace("{{BorderColor}}", CleanColorString(_style.BorderColor));
             xaml = xaml.Replace("{{CornerRadius}}", _style.CornerRadius.ToString());
             xaml = xaml.Replace("{{ShadowBlur}}", _style.ShadowBlur.ToString());
             xaml = xaml.Replace("{{ShadowDepth}}", _style.ShadowDepth.ToString());
-            xaml = xaml.Replace("{{ShadowColor}}", _style.ShadowColor);
+            xaml = xaml.Replace("{{ShadowColor}}", CleanColorString(_style.ShadowColor));
             xaml = xaml.Replace("{{ShadowOpacity}}", _style.ShadowOpacity.ToString("F2"));
             xaml = xaml.Replace("{{ShadowMargin}}", CalcShadowMargin(_style.ShadowBlur, _style.ShadowDepth));
-            xaml = xaml.Replace("{{GradientStart}}", _style.GradientStart);
-            xaml = xaml.Replace("{{GradientMid}}", _style.GradientMid);
-            xaml = xaml.Replace("{{GradientEnd}}", _style.GradientEnd);
+            xaml = xaml.Replace("{{GradientStart}}", CleanColorString(_style.GradientStart));
+            xaml = xaml.Replace("{{GradientMid}}", CleanColorString(_style.GradientMid));
+            xaml = xaml.Replace("{{GradientEnd}}", CleanColorString(_style.GradientEnd));
 
             try
             {
@@ -648,8 +892,16 @@ namespace ControlDesigner
         <Setter.Value>
             <ControlTemplate TargetType=""Button"">
                 <Grid Margin=""{{ShadowMargin}}"">
-                    <Grid.Resources>
-                    </Grid.Resources>
+                    <!-- 外阴影层1: 左上白色高光 -->
+                    <Border x:Name=""LightShadowBorder"" CornerRadius=""{{CornerRadius}}"">
+                        <Border.Effect>
+                            <DropShadowEffect x:Name=""LightShadow"" BlurRadius=""8"" Direction=""135"" ShadowDepth=""3"" Color=""#FFFFFF"" Opacity=""1.0"" />
+                        </Border.Effect>
+                        <Border.Background>
+                            <SolidColorBrush Color=""Transparent"" />
+                        </Border.Background>
+                    </Border>
+                    <!-- 外阴影层2: 右下暗色阴影 + 主体 -->
                     <Border x:Name=""MainBorder"" CornerRadius=""{{CornerRadius}}"" RenderTransformOrigin=""0.5,0.5"" Cursor=""Hand"">
                         <Border.Effect>
                             <DropShadowEffect x:Name=""PartShadow"" BlurRadius=""{{ShadowBlur}}"" Direction=""315"" ShadowDepth=""{{ShadowDepth}}"" Color=""{{ShadowColor}}"" Opacity=""{{ShadowOpacity}}"" />
@@ -657,7 +909,6 @@ namespace ControlDesigner
                         <Border.RenderTransform>
                             <TransformGroup>
                                 <ScaleTransform x:Name=""ScaleTrans"" ScaleX=""1.0"" ScaleY=""1.0"" />
-                                <TranslateTransform x:Name=""PosTrans"" X=""0"" Y=""0"" />
                             </TransformGroup>
                         </Border.RenderTransform>
                         <Border.Background>
@@ -675,7 +926,6 @@ namespace ControlDesigner
                                     <SolidColorBrush Color=""{{HighlightColor}}"" />
                                 </Border.Background>
                             </Border>
-
                             <Border CornerRadius=""{{CornerRadius}}"" BorderThickness=""{{BorderThickness}}"">
                                 <Border.BorderBrush>
                                     <SolidColorBrush Color=""{{BorderColor}}""/>
@@ -699,22 +949,24 @@ namespace ControlDesigner
                     <Trigger Property=""IsPressed"" Value=""True"">
                         <Trigger.EnterActions>
                             <BeginStoryboard> <Storyboard> 
-                                <DoubleAnimation Storyboard.TargetName=""ScaleTrans"" Storyboard.TargetProperty=""ScaleX"" To=""0.95"" Duration=""0:0:0.1""/> 
-                                <DoubleAnimation Storyboard.TargetName=""ScaleTrans"" Storyboard.TargetProperty=""ScaleY"" To=""0.95"" Duration=""0:0:0.1""/> 
-                                <DoubleAnimation Storyboard.TargetName=""PosTrans"" Storyboard.TargetProperty=""X"" To=""2.0"" Duration=""0:0:0.1""/> 
-                                <DoubleAnimation Storyboard.TargetName=""PosTrans"" Storyboard.TargetProperty=""Y"" To=""2.0"" Duration=""0:0:0.1""/> 
-                                <DoubleAnimation Storyboard.TargetName=""PartShadow"" Storyboard.TargetProperty=""ShadowDepth"" To=""0.0"" Duration=""0:0:0.1""/> 
-                                <DoubleAnimation Storyboard.TargetName=""PartShadow"" Storyboard.TargetProperty=""Opacity"" To=""0.0"" Duration=""0:0:0.1""/> 
+                                <DoubleAnimation Storyboard.TargetName=""ScaleTrans"" Storyboard.TargetProperty=""ScaleX"" To=""0.98"" Duration=""0:0:0.15""/> 
+                                <DoubleAnimation Storyboard.TargetName=""ScaleTrans"" Storyboard.TargetProperty=""ScaleY"" To=""0.98"" Duration=""0:0:0.15""/> 
+                                <DoubleAnimation Storyboard.TargetName=""PartShadow"" Storyboard.TargetProperty=""ShadowDepth"" To=""0.0"" Duration=""0:0:0.15""/> 
+                                <DoubleAnimation Storyboard.TargetName=""PartShadow"" Storyboard.TargetProperty=""BlurRadius"" To=""0.0"" Duration=""0:0:0.15""/> 
+                                <DoubleAnimation Storyboard.TargetName=""PartShadow"" Storyboard.TargetProperty=""Opacity"" To=""0.0"" Duration=""0:0:0.15""/> 
+                                <DoubleAnimation Storyboard.TargetName=""LightShadow"" Storyboard.TargetProperty=""Opacity"" To=""0.0"" Duration=""0:0:0.15""/> 
+                                <DoubleAnimation Storyboard.TargetName=""LightShadow"" Storyboard.TargetProperty=""BlurRadius"" To=""0.0"" Duration=""0:0:0.15""/> 
                             </Storyboard> </BeginStoryboard>
                         </Trigger.EnterActions>
                         <Trigger.ExitActions>
                             <BeginStoryboard> <Storyboard> 
                                 <DoubleAnimation Storyboard.TargetName=""ScaleTrans"" Storyboard.TargetProperty=""ScaleX"" To=""1.0"" Duration=""0:0:0.2""/> 
                                 <DoubleAnimation Storyboard.TargetName=""ScaleTrans"" Storyboard.TargetProperty=""ScaleY"" To=""1.0"" Duration=""0:0:0.2""/> 
-                                <DoubleAnimation Storyboard.TargetName=""PosTrans"" Storyboard.TargetProperty=""X"" To=""0.0"" Duration=""0:0:0.2""/> 
-                                <DoubleAnimation Storyboard.TargetName=""PosTrans"" Storyboard.TargetProperty=""Y"" To=""0.0"" Duration=""0:0:0.2""/> 
                                 <DoubleAnimation Storyboard.TargetName=""PartShadow"" Storyboard.TargetProperty=""ShadowDepth"" To=""{{ShadowDepth}}"" Duration=""0:0:0.2""/> 
+                                <DoubleAnimation Storyboard.TargetName=""PartShadow"" Storyboard.TargetProperty=""BlurRadius"" To=""{{ShadowBlur}}"" Duration=""0:0:0.2""/> 
                                 <DoubleAnimation Storyboard.TargetName=""PartShadow"" Storyboard.TargetProperty=""Opacity"" To=""{{ShadowOpacity}}"" Duration=""0:0:0.2""/> 
+                                <DoubleAnimation Storyboard.TargetName=""LightShadow"" Storyboard.TargetProperty=""Opacity"" To=""1.0"" Duration=""0:0:0.2""/> 
+                                <DoubleAnimation Storyboard.TargetName=""LightShadow"" Storyboard.TargetProperty=""BlurRadius"" To=""8.0"" Duration=""0:0:0.2""/> 
                             </Storyboard> </BeginStoryboard>
                         </Trigger.ExitActions>
                     </Trigger>
@@ -724,24 +976,24 @@ namespace ControlDesigner
     </Setter>
 </Style>";
 
-            xaml = xaml.Replace("{{FontColor}}", _style.FontColor);
+            xaml = xaml.Replace("{{FontColor}}", CleanColorString(_style.FontColor));
             xaml = xaml.Replace("{{FontFamily}}", _style.FontFamily);
             xaml = xaml.Replace("{{FontSize}}", _style.FontSize.ToString());
-            xaml = xaml.Replace("{{HighlightColor}}", _style.HighlightColor);
-            xaml = xaml.Replace("{{AccentColor}}", _style.AccentColor);
-            xaml = xaml.Replace("{{ControlBackground}}", _style.ControlBackground);
-            xaml = xaml.Replace("{{BorderColor}}", _style.BorderColor);
+            xaml = xaml.Replace("{{HighlightColor}}", CleanColorString(_style.HighlightColor));
+            xaml = xaml.Replace("{{AccentColor}}", CleanColorString(_style.AccentColor));
+            xaml = xaml.Replace("{{ControlBackground}}", CleanColorString(_style.ControlBackground));
+            xaml = xaml.Replace("{{BorderColor}}", CleanColorString(_style.BorderColor));
             xaml = xaml.Replace("{{BorderThickness}}", _style.BorderThickness.ToString());
             xaml = xaml.Replace("{{CardPadding}}", _style.CardPadding);
             xaml = xaml.Replace("{{CornerRadius}}", _style.CornerRadius.ToString());
             xaml = xaml.Replace("{{ShadowBlur}}", _style.ShadowBlur.ToString());
             xaml = xaml.Replace("{{ShadowDepth}}", _style.ShadowDepth.ToString());
-            xaml = xaml.Replace("{{ShadowColor}}", _style.ShadowColor);
+            xaml = xaml.Replace("{{ShadowColor}}", CleanColorString(_style.ShadowColor));
             xaml = xaml.Replace("{{ShadowOpacity}}", _style.ShadowOpacity.ToString("F2"));
             xaml = xaml.Replace("{{ShadowMargin}}", CalcShadowMargin(_style.ShadowBlur, _style.ShadowDepth));
-            xaml = xaml.Replace("{{GradientStart}}", _style.GradientStart);
-            xaml = xaml.Replace("{{GradientMid}}", _style.GradientMid);
-            xaml = xaml.Replace("{{GradientEnd}}", _style.GradientEnd);
+            xaml = xaml.Replace("{{GradientStart}}", CleanColorString(_style.GradientStart));
+            xaml = xaml.Replace("{{GradientMid}}", CleanColorString(_style.GradientMid));
+            xaml = xaml.Replace("{{GradientEnd}}", CleanColorString(_style.GradientEnd));
 
             try
             {
@@ -796,8 +1048,40 @@ namespace ControlDesigner
                 _currentControlType = ControlType.ButtonInput;
                 if (isDefaultText || currentName == "Button") TxtControlName.Text = "MyButton";
             }
+            else if (sender == TabLed)
+            {
+                _currentControlType = ControlType.LedIndicator;
+                if (isDefaultText) TxtControlName.Text = "MyLed";
+            }
+            else if (sender == TabToggle)
+            {
+                _currentControlType = ControlType.ToggleSwitch;
+                if (isDefaultText) TxtControlName.Text = "MyToggle";
+            }
+            else if (sender == TabProgress)
+            {
+                _currentControlType = ControlType.ProgressBarInput;
+                if (isDefaultText) TxtControlName.Text = "MyProgressBar";
+            }
 
+            UpdateSidebarVisibility();
             UpdatePreview();
+        }
+
+        private void UpdateSidebarVisibility()
+        {
+            if (GroupBackground == null) return;
+            bool isSimple = _currentControlType == ControlType.LedIndicator
+                         || _currentControlType == ControlType.ToggleSwitch
+                         || _currentControlType == ControlType.ProgressBarInput;
+
+            GroupBackground.Visibility = isSimple ? Visibility.Collapsed : Visibility.Visible;
+            GroupBorder.Visibility = isSimple ? Visibility.Collapsed : Visibility.Visible;
+            // LED 显示阴影组（用于控制发光晕效果）
+            GroupShadow.Visibility = (isSimple && _currentControlType != ControlType.LedIndicator) ? Visibility.Collapsed : Visibility.Visible;
+            GroupFocus.Visibility = (_currentControlType == ControlType.LedIndicator) ? Visibility.Collapsed : Visibility.Visible;
+            GroupFont.Visibility = Visibility.Visible;
+            GroupLedColors.Visibility = _currentControlType == ControlType.LedIndicator ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OnStyleChanged(object sender, TextChangedEventArgs e)
@@ -854,28 +1138,39 @@ namespace ControlDesigner
 
         private void BtnExport_Click(object sender, RoutedEventArgs e)
         {
-            // 读取并验证控件名称
-            string controlName = TxtControlName.Text.Trim();
-            if (string.IsNullOrEmpty(controlName))
+            ExportControl(false);
+        }
+
+        private void BtnExportAll_Click(object sender, RoutedEventArgs e)
+        {
+            ExportControl(true);
+        }
+
+        private void ExportControl(bool exportAll)
+        {
+            // 读取并验证程序集名称
+            string assemblyName = TxtControlName.Text.Trim();
+            if (string.IsNullOrEmpty(assemblyName))
             {
-                MessageBox.Show("请输入控件名称", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("请输入程序集名称", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 TxtControlName.Focus();
                 return;
             }
-            // 验证名称合法性（C# 标识符规范）
-            if (!System.Text.RegularExpressions.Regex.IsMatch(controlName, @"^[A-Za-z_][A-Za-z0-9_]*$"))
+            if (!System.Text.RegularExpressions.Regex.IsMatch(assemblyName, @"^[A-Za-z_][A-Za-z0-9_]*$"))
             {
-                MessageBox.Show("控件名称只能包含字母、数字和下划线，且不能以数字开头",
+                MessageBox.Show("程序集名称只能包含字母、数字和下划线，且不能以数字开头",
                     "名称无效", MessageBoxButton.OK, MessageBoxImage.Warning);
                 TxtControlName.Focus();
                 return;
             }
 
+            string defaultFileName = exportAll ? "MyControlAll.dll" : assemblyName + ".dll";
+
             var dlg = new SaveFileDialog
             {
-                Title = "导出 DLL",
+                Title = exportAll ? "导出 DLL（包含全部控件）" : $"导出 DLL（{_currentControlType}）",
                 Filter = "DLL 文件|*.dll",
-                FileName = controlName + ".dll",
+                FileName = defaultFileName,
             };
 
             try
@@ -888,157 +1183,137 @@ namespace ControlDesigner
 
             if (dlg.ShowDialog() == true)
             {
-                TxtStatus.Text = "⏳ 正在编译 " + controlName + "...";
+                TxtStatus.Text = exportAll ? "⏳ 正在编译所有控件..." : $"⏳ 正在编译 {_currentControlType}...";
                 TxtStatus.Foreground = TryParseBrush("#FFD080", Brushes.Yellow);
 
                 var style = _style.Clone();
                 var outputPath = dlg.FileName;
-                string name = controlName; // 捕获到闭包
-                ControlType type = _currentControlType;
+                string name = System.IO.Path.GetFileNameWithoutExtension(outputPath);
+                name = System.Text.RegularExpressions.Regex.Replace(name, @"[^A-Za-z0-9_]", "_");
+                if (name.Length > 0 && char.IsDigit(name[0])) name = "_" + name;
+                ControlType targetControl = _currentControlType;
 
                 System.Threading.Tasks.Task.Run(() =>
                 {
-                    var result = _exporter.Export(style, outputPath, name, type);
+                    var result = exportAll ? _exporter.ExportAll(style, outputPath, name) : _exporter.Export(style, outputPath, name, targetControl);
                     Dispatcher.Invoke(() =>
                     {
                         if (result.Success)
                         {
-                            string panelName;
-                            if (type == ControlType.TextInput) panelName = "TextInputPanel";
-                            else if (type == ControlType.NumericDisplay) panelName = "NumericDisplayPanel";
-                            else if (type == ControlType.ComboBoxInput) panelName = "ComboBoxPanel";
-                            else if (type == ControlType.SliderInput) panelName = "SliderPanel";
-                            else panelName = "ButtonPanel";
-
-                            // 预备说明文档的 API 内容
-                            string apiDocs = "";
-                            if (type == ControlType.TextInput)
-                            {
-                                apiDocs = @"【属性】
-- Text (String) : 获取或设置输入框的文本
-- LabelText (String) : 获取或设置标签文字
-
-【方法】
-- SetLabelVisible(Boolean visible) : 隐藏/显示标签文字
-- SetScrollBarVisible(Boolean visible) : 启用/关闭多行模式和长文本的垂直滚动条
-
-【事件】
-- ValueChanged : 当输入框内的文本发生改变时触发（输出 OldValue, NewValue）";
-                            }
-                            else if (type == ControlType.NumericDisplay)
-                            {
-                                apiDocs = @"【属性】
-- ValueStr (String) : 获取或设置显示的当前值（字符串类型，因为带有格式化形式）
-- LabelText (String) : 获取或设置标签文字
-- Unit (String) : 获取或设置单位文本 (如 V, mA)
-
-【方法】
-- WriteDouble(Double value, String format) : 配合格式化字符串写入数值（如 format=""F2"" 代表保留两位小数）
-- WriteString(String value) : 直接写入字符串形式的值
-- Clear() : 清空数值显示
-- SetLabelVisible(Boolean visible) : 显示或隐藏标签
-- SetUnitVisible(Boolean visible) : 显示或隐藏单位";
-                            }
-                            else if (type == ControlType.ComboBoxInput)
-                            {
-                                apiDocs = @"【属性】
-- LabelText (String) : 获取或设置标签文字
-- SelectedIndex (Int32) : 获取或设置选中的项目索引
-- TextValue (String) : 获取或设置选中的文本值
-
-【方法】
-- AddItem(String item) : 增加下拉框选项
-- ClearItems() : 清空所有选项
-- SetLabelVisible(Boolean visible) : 显示或隐藏标签
-
-【事件】
-- ValueChanged : 当选择变化时触发（输出 SelectedIndex, SelectedItem）";
-                            }
-                            else if (type == ControlType.SliderInput)
-                            {
-                                apiDocs = @"【属性】
-- LabelText (String) : 获取或设置标签文字
-- Value (Double) : 滑动杆的当前数值
-- Minimum (Double) : 最小数值
-- Maximum (Double) : 最大数值
-- TickFrequency (Double) : 步进和刻度值
-- IsSnapToTickEnabled (Boolean) : 是否自动吸附到步长点
-
-【方法】
-- SetLabelVisible(Boolean visible) : 显示或隐藏标签
-- SetValueVisible(Boolean visible) : 显示或隐藏右侧的数值文字
-
-【事件】
-- ValueChanged : 当拖动数值变化时触发（输出 OldValue, NewValue）";
-                            }
-                            else if (type == ControlType.ButtonInput)
-                            {
-                                apiDocs = @"【属性】
-- LabelText (String) : 按钮上显示的文本
-- Value (Boolean) : 按钮此时是否处于按下的激活状态（支持只读与外部修改）
-- Behavior (Enum/Int32) : 控制动作发生的时机逻辑。
-   0: SwitchWhenPressed (按下时切换并保持状态)
-   1: SwitchWhenReleased (抬起时切换并保持状态)
-   2: SwitchUntilReleased (保持按下直到抬起)
-   3: LatchWhenPressed (按下时即触发瞬时脉冲，发出 false..true..false)
-   4: LatchWhenReleased (抬起时才触发瞬时脉冲，发出 false..true..false)
-
-【方法】
-- SetLabelVisible(Boolean visible) : 显示或隐藏文字
-
-【事件】
-- Click : 当按钮被点击时触发（无特殊参数）";
-                            }
-
-                            // 写样式信息和 JSON 配置
                             try
                             {
                                 string infoPath = Path.ChangeExtension(outputPath, ".style.txt");
-                                var info = $@"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-【 {name} 控件使用说明书 】
+                                string singleControlInfo = $"     -> {name}.{targetControl}Panel";
+                                string allControlInfo = $@"     -> {name}.TextInputPanel      (文本输入)
+     -> {name}.NumericDisplayPanel  (数值显示)
+     -> {name}.ComboBoxPanel        (下拉框)
+     -> {name}.SliderPanel          (滑动杆)
+     -> {name}.ButtonPanel          (按钮)
+     -> {name}.LedPanel             (LED 指示灯)
+     -> {name}.ToggleSwitchPanel    (开关)
+     -> {name}.ProgressBarPanel     (进度条)";
+
+                                 var info = $@"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【 {name} 控件库 API 使用说明书 】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ■ LabVIEW 引用方式：
-  1. 在前面板放置一个 [.NET 容器] (位于.NET与ActiveX选板)。
+  1. 在前面板放置一个 [.NET 容器] (位于.NET与ActiveX选板)
   2. 右键容器 -> 插入 .NET 控件... -> 右上角 [浏览...]
-  3. 选择刚刚导出的 DLL 文件：{outputPath}
-  4. 从对象列表中选择对应的包装程序集类型：
-     -> {name}.{panelName}
-  5. 点击确定即可将此漂亮控件载入 LabVIEW！
-  * (注：如果要覆盖旧版本的 DLL，必须彻底退出全部 LabVIEW 进程后重启)
+  3. 选择生成的 DLL：{outputPath}
+  4. 从对象列表中选择您需要的控件：
+{(exportAll ? allControlInfo : singleControlInfo)}
 
-■ 控件开放的 API 接口 (可通过【属性节点/调用节点/事件回调】访问)：
-{apiDocs}
+
+■ 通用外观属性 (所有控件可用)：
+  - BackColor   (属性) : 背景底色 (对应透明变色，控制最外围颜色)
+  - ForeColor   (属性) : 前置字色/标签色
+  - Font        (属性) : 字体样式及大小
+
+
+■ 各控件专有 API：
+  ▶ TextInputPanel (文本输入框)
+    - Text      (属性) : 获取或设置内部文本内容
+    - LabelText (属性) : 获取或设置左上方的标签文字
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+
+  ▶ NumericDisplayPanel (数值显示框)
+    - ValueStr  (属性) : 主体数字部分（字符串格式）
+    - Unit      (属性) : 显示在数字右侧的单位（如 ""mA""）
+    - LabelText (属性) : 获取或设置左上方的标签文字
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - SetUnitVisible (方法) : 设置单位是否可见
+
+  ▶ SliderPanel (滑动杆)
+    - Value     (属性) : 获取或设置当前游标对应的数值
+    - Minimum   (属性) : 获取或设置最小值
+    - Maximum   (属性) : 获取或设置最大值
+    - TickFrequency (属性) : 拖动滑块时的离散步长步进值
+    - IsSnapToTickEnabled (属性) : 启用或关闭拖拽时吸附
+    - LabelText (属性) : 获取或设置标题文字
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+
+  ▶ ProgressBarPanel (进度条)
+    - Value     (属性) : 获取或设置当前进度值
+    - Minimum   (属性) : 获取或设置最小值
+    - Maximum   (属性) : 获取或设置最大值
+    - ShowPercentage (属性) : 决定是否显示中间百分比文本
+    - LabelText (属性) : 获取或设置标题文字
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+
+  ▶ LedPanel (LED 指示灯)
+    - IsOn        (属性) : 设为 true 亮灯，false 灭灯
+    - ActiveColor (属性) : 支持动态更改亮灯时的颜色 (HEX 如 ""#FF0000"")
+    - LabelText   (属性) : 获取或设置指示灯左侧显示的标签文本
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - ValueChanged(事件) : 状态变化时触发
+
+  ▶ ToggleSwitchPanel (开关)
+    - IsOn        (属性) : 设为 true 开启，false 关闭
+    - ActiveColor (属性) : 动态更改开状态的轨道颜色
+    - LabelText   (属性) : 获取或设置开关左上方显示的标签文本
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - ValueChanged(事件) : 点击切换开关时触发，回传 oldValue, newValue
+
+  ▶ ComboBoxPanel (下拉框)
+    - Items        (属性) : 支持通过一维字符串数组直接读写下拉框的所有选项
+    - SelectedIndex(属性) : 当前选中的索引 (-1为空)
+    - TextValue    (属性) : 获取用户当前选中项的实际字符串值
+    - LabelText    (属性) : 获取或设置下拉框上方的标题标签
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - ValueChanged (事件) : 点选不同选项时触发，提供选中 selectedIndex 与 selectedItem
+
+  ▶ ButtonPanel (按钮)
+    - Value        (属性) : 按钮当前的开启/激活状态
+    - Behavior     (属性) : 按钮行为模式（如 Click, Switch 等）
+    - LabelText    (属性) : 按钮上显示的文本
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - Click        (事件) : 按钮被按下或状态发生时触发，回传 oldValue, newValue
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-■ 导出附带信息
-名称: {name}
-时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
-主色调: {style.ControlBackground} (底板), {style.FontColor} (文字), {style.GradientStart} (渐变)
+■ 导出信息
+名称: {name}   时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
                                 File.WriteAllText(infoPath, info);
 
                                 string jsonPath = Path.ChangeExtension(outputPath, ".style.json");
                                 var serializer = new JavaScriptSerializer();
                                 string json = serializer.Serialize(style);
-                                // 简单格式化
                                 json = json.Replace("\",\"", "\",\n  \"").Replace("{\"", "{\n  \"").Replace("\"}", "\"\n}");
                                 File.WriteAllText(jsonPath, json);
                             }
                             catch { }
 
-                            TxtStatus.Text = $"✅ {name}.dll 导出成功";
+                            string msgText = exportAll ? "✅ {0}.dll 导出成功（含 8 种控件）" : "✅ {0}.dll 导出成功";
+                            TxtStatus.Text = string.Format(msgText, name);
                             TxtStatus.Foreground = TryParseBrush("#70E070", Brushes.LightGreen);
 
+                            string boxMsg = exportAll 
+                                ? $"DLL 已导出：\n{outputPath}\n\n━━ 包含 8 种控件 ━━\nTextInputPanel · NumericDisplayPanel\nComboBoxPanel · SliderPanel · ButtonPanel\nLedPanel · ToggleSwitchPanel · ProgressBarPanel\n\n📄 详细文档已同时生成"
+                                : $"DLL 已导出：\n{outputPath}\n\n📄 API 使用说明及配置已同时生成";
+
                             MessageBox.Show(
-                                $"DLL 已导出:\n{outputPath}\n\n" +
-                                $"━━ LabVIEW 使用方法 ━━\n" +
-                                $"程序集: {name}.dll\n" +
-                                $"类型:   {name}.{panelName}\n\n" +
-                                $"━━ 样式信息 ━━\n" +
-                                $"背景: {style.ControlBackground}\n" +
-                                $"字色: {style.FontColor}\n\n" +
-                                "💡 不同名称的控件可在同一 LabVIEW 中同时使用！",
+                                boxMsg,
                                 "导出成功 — " + name,
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Information);
@@ -1048,6 +1323,18 @@ namespace ControlDesigner
                             string errMsg = result.ErrorMessage ?? "导出失败";
                             if (!string.IsNullOrEmpty(result.BuildErrors))
                                 errMsg += "\n\n编译错误:\n" + result.BuildErrors;
+
+                            try
+                            {
+                                string logPath = Path.Combine(Path.GetDirectoryName(outputPath) ?? "", name + "_ErrorLog.txt");
+                                string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 导出控件 {name} 失败\r\n\r\n" +
+                                                    $"【错误详情】\r\n{errMsg}\r\n\r\n" +
+                                                    $"【完整编译输出】\r\n{result.BuildOutput}";
+                                File.WriteAllText(logPath, logContent);
+                                errMsg += $"\n\n👉 详细报错日志已保存至:\n{logPath}";
+                            }
+                            catch { }
+
                             TxtStatus.Text = "❌ 导出失败";
                             TxtStatus.Foreground = TryParseBrush("#FF6060", Brushes.Red);
                             MessageBox.Show(errMsg, "导出失败", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -1066,8 +1353,15 @@ namespace ControlDesigner
             try
             {
                 if (string.IsNullOrWhiteSpace(hex)) return fallback;
-                if (hex.Trim().Equals("Transparent", StringComparison.OrdinalIgnoreCase)) return Brushes.Transparent;
-                return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+                string cleanHex = hex.Trim();
+                if (cleanHex.Equals("Transparent", StringComparison.OrdinalIgnoreCase)) return Brushes.Transparent;
+                
+                // 去除可能存在的多余井号并确保以单个井号开头
+                cleanHex = cleanHex.TrimStart('#');
+                if (cleanHex.Length > 0) cleanHex = "#" + cleanHex;
+                else return fallback;
+
+                return new SolidColorBrush((Color)ColorConverter.ConvertFromString(cleanHex));
             }
             catch { return fallback; }
         }
@@ -1077,8 +1371,15 @@ namespace ControlDesigner
             try
             {
                 if (string.IsNullOrWhiteSpace(hex)) return fallback;
-                if (hex.Trim().Equals("Transparent", StringComparison.OrdinalIgnoreCase)) return Colors.Transparent;
-                return (Color)ColorConverter.ConvertFromString(hex);
+                string cleanHex = hex.Trim();
+                if (cleanHex.Equals("Transparent", StringComparison.OrdinalIgnoreCase)) return Colors.Transparent;
+                
+                // 去除可能存在的多余井号并确保以单个井号开头
+                cleanHex = cleanHex.TrimStart('#');
+                if (cleanHex.Length > 0) cleanHex = "#" + cleanHex;
+                else return fallback;
+
+                return (Color)ColorConverter.ConvertFromString(cleanHex);
             }
             catch { return fallback; }
         }
@@ -1095,6 +1396,19 @@ namespace ControlDesigner
             }
             catch { }
             return new Thickness(12, 8, 12, 6);
+        }
+
+        private static string CleanColorString(string hex)
+        {
+            if (string.IsNullOrWhiteSpace(hex)) return "#FFFFFF";
+            string s = hex.Trim();
+            if (s.Equals("Transparent", StringComparison.OrdinalIgnoreCase)) return "Transparent";
+            
+            // 核心逻辑：去除所有井号前缀，然后补回一个标准井号
+            s = s.TrimStart('#');
+            if (string.IsNullOrEmpty(s)) return "#FFFFFF";
+            
+            return "#" + s;
         }
 
         #endregion

@@ -1,0 +1,51 @@
+<UserControl x:Class="WpfTextInput.ProgressBarControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{{ControlBackground}}"
+             HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch">
+
+    <Grid Margin="8" VerticalAlignment="Center">
+        <!-- 顶部: 标签 + 百分比 -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="2,0,2,4">
+            <TextBlock x:Name="LabelBlock"
+                       Text="进度"
+                       FontFamily="{{FontFamily}}"
+                       FontSize="{{LabelFontSize}}"
+                       FontWeight="SemiBold"
+                       Foreground="{{LabelColor}}"
+                       HorizontalAlignment="Left"/>
+            <TextBlock x:Name="PercentBlock"
+                       Text="0%"
+                       FontFamily="{{FontFamily}}"
+                       FontSize="{{LabelFontSize}}"
+                       FontWeight="SemiBold"
+                       Foreground="{{FontColor}}"
+                       HorizontalAlignment="Right"/>
+        </Grid>
+
+        <!-- 进度轨道 -->
+        <Border x:Name="TrackBorder" Grid.Row="1" Height="10" CornerRadius="5"
+                Margin="2,0">
+            <Border.Background>
+                <SolidColorBrush Color="#D0D4DA" Opacity="0.5"/>
+            </Border.Background>
+            <Grid>
+                <Border x:Name="FillBar" CornerRadius="5"
+                        HorizontalAlignment="Left" Width="0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop x:Name="FillColorStart" Color="{{AccentColor}}" Offset="0"/>
+                            <GradientStop x:Name="FillColorEnd" Color="{{FocusBorderColor}}" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

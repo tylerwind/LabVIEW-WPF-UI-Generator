@@ -27,6 +27,21 @@ namespace ControlDesigner.Models
         /// <summary>
         /// 按钮
         /// </summary>
-        ButtonInput
+        ButtonInput,
+
+        /// <summary>
+        /// LED 指示灯
+        /// </summary>
+        LedIndicator,
+
+        /// <summary>
+        /// Toggle 开关
+        /// </summary>
+        ToggleSwitch,
+
+        /// <summary>
+        /// 进度条
+        /// </summary>
+        ProgressBarInput
     }
 }

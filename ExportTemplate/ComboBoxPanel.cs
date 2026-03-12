@@ -93,6 +93,40 @@ namespace WpfComboBox
         }
 
         /// <summary>
+        /// 获取或设置下拉框的选项列表
+        /// </summary>
+        [Category("Data"), Description("下拉框的选项列表")]
+        public string[] Items
+        {
+            get
+            {
+                var list = new System.Collections.Generic.List<string>();
+                if (_wpfControl != null)
+                {
+                    foreach (var item in _wpfControl.Items)
+                    {
+                        list.Add(item?.ToString() ?? string.Empty);
+                    }
+                }
+                return list.ToArray();
+            }
+            set
+            {
+                if (_wpfControl != null)
+                {
+                    _wpfControl.ClearItems();
+                    if (value != null)
+                    {
+                        foreach (var item in value)
+                        {
+                            _wpfControl.AddItem(item);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 添加选项
         /// </summary>
         public void AddItem(string item)

@@ -1,0 +1,88 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【 MyControlAll 控件库 API 使用说明书 】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+■ LabVIEW 引用方式：
+  1. 在前面板放置一个 [.NET 容器] (位于.NET与ActiveX选板)
+  2. 右键容器 -> 插入 .NET 控件... -> 右上角 [浏览...]
+  3. 选择生成的 DLL：D:\Tyler\公众号\LabVIEW-WPF-UI-Generator\UI\MyControlAll.dll
+  4. 从对象列表中选择您需要的控件：
+     -> MyControlAll.TextInputPanel      (文本输入)
+     -> MyControlAll.NumericDisplayPanel  (数值显示)
+     -> MyControlAll.ComboBoxPanel        (下拉框)
+     -> MyControlAll.SliderPanel          (滑动杆)
+     -> MyControlAll.ButtonPanel          (按钮)
+     -> MyControlAll.LedPanel             (LED 指示灯)
+     -> MyControlAll.ToggleSwitchPanel    (开关)
+     -> MyControlAll.ProgressBarPanel     (进度条)
+
+
+■ 通用外观属性 (所有控件可用)：
+  - BackColor   (属性) : 背景底色 (对应透明变色，控制最外围颜色)
+  - ForeColor   (属性) : 前置字色/标签色
+  - Font        (属性) : 字体样式及大小
+
+
+■ 各控件专有 API：
+  ▶ TextInputPanel (文本输入框)
+    - Text      (属性) : 获取或设置内部文本内容
+    - LabelText (属性) : 获取或设置左上方的标签文字
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+
+  ▶ NumericDisplayPanel (数值显示框)
+    - ValueStr  (属性) : 主体数字部分（字符串格式）
+    - Unit      (属性) : 显示在数字右侧的单位（如 "mA"）
+    - LabelText (属性) : 获取或设置左上方的标签文字
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - SetUnitVisible (方法) : 设置单位是否可见
+
+  ▶ SliderPanel (滑动杆)
+    - Value     (属性) : 获取或设置当前游标对应的数值
+    - Minimum   (属性) : 获取或设置最小值
+    - Maximum   (属性) : 获取或设置最大值
+    - TickFrequency (属性) : 拖动滑块时的离散步长步进值
+    - IsSnapToTickEnabled (属性) : 启用或关闭拖拽时吸附
+    - LabelText (属性) : 获取或设置标题文字
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+
+  ▶ ProgressBarPanel (进度条)
+    - Value     (属性) : 获取或设置当前进度值
+    - Minimum   (属性) : 获取或设置最小值
+    - Maximum   (属性) : 获取或设置最大值
+    - ShowPercentage (属性) : 决定是否显示中间百分比文本
+    - LabelText (属性) : 获取或设置标题文字
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+
+  ▶ LedPanel (LED 指示灯)
+    - IsOn        (属性) : 设为 true 亮灯，false 灭灯
+    - ActiveColor (属性) : 支持动态更改亮灯时的颜色 (HEX 如 "#FF0000")
+    - LabelText   (属性) : 获取或设置指示灯左侧显示的标签文本
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - ValueChanged(事件) : 状态变化时触发
+
+  ▶ ToggleSwitchPanel (开关)
+    - IsOn        (属性) : 设为 true 开启，false 关闭
+    - ActiveColor (属性) : 动态更改开状态的轨道颜色
+    - LabelText   (属性) : 获取或设置开关左上方显示的标签文本
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - ValueChanged(事件) : 点击切换开关时触发，回传 oldValue, newValue
+
+  ▶ ComboBoxPanel (下拉框)
+    - Items        (属性) : 支持通过一维字符串数组直接读写下拉框的所有选项
+    - SelectedIndex(属性) : 当前选中的索引 (-1为空)
+    - TextValue    (属性) : 获取用户当前选中项的实际字符串值
+    - LabelText    (属性) : 获取或设置下拉框上方的标题标签
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - ValueChanged (事件) : 点选不同选项时触发，提供选中 selectedIndex 与 selectedItem
+
+  ▶ ButtonPanel (按钮)
+    - Value        (属性) : 按钮当前的开启/激活状态
+    - Behavior     (属性) : 按钮行为模式（如 Click, Switch 等）
+    - LabelText    (属性) : 按钮上显示的文本
+    - SetLabelVisible(方法) : 设置标签是否可见 (true/false)
+    - Click        (事件) : 按钮被按下或状态发生时触发，回传 oldValue, newValue
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 导出信息
+名称: MyControlAll   时间: 2026-03-12 17:16:14
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

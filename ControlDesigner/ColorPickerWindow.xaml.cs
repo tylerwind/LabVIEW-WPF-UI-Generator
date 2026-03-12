@@ -170,9 +170,22 @@ namespace ControlDesigner
         {
             if (_suppressHexUpdate) return;
             string hex = TxtHex.Text.Trim();
-            if (!hex.Equals("Transparent", StringComparison.OrdinalIgnoreCase) && !hex.StartsWith("#") && hex.Length > 0) 
-                hex = "#" + hex;
-            SelectedColor = hex;
+            
+            if (string.IsNullOrEmpty(hex))
+            {
+                SelectedColor = "#FFFFFF";
+            }
+            else if (hex.Equals("Transparent", StringComparison.OrdinalIgnoreCase))
+            {
+                SelectedColor = "Transparent";
+            }
+            else
+            {
+                // 处理双井号或缺失井号
+                string cleanHex = hex.TrimStart('#');
+                SelectedColor = "#" + cleanHex;
+            }
+            
             UpdatePreview();
         }
 

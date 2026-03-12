@@ -60,7 +60,6 @@ namespace WpfButton
                 {
                     bool old = _value;
                     _value = value;
-                    UpdateActiveStateVisual(value);
                     UpdatePhysicalDepthState();
                     Click?.Invoke(old, value);
                 }
@@ -217,12 +216,6 @@ namespace WpfButton
                 PartShadow.BeginAnimation(DropShadowEffect.BlurRadiusProperty, new DoubleAnimation(targetBlur, duration));
                 PartShadow.BeginAnimation(DropShadowEffect.OpacityProperty, new DoubleAnimation(targetOpacity, duration));
             }
-        }
-
-        private void UpdateActiveStateVisual(bool isActive)
-        {
-            var anim = new DoubleAnimation(isActive ? 1.0 : 0.0, TimeSpan.FromSeconds(0.2));
-            CheckedOverlay.BeginAnimation(UIElement.OpacityProperty, anim);
         }
 
         #endregion

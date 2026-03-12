@@ -104,23 +104,27 @@ namespace WpfSlider
         private void InputBox_GotFocus(object sender, RoutedEventArgs e)
         {
             LabelBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x50, 0x68));
-            var focusIn = (Storyboard)FindResource("FocusIn");
-            focusIn.Begin(this);
         }
 
         private void InputBox_LostFocus(object sender, RoutedEventArgs e)
         {
             LabelBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x8A, 0x90, 0xA0));
-            var focusOut = (Storyboard)FindResource("FocusOut");
-            focusOut.Begin(this);
         }
 
         private void InputBox_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (ValueBlock != null)
-                ValueBlock.Text = e.NewValue.ToString("F2");
+            try
+            {
+                if (ValueBlock != null)
+                    ValueBlock.Text = e.NewValue.ToString("F2");
 
-            ValueChanged?.Invoke(e.OldValue, e.NewValue);
+                ValueChanged?.Invoke(e.OldValue, e.NewValue);
+            }
+            catch (Exception ex)
+            {
+                string path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SliderCrashLog.txt");
+                System.IO.File.AppendAllText(path, DateTime.Now.ToString() + " : " + ex.ToString() + Environment.NewLine);
+            }
         }
 
         #endregion

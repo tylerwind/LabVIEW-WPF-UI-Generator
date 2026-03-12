@@ -1,0 +1,55 @@
+<UserControl x:Class="WpfTextInput.ToggleSwitchControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{{ControlBackground}}"
+             HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch"
+             MouseLeftButtonDown="UserControl_MouseLeftButtonDown"
+             Cursor="Hand">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- 标签：固定字号，不随容器缩放 -->
+        <TextBlock x:Name="LabelBlock"
+                   Grid.Column="0"
+                   Text="开关"
+                   FontFamily="{{FontFamily}}"
+                   FontSize="{{LabelFontSize}}"
+                   Foreground="{{FontColor}}"
+                   VerticalAlignment="Center"
+                   Margin="8,0,10,0"/>
+
+        <!-- 开关轨道：Viewbox 使其等比例填充剩余空间 -->
+        <Viewbox Grid.Column="1" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,6,8,6">
+            <Grid Width="48" Height="26" VerticalAlignment="Center">
+                <!-- 滑轨 -->
+                <Border x:Name="Track" CornerRadius="13">
+                    <Border.Background>
+                        <SolidColorBrush x:Name="TrackBrush" Color="#C8CCD0"/>
+                    </Border.Background>
+                </Border>
+                <!-- 把手 -->
+                <Border x:Name="Thumb" Width="22" Height="22"
+                        CornerRadius="11" HorizontalAlignment="Left" Margin="2,0,0,0">
+                    <Border.RenderTransform>
+                        <TranslateTransform x:Name="ThumbTranslate" X="0"/>
+                    </Border.RenderTransform>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0.5,1">
+                            <GradientStop Color="#FFFFFF" Offset="0"/>
+                            <GradientStop Color="#F0F0F0" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Direction="315"
+                                          Color="#666" Opacity="0.3"/>
+                    </Border.Effect>
+                </Border>
+            </Grid>
+        </Viewbox>
+    </Grid>
+</UserControl>
