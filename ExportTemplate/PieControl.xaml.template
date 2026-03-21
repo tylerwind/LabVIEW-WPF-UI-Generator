@@ -23,56 +23,49 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="SeriesColumn" Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
 
-            <!-- 表头不再居于最顶层，而是挪到下方 Grid 包裹中，在饼图正上方 -->
+            <!-- 顶部标题区域 -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,16" HorizontalAlignment="Center">
+                <TextBlock x:Name="LabelBlock" Text="{{ChartTitle}}" FontFamily="{{FontFamily}}" FontSize="{{FontSize}}" FontWeight="Bold" Foreground="{{FontColor}}" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="DescBlock" Text="{{ChartSubtitle}}" FontFamily="{{FontFamily}}" FontSize="{{LabelFontSize}}" Foreground="{{LabelColor}}" HorizontalAlignment="Center" Visibility="Collapsed"/>
+            </StackPanel>
 
-            <!-- 区域 1: 左侧数值卡片 (固定宽度) -->
-            <Border x:Name="SeriesCardHost" Grid.Row="1" Grid.Column="0" Margin="0,0,24,0" Width="200" VerticalAlignment="Center" Visibility="{{ChartShowSeriesCardsVisibility}}">
-                <Border.Effect>
-                    <StaticResource ResourceKey="SeriesCardShadow" />
-                </Border.Effect>
-                <Border.Background>
-                    <StaticResource ResourceKey="SeriesCardBackground" />
-                </Border.Background>
-                <Border.BorderBrush>
-                    <StaticResource ResourceKey="SeriesCardBorder" />
-                </Border.BorderBrush>
-                <Border.BorderThickness>
-                    <Thickness>{{BorderThickness}}</Thickness>
-                </Border.BorderThickness>
-                <Border.CornerRadius>
-                    <CornerRadius>{{CornerRadius}}</CornerRadius>
-                </Border.CornerRadius>
+            <!-- 居中包裹的面包块，保证卡片和饼图永远挤在一团并整体居中 -->
+            <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="SeriesColumn" Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                <ScrollViewer x:Name="SeriesScrollViewer" Margin="12,10,12,10" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
-                    <StackPanel x:Name="SeriesPanel" />
-                </ScrollViewer>
-            </Border>
+                <!-- 区域 1: 左侧数值卡片 (固定宽度) -->
+                <Border x:Name="SeriesCardHost" Grid.Column="0" Margin="0,0,24,0" Width="180" VerticalAlignment="Center" Visibility="{{ChartShowSeriesCardsVisibility}}">
+                    <Border.Effect>
+                        <StaticResource ResourceKey="SeriesCardShadow" />
+                    </Border.Effect>
+                    <Border.Background>
+                        <StaticResource ResourceKey="SeriesCardBackground" />
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <StaticResource ResourceKey="SeriesCardBorder" />
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>
+                        <Thickness>{{BorderThickness}}</Thickness>
+                    </Border.BorderThickness>
+                    <Border.CornerRadius>
+                        <CornerRadius>{{CornerRadius}}</CornerRadius>
+                    </Border.CornerRadius>
 
-            <!-- 区域 2: 右侧饼图区域 (响应式缩放) -->
-            <Grid Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                    <ScrollViewer x:Name="SeriesScrollViewer" Margin="12,10,12,10" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly" MaxHeight="250">
+                        <StackPanel x:Name="SeriesPanel" />
+                    </ScrollViewer>
+                </Border>
 
-                <StackPanel Grid.Row="0" Margin="0,0,0,12" HorizontalAlignment="Center">
-                    <TextBlock x:Name="LabelBlock" Text="{{ChartTitle}}" FontFamily="{{FontFamily}}" FontSize="{{FontSize}}" FontWeight="Bold" Foreground="{{FontColor}}" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="DescBlock" Text="{{ChartSubtitle}}" FontFamily="{{FontFamily}}" FontSize="{{LabelFontSize}}" Foreground="{{LabelColor}}" HorizontalAlignment="Center" Visibility="Collapsed"/>
-                </StackPanel>
-
-                <Grid Grid.Row="1" ClipToBounds="False" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <Canvas x:Name="PieCanvas"/>
+                <!-- 区域 2: 右侧饼图绘制区 (画布尺寸依代码动态设定) -->
+                <Grid Grid.Column="1" ClipToBounds="False" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Canvas x:Name="PieCanvas" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
             </Grid>
-
-            <!-- 移除底部多余图例 -->
         </Grid>
     </Grid>
 </UserControl>

@@ -40,6 +40,7 @@ namespace WpfPie
                 _showSeriesCards = value;
                 if (SeriesCardHost != null) SeriesCardHost.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
                 if (SeriesColumn != null) SeriesColumn.Width = value ? GridLength.Auto : new GridLength(0);
+                UpdateCanvasSize();
                 Redraw();
             }
         }
@@ -83,7 +84,23 @@ namespace WpfPie
 
         private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            UpdateCanvasSize();
             Redraw();
+        }
+
+        private void UpdateCanvasSize()
+        {
+            if (PieCanvas == null) return;
+            // Available height for pie (minus header/padding estimation)
+            double availH = this.ActualHeight - 60; 
+            double availW = this.ActualWidth;
+            if (ShowSeriesCards) availW -= 240; // account for card width and margins
+
+            double size = Math.Min(availH, availW);
+            if (size < 50) size = 50;
+
+            PieCanvas.Width = size;
+            PieCanvas.Height = size;
         }
 
         private void Redraw()
