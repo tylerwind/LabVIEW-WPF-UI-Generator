@@ -42,6 +42,23 @@ namespace ControlDesigner.Models
         /// <summary>
         /// 进度条
         /// </summary>
-        ProgressBarInput
+        ProgressBarInput,
+
+        /// <summary>
+        /// 双重圆角平滑波形图
+        /// </summary>
+        ChartDisplay,
+        /// <summary>
+        /// 饼图
+        /// </summary>
+        PieDisplay,
+        /// <summary>
+        /// 仪表盘
+        /// </summary>
+        GaugeDisplay,
+        /// <summary>
+        /// 极简玻璃态数据表格
+        /// </summary>
+        DataGridDisplay
     }
 }

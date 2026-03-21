@@ -40,8 +40,8 @@
                         HorizontalAlignment="Left" Width="0">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop x:Name="FillColorStart" Color="{{AccentColor}}" Offset="0"/>
-                            <GradientStop x:Name="FillColorEnd" Color="{{FocusBorderColor}}" Offset="1"/>
+                            <GradientStop x:Name="FillColorStart" Color="{{ProgressColor1}}" Offset="0"/>
+                            <GradientStop x:Name="FillColorEnd" Color="{{ProgressColor2}}" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>

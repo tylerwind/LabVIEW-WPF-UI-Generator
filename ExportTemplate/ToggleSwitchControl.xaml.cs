@@ -22,10 +22,30 @@ namespace WpfTextInput
             DependencyProperty.Register("LabelText", typeof(string), typeof(ToggleSwitchControl),
                 new PropertyMetadata("开关", OnLabelTextChanged));
 
+        public static readonly DependencyProperty ActiveColorProperty =
+            DependencyProperty.Register("ActiveColor", typeof(string), typeof(ToggleSwitchControl),
+                new PropertyMetadata("{{ToggleActiveColor}}", OnColorPropertyChanged));
+
+        public static readonly DependencyProperty InactiveColorProperty =
+            DependencyProperty.Register("InactiveColor", typeof(string), typeof(ToggleSwitchControl),
+                new PropertyMetadata("{{ToggleInactiveColor}}", OnColorPropertyChanged));
+
         public string LabelText
         {
             get { return (string)GetValue(LabelTextProperty); }
             set { SetValue(LabelTextProperty, value); }
+        }
+
+        public string ActiveColor
+        {
+            get { return (string)GetValue(ActiveColorProperty); }
+            set { SetValue(ActiveColorProperty, value); }
+        }
+
+        public string InactiveColor
+        {
+            get { return (string)GetValue(InactiveColorProperty); }
+            set { SetValue(InactiveColorProperty, value); }
         }
 
         #endregion
@@ -38,7 +58,7 @@ namespace WpfTextInput
 
         public bool Value
         {
-            get => _value;
+            get { return _value; }
             set
             {
                 if (_value != value)
@@ -46,15 +66,13 @@ namespace WpfTextInput
                     bool old = _value;
                     _value = value;
                     UpdateToggleVisual(true);
-                    ValueChanged?.Invoke(old, value);
+                    if (ValueChanged != null) ValueChanged(old, value);
                 }
             }
         }
 
-        #endregion
 
-        // AccentColor 用于 ON 状态滑轨颜色（从模板注入）
-        private Color _accentColor = (Color)ColorConverter.ConvertFromString("{{AccentColor}}");
+        #endregion
 
         public ToggleSwitchControl()
         {
@@ -69,12 +87,6 @@ namespace WpfTextInput
         {
             if (LabelBlock != null)
                 LabelBlock.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        public void SetAccentColor(string hex)
-        {
-            try { _accentColor = (Color)ColorConverter.ConvertFromString(hex); }
-            catch { }
         }
 
         #endregion
@@ -97,13 +109,28 @@ namespace WpfTextInput
                 c.LabelBlock.Text = e.NewValue as string ?? "开关";
         }
 
+        private static void OnColorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var c = (ToggleSwitchControl)d;
+            c.UpdateToggleVisual(true);
+        }
+
+        private Color ParseColor(string hex, Color fallback)
+        {
+            try { return (Color)ColorConverter.ConvertFromString(hex); }
+            catch { return fallback; }
+        }
+
         private void UpdateToggleVisual(bool animate)
         {
             if (ThumbTranslate == null || TrackBrush == null) return;
 
             // 把手滑动: OFF=0, ON=22 (48 - 22把手 - 4边距)
             double targetX = _value ? 22.0 : 0.0;
-            Color targetTrackColor = _value ? _accentColor : (Color)ColorConverter.ConvertFromString("#C8CCD0");
+            
+            Color activeCol = ParseColor(ActiveColor, (Color)ColorConverter.ConvertFromString("{{ToggleActiveColor}}"));
+            Color inactiveCol = ParseColor(InactiveColor, (Color)ColorConverter.ConvertFromString("{{ToggleInactiveColor}}"));
+            Color targetTrackColor = _value ? activeCol : inactiveCol;
 
             if (animate)
             {

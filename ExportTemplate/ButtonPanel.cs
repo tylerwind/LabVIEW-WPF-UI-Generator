@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
@@ -47,13 +47,17 @@ namespace WpfButton
             _wpfControl.Click += WpfControl_Click;
 
             // 订阅宿主大小改变以刷新阴影区域，防止被裁切
-            this.SizeChanged += (s, e) => { _host.Invalidate(); };
+            this.SizeChanged += delegate(object s, EventArgs e) { 
+                if (_host != null) _host.Invalidate(); 
+            };
+
         }
 
         private void WpfControl_Click(bool oldValue, bool newValue)
         {
-            Click?.Invoke(oldValue, newValue);
+            if (Click != null) Click(oldValue, newValue);
         }
+
 
         #region 给 LabVIEW 或外部代码暴露的属性与方法
 
@@ -63,23 +67,26 @@ namespace WpfButton
         [Category("Appearance"), Description("按钮显示的文本")]
         public string LabelText
         {
-            get => _wpfControl.LabelText;
-            set => _wpfControl.LabelText = value;
+            get { return _wpfControl.LabelText; }
+            set { _wpfControl.LabelText = value; }
         }
+
 
         [Category("Behavior"), Description("动作模式支持：按下切换、抬起切换包、脉冲与保持等")]
         public ButtonActionBehavior Behavior
         {
-            get => _wpfControl.Behavior;
-            set => _wpfControl.Behavior = value;
+            get { return _wpfControl.Behavior; }
+            set { _wpfControl.Behavior = value; }
         }
+
 
         [Category("Data"), Description("按钮的当前激活状态（布尔量）")]
         public bool Value
         {
-            get => _wpfControl.Value;
-            set => _wpfControl.Value = value;
+            get { return _wpfControl.Value; }
+            set { _wpfControl.Value = value; }
         }
+
 
         /// <summary>
         /// 显示或隐藏文本
@@ -99,7 +106,8 @@ namespace WpfButton
                 {
                     _wpfControl.Click -= WpfControl_Click;
                 }
-                _host?.Dispose();
+                if (_host != null) _host.Dispose();
+
             }
             base.Dispose(disposing);
         }

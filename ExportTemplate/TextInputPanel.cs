@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -36,6 +36,7 @@ namespace WpfTextInput
             set { if (_wpfControl != null) _wpfControl.LabelText = value; }
         }
 
+
         /// <summary>
         /// 获取或设置文本内容
         /// </summary>
@@ -47,6 +48,7 @@ namespace WpfTextInput
             get { return _wpfControl != null ? _wpfControl.Text : string.Empty; }
             set { if (_wpfControl != null) _wpfControl.Text = value; }
         }
+
 
         #endregion
 
@@ -168,8 +170,9 @@ namespace WpfTextInput
 
         private void OnWpfValueChanged(string oldValue, string newValue)
         {
-            ValueChanged?.Invoke(oldValue, newValue);
+            if (ValueChanged != null) ValueChanged(oldValue, newValue);
         }
+
 
         protected override void Dispose(bool disposing)
         {
@@ -182,6 +185,7 @@ namespace WpfTextInput
                     _elementHost.Dispose();
                     _elementHost = null;
                 }
+
             }
             base.Dispose(disposing);
         }

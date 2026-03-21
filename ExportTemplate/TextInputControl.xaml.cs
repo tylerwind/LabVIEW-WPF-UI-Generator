@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -129,7 +129,8 @@ namespace WpfTextInput
             if (oldText != newText)
             {
                 _previousText = newText;
-                ValueChanged?.Invoke(oldText, newText);
+                if (ValueChanged != null) ValueChanged(oldText, newText);
+
             }
         }
 

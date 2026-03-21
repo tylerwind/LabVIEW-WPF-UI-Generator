@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
@@ -52,12 +52,16 @@ namespace WpfComboBox
             _wpfControl.SelectionChanged += WpfControl_SelectionChanged;
 
             // 订阅宿主大小改变以刷新阴影区域，防止被裁切
-            this.SizeChanged += (s, e) => { _host.Invalidate(); };
+            this.SizeChanged += delegate(object s, EventArgs e) { 
+                if (_host != null) _host.Invalidate(); 
+            };
+
         }
 
         private void WpfControl_SelectionChanged(int selectedIndex, object selectedItem)
         {
-            ValueChanged?.Invoke(selectedIndex, selectedItem?.ToString() ?? string.Empty);
+            if (ValueChanged != null) ValueChanged(selectedIndex, selectedItem != null ? selectedItem.ToString() : string.Empty);
+
         }
 
         #region 给 LabVIEW 或外部代码暴露的属性与方法
@@ -68,9 +72,10 @@ namespace WpfComboBox
         [Category("Appearance"), Description("下拉框左上方显示的标签文本")]
         public string LabelText
         {
-            get => _wpfControl.LabelText;
-            set => _wpfControl.LabelText = value;
+            get { return _wpfControl.LabelText; }
+            set { _wpfControl.LabelText = value; }
         }
+
 
         /// <summary>
         /// 获取或设置当前选中项的索引
@@ -78,9 +83,10 @@ namespace WpfComboBox
         [Category("Data"), Description("选中的项目索引")]
         public int SelectedIndex
         {
-            get => _wpfControl.SelectedIndex;
-            set => _wpfControl.SelectedIndex = value;
+            get { return _wpfControl.SelectedIndex; }
+            set { _wpfControl.SelectedIndex = value; }
         }
+
 
         /// <summary>
         /// 获取或设置当前选中项的文本
@@ -88,9 +94,10 @@ namespace WpfComboBox
         [Category("Data"), Description("选中的文本值")]
         public string TextValue
         {
-            get => _wpfControl.Text;
-            set => _wpfControl.Text = value;
+            get { return _wpfControl.Text; }
+            set { _wpfControl.Text = value; }
         }
+
 
         /// <summary>
         /// 获取或设置下拉框的选项列表
@@ -105,7 +112,8 @@ namespace WpfComboBox
                 {
                     foreach (var item in _wpfControl.Items)
                     {
-                        list.Add(item?.ToString() ?? string.Empty);
+                        list.Add(item != null ? item.ToString() : string.Empty);
+
                     }
                 }
                 return list.ToArray();
@@ -160,7 +168,8 @@ namespace WpfComboBox
                 {
                     _wpfControl.SelectionChanged -= WpfControl_SelectionChanged;
                 }
-                _host?.Dispose();
+                if (_host != null) _host.Dispose();
+
             }
             base.Dispose(disposing);
         }

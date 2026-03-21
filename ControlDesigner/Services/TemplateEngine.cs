@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Globalization;
 using ControlDesigner.Models;
 
 namespace ControlDesigner.Services
@@ -32,6 +34,10 @@ namespace ControlDesigner.Services
                 case ControlType.LedIndicator: templateFileName = "LedControl.xaml.template"; break;
                 case ControlType.ToggleSwitch: templateFileName = "ToggleSwitchControl.xaml.template"; break;
                 case ControlType.ProgressBarInput: templateFileName = "ProgressBarControl.xaml.template"; break;
+                case ControlType.ChartDisplay: templateFileName = "ChartControl.xaml.template"; break;
+                case ControlType.PieDisplay: templateFileName = "PieControl.xaml.template"; break;
+                case ControlType.GaugeDisplay: templateFileName = "GaugeControl.xaml.template"; break;
+                case ControlType.DataGridDisplay: templateFileName = "DataGridControl.xaml.template"; break;
                 case ControlType.TextInput:
                 default: templateFileName = "TextInputControl.xaml.template"; break;
             }
@@ -39,8 +45,8 @@ namespace ControlDesigner.Services
             string templatePath = Path.Combine(_templateDir, templateFileName);
             string template = File.ReadAllText(templatePath);
             string xaml = ApplyStyle(template, style);
-            // 替换命名空间
-            xaml = xaml.Replace("WpfTextInput", controlName);
+            // 替换所有可能的占位命名空间
+            xaml = ReplaceNamespace(xaml, controlName);
             return xaml;
         }
 
@@ -86,6 +92,22 @@ namespace ControlDesigner.Services
                     xamlFileName = "ProgressBarControl.xaml";
                     fixedFiles = new string[] { "ProgressBarControl.xaml.cs", "ProgressBarPanel.cs" };
                     break;
+                case ControlType.ChartDisplay:
+                    xamlFileName = "ChartControl.xaml";
+                    fixedFiles = new string[] { "ChartControl.xaml.cs", "ChartPanel.cs" };
+                    break;
+                case ControlType.PieDisplay:
+                    xamlFileName = "PieControl.xaml";
+                    fixedFiles = new string[] { "PieControl.xaml.cs", "PiePanel.cs" };
+                    break;
+                case ControlType.GaugeDisplay:
+                    xamlFileName = "GaugeControl.xaml";
+                    fixedFiles = new string[] { "GaugeControl.xaml.cs", "GaugePanel.cs" };
+                    break;
+                case ControlType.DataGridDisplay:
+                    xamlFileName = "DataGridControl.xaml";
+                    fixedFiles = new string[] { "DataGridControl.xaml.cs", "DataGridPanel.cs" };
+                    break;
 
                 case ControlType.TextInput:
                 default:
@@ -99,17 +121,23 @@ namespace ControlDesigner.Services
                     break;
             }
 
-            File.WriteAllText(Path.Combine(outputDir, xamlFileName), xaml);
+            File.WriteAllText(Path.Combine(outputDir, xamlFileName), xaml, Encoding.UTF8);
 
             foreach (var file in fixedFiles)
             {
                 string src = Path.Combine(_templateDir, file);
                 if (File.Exists(src))
                 {
-                    string content = File.ReadAllText(src);
-                    content = content.Replace("WpfTextInput", controlName);
+                string content = File.ReadAllText(src);
+                content = ReplaceNamespace(content, controlName);
+                
+                // 对 .cs 文件也执行 ApplyStyle 以替换可能的动态属性（如 Chart 和 DataGrid 的配置）
+                if (file.EndsWith(".cs"))
+                {
                     content = ApplyStyle(content, style);
-                    File.WriteAllText(Path.Combine(outputDir, file), content);
+                }
+                
+                File.WriteAllText(Path.Combine(outputDir, file), content, Encoding.UTF8);
                 }
             }
 
@@ -175,6 +203,38 @@ namespace ControlDesigner.Services
                     csproj = csproj.Replace("TextInputPanel.cs", "ProgressBarPanel.cs");
                     csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
                 }
+                else if (type == ControlType.ChartDisplay)
+                {
+                    csproj = csproj.Replace("TextInputControl.xaml.cs", "ChartControl.xaml.cs");
+                    csproj = csproj.Replace("TextInputControl.xaml", "ChartControl.xaml");
+                    csproj = csproj.Replace("<Compile Include=\"TextInputHost.cs\" />", "");
+                    csproj = csproj.Replace("TextInputPanel.cs", "ChartPanel.cs");
+                    csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
+                }
+                else if (type == ControlType.PieDisplay)
+                {
+                    csproj = csproj.Replace("TextInputControl.xaml.cs", "PieControl.xaml.cs");
+                    csproj = csproj.Replace("TextInputControl.xaml", "PieControl.xaml");
+                    csproj = csproj.Replace("<Compile Include=\"TextInputHost.cs\" />", "");
+                    csproj = csproj.Replace("TextInputPanel.cs", "PiePanel.cs");
+                    csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
+                }
+                else if (type == ControlType.GaugeDisplay)
+                {
+                    csproj = csproj.Replace("TextInputControl.xaml.cs", "GaugeControl.xaml.cs");
+                    csproj = csproj.Replace("TextInputControl.xaml", "GaugeControl.xaml");
+                    csproj = csproj.Replace("<Compile Include=\"TextInputHost.cs\" />", "");
+                    csproj = csproj.Replace("TextInputPanel.cs", "GaugePanel.cs");
+                    csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
+                }
+                else if (type == ControlType.DataGridDisplay)
+                {
+                    csproj = csproj.Replace("TextInputControl.xaml.cs", "DataGridControl.xaml.cs");
+                    csproj = csproj.Replace("TextInputControl.xaml", "DataGridControl.xaml");
+                    csproj = csproj.Replace("<Compile Include=\"TextInputHost.cs\" />", "");
+                    csproj = csproj.Replace("TextInputPanel.cs", "DataGridPanel.cs");
+                    csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
+                }
 
                 csproj = csproj.Replace("<RootNamespace>WpfTextInput</RootNamespace>",
                                        "<RootNamespace>" + controlName + "</RootNamespace>");
@@ -183,7 +243,7 @@ namespace ControlDesigner.Services
                 // 生成唯一 GUID 避免冲突
                 csproj = csproj.Replace("{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}",
                                        "{" + Guid.NewGuid().ToString().ToUpper() + "}");
-                File.WriteAllText(Path.Combine(outputDir, controlName + ".csproj"), csproj);
+                File.WriteAllText(Path.Combine(outputDir, controlName + ".csproj"), csproj, Encoding.UTF8);
             }
         }
 
@@ -205,6 +265,10 @@ namespace ControlDesigner.Services
                 new { Type = ControlType.LedIndicator,      XamlTemplate = "LedControl.xaml.template",              XamlOut = "LedControl.xaml",              Files = new[] { "LedControl.xaml.cs", "LedPanel.cs" } },
                 new { Type = ControlType.ToggleSwitch,      XamlTemplate = "ToggleSwitchControl.xaml.template",      XamlOut = "ToggleSwitchControl.xaml",      Files = new[] { "ToggleSwitchControl.xaml.cs", "ToggleSwitchPanel.cs" } },
                 new { Type = ControlType.ProgressBarInput,  XamlTemplate = "ProgressBarControl.xaml.template",       XamlOut = "ProgressBarControl.xaml",       Files = new[] { "ProgressBarControl.xaml.cs", "ProgressBarPanel.cs" } },
+                new { Type = ControlType.ChartDisplay,      XamlTemplate = "ChartControl.xaml.template",             XamlOut = "ChartControl.xaml",             Files = new[] { "ChartControl.xaml.cs", "ChartPanel.cs" } },
+                new { Type = ControlType.PieDisplay,        XamlTemplate = "PieControl.xaml.template",               XamlOut = "PieControl.xaml",               Files = new[] { "PieControl.xaml.cs", "PiePanel.cs" } },
+                new { Type = ControlType.GaugeDisplay,      XamlTemplate = "GaugeControl.xaml.template",             XamlOut = "GaugeControl.xaml",             Files = new[] { "GaugeControl.xaml.cs", "GaugePanel.cs" } },
+                new { Type = ControlType.DataGridDisplay,   XamlTemplate = "DataGridControl.xaml.template",          XamlOut = "DataGridControl.xaml",          Files = new[] { "DataGridControl.xaml.cs", "DataGridPanel.cs" } },
             };
 
             var writtenFiles = new HashSet<string>();
@@ -217,11 +281,8 @@ namespace ControlDesigner.Services
                 {
                     string template = File.ReadAllText(templatePath);
                     string xaml = ApplyStyle(template, style);
-                    xaml = xaml.Replace("WpfTextInput", assemblyName)
-                               .Replace("WpfSlider", assemblyName)
-                               .Replace("WpfButton", assemblyName)
-                               .Replace("WpfComboBox", assemblyName);
-                    File.WriteAllText(Path.Combine(outputDir, ctrl.XamlOut), xaml);
+                    xaml = ReplaceNamespace(xaml, assemblyName);
+                    File.WriteAllText(Path.Combine(outputDir, ctrl.XamlOut), xaml, Encoding.UTF8);
                 }
 
                 // 复制 code-behind 和 Panel
@@ -234,16 +295,9 @@ namespace ControlDesigner.Services
                     if (File.Exists(src))
                 {
                     string content = File.ReadAllText(src);
-                    content = content.Replace("WpfTextInput", assemblyName)
-                                       .Replace("WpfNumericDisplay", assemblyName)
-                                       .Replace("WpfSlider", assemblyName)
-                                       .Replace("WpfButton", assemblyName)
-                                       .Replace("WpfLedIndicator", assemblyName)
-                                       .Replace("WpfToggleSwitch", assemblyName)
-                                       .Replace("WpfProgressBar", assemblyName)
-                                       .Replace("WpfComboBox", assemblyName);
+                    content = ReplaceNamespace(content, assemblyName);
                     content = ApplyStyle(content, style);
-                    File.WriteAllText(Path.Combine(outputDir, file), content);
+                    File.WriteAllText(Path.Combine(outputDir, file), content, Encoding.UTF8);
                 }
                 }
             }
@@ -259,7 +313,7 @@ namespace ControlDesigner.Services
                                        "<AssemblyName>" + assemblyName + "</AssemblyName>");
                 csproj = csproj.Replace("{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}",
                                        "{" + Guid.NewGuid().ToString().ToUpper() + "}");
-                File.WriteAllText(Path.Combine(outputDir, assemblyName + ".csproj"), csproj);
+                File.WriteAllText(Path.Combine(outputDir, assemblyName + ".csproj"), csproj, Encoding.UTF8);
             }
         }
 
@@ -272,26 +326,63 @@ namespace ControlDesigner.Services
                 { "{{GradientMid}}", CleanColor(style.GradientMid) },
                 { "{{GradientEnd}}", CleanColor(style.GradientEnd) },
                 { "{{BorderColor}}", CleanColor(style.BorderColor) },
-                { "{{BorderThickness}}", style.BorderThickness.ToString() },
-                { "{{CornerRadius}}", style.CornerRadius.ToString() },
-                { "{{ShadowBlur}}", style.ShadowBlur.ToString() },
-                { "{{ShadowDepth}}", style.ShadowDepth.ToString() },
+                { "{{BorderThickness}}", FormatNumber(style.BorderThickness) },
+                { "{{CornerRadius}}", FormatNumber(style.CornerRadius) },
+                { "{{ShadowBlur}}", FormatNumber(style.ShadowBlur) },
+                { "{{ShadowDepth}}", FormatNumber(style.ShadowDepth) },
                 { "{{ShadowColor}}", CleanColor(style.ShadowColor) },
-                { "{{ShadowOpacity}}", style.ShadowOpacity.ToString("F2") },
+                { "{{ShadowOpacity}}", FormatNumber(style.ShadowOpacity) },
                 { "{{ShadowMargin}}", CalcShadowMargin(style.ShadowBlur, style.ShadowDepth) },
                 { "{{HighlightColor}}", CleanColor(style.HighlightColor) },
-                { "{{HighlightOpacity}}", style.HighlightOpacity.ToString("F2") },
+                { "{{HighlightOpacity}}", FormatNumber(style.HighlightOpacity) },
                 { "{{FontFamily}}", style.FontFamily },
-                { "{{FontSize}}", style.FontSize.ToString() },
+                { "{{FontSize}}", FormatNumber(style.FontSize) },
                 { "{{FontColor}}", CleanColor(style.FontColor) },
                 { "{{CaretColor}}", CleanColor(style.CaretColor) },
                 { "{{LabelColor}}", CleanColor(style.LabelColor) },
-                { "{{LabelFontSize}}", style.LabelFontSize.ToString() },
+                { "{{LabelFontSize}}", FormatNumber(style.LabelFontSize) },
                 { "{{FocusBorderColor}}", CleanColor(style.FocusBorderColor) },
                 { "{{AccentColor}}", CleanColor(style.AccentColor) },
-                { "{{LedOnColor}}", CleanColor(style.LedOnColor) },
+                { "{{LedActiveColor}}", CleanColor(style.LedOnColor) },
                 { "{{LedOffColor}}", CleanColor(style.LedOffColor) },
                 { "{{CardPadding}}", style.CardPadding },
+                { "{{DataGridRowHeight}}", FormatNumber(style.DataGridRowHeight) },
+                { "{{DataGridHeaderColor}}", CleanColor(style.DataGridHeaderBackground) },
+                { "{{DataGridBackground}}", CleanColor(style.DataGridBackground) },
+                { "{{DataGridAlternatingOpacity}}", FormatNumber(style.DataGridAlternatingOpacity) },
+                { "{{DataGridGridLines}}", style.DataGridGridLinesVisible ? "Horizontal" : "None" },
+                { "{{DataGridLabelText}}", style.DataGridLabelText },
+                { "{{DataGridHeaderVisibility}}", style.DataGridShowHeader ? "Column" : "None" },
+
+                // Chart 专属
+                { "{{ChartTitle}}", style.ChartTitle },
+                { "{{ChartSubtitle}}", style.ChartSubtitle },
+                { "{{ChartLineWeight}}", FormatNumber(style.ChartLineWeight) },
+                { "{{ChartFillOpacity}}", FormatNumber(style.ChartFillOpacity) },
+                { "{{ChartColor1}}", CleanColor(style.ChartColor1) },
+                { "{{ChartColor2}}", CleanColor(style.ChartColor2) },
+                { "{{ChartColor3}}", CleanColor(style.ChartColor3) },
+                { "{{ChartShowGridLines}}", style.ChartShowGridLines.ToString().ToLower() },
+                { "{{ChartPlotBackground}}", CleanColor(style.ChartPlotBackground) },
+                { "{{ChartShowSeriesCards}}", style.ChartShowSeriesCards.ToString().ToLower() },
+                { "{{ChartShowSeriesCardsVisibility}}", style.ChartShowSeriesCards ? "Visible" : "Collapsed" },
+
+                // Gauge 专属
+                { "{{GaugeStartColor}}", CleanColor(style.GaugeColor1) },
+                { "{{GaugeEndColor}}", CleanColor(style.GaugeColor2) },
+
+                // Slider 专属
+                { "{{SliderColor1}}", CleanColor(style.SliderColor1) },
+                { "{{SliderColor2}}", CleanColor(style.SliderColor2) },
+
+                // ProgressBar 专属
+                { "{{ProgressColor1}}", CleanColor(style.ProgressColor1) },
+                { "{{ProgressColor2}}", CleanColor(style.ProgressColor2) },
+
+                // Toggle 专属
+                { "{{ToggleActiveColor}}", CleanColor(style.ToggleColorOn) },
+                { "{{ToggleInactiveColor}}", CleanColor(style.ToggleColorOff) },
+                { "{{ComboBoxArrowColor}}", CleanColor(style.ComboBoxArrowColor) },
             };
 
             string result = template;
@@ -312,6 +403,11 @@ namespace ControlDesigner.Services
             return "#" + s;
         }
 
+        private static string FormatNumber(double value)
+        {
+            return value.ToString("0.###", CultureInfo.InvariantCulture);
+        }
+
         /// <summary>
         /// 根据阴影参数计算 Margin，让阴影有足够空间自然消散
         /// 阴影方向 315°（右下方），所以右和下需要更多空间
@@ -328,7 +424,25 @@ namespace ControlDesigner.Services
             int right  = (int)Math.Ceiling(spread + offset);
             int bottom = (int)Math.Ceiling(spread + offset);
 
-            return $"{left},{top},{right},{bottom}";
+            return string.Format("{0},{1},{2},{3}", left, top, right, bottom);
+
+        }
+
+        private string ReplaceNamespace(string content, string newNamespace)
+        {
+            if (string.IsNullOrEmpty(content)) return content;
+            return content.Replace("WpfTextInput", newNamespace)
+                          .Replace("WpfNumericDisplay", newNamespace)
+                          .Replace("WpfComboBox", newNamespace)
+                          .Replace("WpfSlider", newNamespace)
+                          .Replace("WpfButton", newNamespace)
+                          .Replace("WpfLedIndicator", newNamespace)
+                          .Replace("WpfToggleSwitch", newNamespace)
+                          .Replace("WpfProgressBar", newNamespace)
+                          .Replace("WpfChart", newNamespace)
+                          .Replace("WpfPie", newNamespace)
+                          .Replace("WpfGauge", newNamespace)
+                          .Replace("WpfDataGrid", newNamespace);
         }
     }
 }

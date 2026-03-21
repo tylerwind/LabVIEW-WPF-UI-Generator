@@ -47,8 +47,8 @@
                 <Ellipse x:Name="LedGlow" Opacity="0">
                     <Ellipse.Fill>
                         <RadialGradientBrush>
-                            <GradientStop x:Name="GlowCenter" Color="{{LedOnColor}}" Offset="0.0"/>
-                            <GradientStop x:Name="GlowEdge" Color="{{LedOnColor}}" Offset="0.7"/>
+                            <GradientStop x:Name="GlowCenter" Color="{{LedActiveColor}}" Offset="0.0"/>
+                            <GradientStop x:Name="GlowEdge" Color="{{LedActiveColor}}" Offset="0.7"/>
                             <GradientStop Color="Transparent" Offset="1.0"/>
                         </RadialGradientBrush>
                     </Ellipse.Fill>
@@ -68,7 +68,7 @@
                         <BlurEffect Radius="{{ShadowBlur}}"/>
                     </Ellipse.Effect>
                     <Ellipse.Fill>
-                        <SolidColorBrush x:Name="HaloBrush" Color="{{LedOnColor}}"/>
+                        <SolidColorBrush x:Name="HaloBrush" Color="{{LedActiveColor}}"/>
                     </Ellipse.Fill>
                 </Ellipse>
             </Grid>

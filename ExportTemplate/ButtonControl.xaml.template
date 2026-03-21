@@ -2,10 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{{ControlBackground}}"
+             MouseLeftButtonUp="UserControl_MouseLeftButtonUp"
+             MouseLeftButtonDown="UserControl_MouseLeftButtonDown"
              MouseEnter="UserControl_MouseEnter"
              MouseLeave="UserControl_MouseLeave"
-             MouseLeftButtonDown="UserControl_MouseLeftButtonDown"
-             MouseLeftButtonUp="UserControl_MouseLeftButtonUp">
+             SnapsToDevicePixels="True"
+             UseLayoutRounding="True">
     
     <UserControl.Resources>
     </UserControl.Resources>
@@ -62,7 +64,7 @@
                         <SolidColorBrush x:Name="InputBorderBrush" Color="{{BorderColor}}"/>
                     </Border.BorderBrush>
                     <Grid Margin="{{CardPadding}}">
-                        <TextBlock x:Name="LabelBlock" Text="按钮" FontFamily="{{FontFamily}}" FontSize="{{FontSize}}" Foreground="{{FontColor}}" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+                        <TextBlock x:Name="LabelBlock" Text="按钮" FontFamily="{{FontFamily}}" FontSize="{{FontSize}}" Foreground="{{FontColor}}" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextOptions.TextFormattingMode="Display" />
                     </Grid>
                 </Border>
             </Grid>

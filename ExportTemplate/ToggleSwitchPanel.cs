@@ -20,39 +20,88 @@ namespace WpfTextInput
         [Category("ToggleSwitch"), Description("开关状态(On/Off)")]
         public bool IsOn
         {
-            get => _wpfControl?.Value ?? false;
+            get { return _wpfControl != null ? _wpfControl.Value : false; }
             set { if (_wpfControl != null) _wpfControl.Value = value; }
         }
 
-        private string _activeColor = "#4A90E2";
-        [Category("ToggleSwitch"), Description("亮起时的颜色")]
+
+        [Category("ToggleSwitch"), Description("开启时的轨道颜色 (HEX)")]
         public string ActiveColor
         {
-            get => _activeColor;
-            set { 
-                _activeColor = value;
-                if (_wpfControl != null) _wpfControl.SetAccentColor(value); 
+            get { return _wpfControl != null ? _wpfControl.ActiveColor : "#4A90E2"; }
+            set { if (_wpfControl != null) _wpfControl.ActiveColor = value; }
+        }
+
+        [Category("ToggleSwitch"), Description("关闭时的轨道颜色 (HEX)")]
+        public string InactiveColor
+        {
+            get { return _wpfControl != null ? _wpfControl.InactiveColor : "#CCCCCC"; }
+            set { if (_wpfControl != null) _wpfControl.InactiveColor = value; }
+        }
+
+        [Category("ToggleSwitch"), Description("开启时的轨道颜色 (数字)")]
+        public int ActiveColorValue
+        {
+            get 
+            { 
+                if (_wpfControl == null) return 0;
+                try {
+                    var c = System.Drawing.ColorTranslator.FromHtml(_wpfControl.ActiveColor);
+                    return (c.R << 16) | (c.G << 8) | c.B;
+                } catch { return 0; }
+            }
+            set 
+            { 
+                if (_wpfControl != null)
+                {
+                    _wpfControl.ActiveColor = string.Format("#{0:X6}", value & 0xFFFFFF);
+                }
+            }
+        }
+
+        [Category("ToggleSwitch"), Description("关闭时的轨道颜色 (数字)")]
+        public int InactiveColorValue
+        {
+            get 
+            { 
+                if (_wpfControl == null) return 0;
+                try {
+                    var c = System.Drawing.ColorTranslator.FromHtml(_wpfControl.InactiveColor);
+                    return (c.R << 16) | (c.G << 8) | c.B;
+                } catch { return 0; }
+            }
+            set 
+            { 
+                if (_wpfControl != null)
+                {
+                    _wpfControl.InactiveColor = string.Format("#{0:X6}", value & 0xFFFFFF);
+                }
             }
         }
 
         [Category("ToggleSwitch"), Description("开关标签")]
         public string LabelText
         {
-            get => _wpfControl?.LabelText ?? "";
+            get { return _wpfControl != null ? _wpfControl.LabelText : ""; }
             set { if (_wpfControl != null) _wpfControl.LabelText = value; }
         }
 
+
         public void SetLabelVisible(bool visible)
         {
-            _wpfControl?.SetLabelVisible(visible);
+            if (_wpfControl != null) _wpfControl.SetLabelVisible(visible);
         }
+
 
         public ToggleSwitchPanel()
         {
             this.BackColor = System.Drawing.Color.Transparent;
 
             _wpfControl = new ToggleSwitchControl();
-            _wpfControl.ValueChanged += (o, n) => ValueChanged?.Invoke(o, n);
+            _wpfControl.ValueChanged += delegate(bool o, bool n) {
+                if (ValueChanged != null) ValueChanged(o, n);
+            };
+
 
             _host = new ElementHost
             {
@@ -65,7 +114,11 @@ namespace WpfTextInput
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) _host?.Dispose();
+            if (disposing)
+            {
+                if (_host != null) _host.Dispose();
+            }
+
             base.Dispose(disposing);
         }
     }

@@ -18,28 +18,52 @@ namespace WpfTextInput
         [Category("Led"), Description("指示灯状态(On/Off)")]
         public bool IsOn
         {
-            get => _wpfControl?.Value ?? false;
+            get { return _wpfControl != null ? _wpfControl.Value : false; }
             set { if (_wpfControl != null) _wpfControl.Value = value; }
         }
 
-        [Category("Led"), Description("亮起时的颜色")]
+
+        [Category("Led"), Description("亮起时的颜色 (HEX)")]
         public string ActiveColor
         {
-            get => _wpfControl?.OnColor ?? "#00FF00";
-            set { if (_wpfControl != null) _wpfControl.OnColor = value; }
+            get { return _wpfControl != null ? _wpfControl.ActiveColor : "#00FF00"; }
+            set { if (_wpfControl != null) _wpfControl.ActiveColor = value; }
         }
+
+        [Category("Led"), Description("亮起时的颜色 (数字)")]
+        public int ActiveColorValue
+        {
+            get 
+            { 
+                if (_wpfControl == null) return 0;
+                try {
+                    var c = System.Drawing.ColorTranslator.FromHtml(_wpfControl.ActiveColor);
+                    return (c.R << 16) | (c.G << 8) | c.B;
+                } catch { return 0; }
+            }
+            set 
+            { 
+                if (_wpfControl != null)
+                {
+                    _wpfControl.ActiveColor = string.Format("#{0:X6}", value & 0xFFFFFF);
+                }
+            }
+        }
+
 
         [Category("Led"), Description("指示灯标签")]
         public string LabelText
         {
-            get => _wpfControl?.LabelText ?? "";
+            get { return _wpfControl != null ? _wpfControl.LabelText : ""; }
             set { if (_wpfControl != null) _wpfControl.LabelText = value; }
         }
 
+
         public void SetLabelVisible(bool visible)
         {
-            _wpfControl?.SetLabelVisible(visible);
+            if (_wpfControl != null) _wpfControl.SetLabelVisible(visible);
         }
+
 
         public LedPanel()
         {
@@ -58,7 +82,10 @@ namespace WpfTextInput
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) _host?.Dispose();
+            if (disposing)
+            {
+                if (_host != null) _host.Dispose();
+            }
             base.Dispose(disposing);
         }
     }

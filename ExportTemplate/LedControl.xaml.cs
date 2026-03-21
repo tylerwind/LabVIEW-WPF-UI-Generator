@@ -21,13 +21,13 @@ namespace WpfTextInput
             DependencyProperty.Register("Value", typeof(bool), typeof(LedControl),
                 new PropertyMetadata(false, OnValueChanged));
 
-        public static readonly DependencyProperty OnColorProperty =
-            DependencyProperty.Register("OnColor", typeof(string), typeof(LedControl),
-                new PropertyMetadata("#4CAF50", OnColorPropertyChanged));
+        public static readonly DependencyProperty ActiveColorProperty =
+            DependencyProperty.Register("ActiveColor", typeof(string), typeof(LedControl),
+                new PropertyMetadata("{{LedActiveColor}}", OnColorPropertyChanged));
 
         public static readonly DependencyProperty OffColorProperty =
             DependencyProperty.Register("OffColor", typeof(string), typeof(LedControl),
-                new PropertyMetadata("#808080", OnColorPropertyChanged));
+                new PropertyMetadata("{{LedOffColor}}", OnColorPropertyChanged));
 
         public string LabelText
         {
@@ -41,10 +41,10 @@ namespace WpfTextInput
             set { SetValue(ValueProperty, value); }
         }
 
-        public string OnColor
+        public string ActiveColor
         {
-            get { return (string)GetValue(OnColorProperty); }
-            set { SetValue(OnColorProperty, value); }
+            get { return (string)GetValue(ActiveColorProperty); }
+            set { SetValue(ActiveColorProperty, value); }
         }
 
         public string OffColor
@@ -109,7 +109,7 @@ namespace WpfTextInput
             var dur = TimeSpan.FromSeconds(0.25);
             bool isOn = Value;
 
-            Color onCol = ParseColor(OnColor, Colors.Green);
+            Color onCol = ParseColor(ActiveColor, Colors.Green);
             Color offCol = ParseColor(OffColor, Colors.Gray);
 
             // 灯体底色
@@ -123,7 +123,7 @@ namespace WpfTextInput
 
             // 外发光晕
             if (HaloBrush != null) HaloBrush.Color = onCol;
-            LedHalo.BeginAnimation(OpacityProperty, new DoubleAnimation(isOn ? {{ShadowOpacity}} : 0.0, dur));
+            LedHalo.BeginAnimation(OpacityProperty, new DoubleAnimation(isOn ? double.Parse("{{ShadowOpacity}}") : 0.0, dur));
         }
 
         #endregion

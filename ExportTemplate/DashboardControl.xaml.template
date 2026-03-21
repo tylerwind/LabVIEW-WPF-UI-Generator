@@ -1,0 +1,65 @@
+<UserControl x:Class="WpfDashboard.DashboardControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{{ControlBackground}}"
+             SizeChanged="UserControl_SizeChanged">
+    
+    <Grid Margin="{{ShadowMargin}}">
+        <Border x:Name="MainBorder" CornerRadius="{{CornerRadius}}">
+            <Border.Effect>
+                <DropShadowEffect x:Name="PartShadow"
+                                  BlurRadius="{{ShadowBlur}}"
+                                  Direction="315"
+                                  ShadowDepth="{{ShadowDepth}}"
+                                  Color="{{ShadowColor}}"
+                                  Opacity="{{ShadowOpacity}}" />
+            </Border.Effect>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{{GradientStart}}" Offset="0.0"/>
+                    <GradientStop Color="{{GradientMid}}" Offset="0.5"/>
+                    <GradientStop Color="{{GradientEnd}}" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid>
+                <Border x:Name="InnerBorder" CornerRadius="{{CornerRadius}}" BorderThickness="{{BorderThickness}}">
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="InputBorderBrush" Color="{{BorderColor}}"/>
+                    </Border.BorderBrush>
+                    
+                    <Grid Margin="{{CardPadding}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Panel 标题 -->
+                        <TextBlock x:Name="LabelBlock" Text="系统综合监控面板" Grid.Row="0" Grid.ColumnSpan="1"
+                                   FontFamily="{{FontFamily}}" FontSize="{{FontSize}}" 
+                                   FontWeight="Bold" Foreground="{{FontColor}}" 
+                                   Margin="0,0,0,10" />
+
+                        <!-- 图表区 -->
+                        <Grid Grid.Row="1" Grid.Column="0" Margin="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="主波形数据" Grid.Row="0"
+                                     FontFamily="{{FontFamily}}" FontSize="{{LabelFontSize}}" 
+                                     FontWeight="SemiBold" Foreground="{{LabelColor}}" Margin="0,0,0,6"/>
+                            <Border Grid.Row="1" BorderBrush="{{BorderColor}}" BorderThickness="1" CornerRadius="6" Background="Transparent" ClipToBounds="True">
+                                <Grid x:Name="ChartAreaCanvas"/>
+                            </Border>
+                        </Grid>
+
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -52,14 +52,18 @@ namespace WpfSlider
             _wpfControl.ValueChanged += WpfControl_ValueChanged;
 
             // 订阅宿主大小改变以刷新阴影区域，防止被裁切
-            this.SizeChanged += (s, e) => { _host.Invalidate(); };
+            this.SizeChanged += delegate(object s, EventArgs e) { 
+                if (_host != null) _host.Invalidate(); 
+            };
+
         }
 
         private void WpfControl_ValueChanged(double oldValue, double newValue)
         {
             try
             {
-                ValueChanged?.Invoke(oldValue, newValue);
+                if (ValueChanged != null) ValueChanged(oldValue, newValue);
+
             }
             catch (Exception ex)
             {
@@ -76,9 +80,10 @@ namespace WpfSlider
         [Category("Appearance"), Description("滑动杆左上方显示的标签文本")]
         public string LabelText
         {
-            get => _wpfControl.LabelText;
-            set => _wpfControl.LabelText = value;
+            get { return _wpfControl.LabelText; }
+            set { _wpfControl.LabelText = value; }
         }
+
 
         /// <summary>
         /// 获取或设置当前数值
@@ -86,9 +91,10 @@ namespace WpfSlider
         [Category("Data"), Description("滑动杆的当前数值")]
         public double Value
         {
-            get => _wpfControl.Value;
-            set => _wpfControl.Value = value;
+            get { return _wpfControl.Value; }
+            set { _wpfControl.Value = value; }
         }
+
 
         /// <summary>
         /// 获取或设置最小值
@@ -96,9 +102,10 @@ namespace WpfSlider
         [Category("Data"), Description("允许的最小数值")]
         public double Minimum
         {
-            get => _wpfControl.Minimum;
-            set => _wpfControl.Minimum = value;
+            get { return _wpfControl.Minimum; }
+            set { _wpfControl.Minimum = value; }
         }
+
 
         /// <summary>
         /// 获取或设置最大值
@@ -106,9 +113,10 @@ namespace WpfSlider
         [Category("Data"), Description("允许的最大数值")]
         public double Maximum
         {
-            get => _wpfControl.Maximum;
-            set => _wpfControl.Maximum = value;
+            get { return _wpfControl.Maximum; }
+            set { _wpfControl.Maximum = value; }
         }
+
 
         /// <summary>
         /// 离散步进值
@@ -116,9 +124,10 @@ namespace WpfSlider
         [Category("Data"), Description("步进值")]
         public double TickFrequency
         {
-            get => _wpfControl.TickFrequency;
-            set => _wpfControl.TickFrequency = value;
+            get { return _wpfControl.TickFrequency; }
+            set { _wpfControl.TickFrequency = value; }
         }
+
 
         /// <summary>
         /// 是否吸附到步进值
@@ -126,9 +135,64 @@ namespace WpfSlider
         [Category("Behavior"), Description("是否在拖拽时自动吸附到 TickFrequency 步长位置")]
         public bool IsSnapToTickEnabled
         {
-            get => _wpfControl.IsSnapToTickEnabled;
-            set => _wpfControl.IsSnapToTickEnabled = value;
+            get { return _wpfControl.IsSnapToTickEnabled; }
+            set { _wpfControl.IsSnapToTickEnabled = value; }
         }
+
+        [Category("Appearance"), Description("渐变起点颜色 (HEX)")]
+        public string StartColor
+        {
+            get { return _wpfControl != null ? _wpfControl.StartColor : ""; }
+            set { if (_wpfControl != null) _wpfControl.StartColor = value; }
+        }
+
+        [Category("Appearance"), Description("渐变终点颜色 (HEX)")]
+        public string EndColor
+        {
+            get { return _wpfControl != null ? _wpfControl.EndColor : ""; }
+            set { if (_wpfControl != null) _wpfControl.EndColor = value; }
+        }
+
+        [Category("Appearance"), Description("渐变起点颜色 (数字)")]
+        public int StartColorValue
+        {
+            get 
+            { 
+                if (_wpfControl == null) return 0;
+                try {
+                    var c = System.Drawing.ColorTranslator.FromHtml(_wpfControl.StartColor);
+                    return (c.R << 16) | (c.G << 8) | c.B;
+                } catch { return 0; }
+            }
+            set 
+            { 
+                if (_wpfControl != null)
+                {
+                    _wpfControl.StartColor = string.Format("#{0:X6}", value & 0xFFFFFF);
+                }
+            }
+        }
+
+        [Category("Appearance"), Description("渐变终点颜色 (数字)")]
+        public int EndColorValue
+        {
+            get 
+            { 
+                if (_wpfControl == null) return 0;
+                try {
+                    var c = System.Drawing.ColorTranslator.FromHtml(_wpfControl.EndColor);
+                    return (c.R << 16) | (c.G << 8) | c.B;
+                } catch { return 0; }
+            }
+            set 
+            { 
+                if (_wpfControl != null)
+                {
+                    _wpfControl.EndColor = string.Format("#{0:X6}", value & 0xFFFFFF);
+                }
+            }
+        }
+
 
         /// <summary>
         /// 显示或隐藏标签
@@ -156,7 +220,8 @@ namespace WpfSlider
                 {
                     _wpfControl.ValueChanged -= WpfControl_ValueChanged;
                 }
-                _host?.Dispose();
+                if (_host != null) _host.Dispose();
+
             }
             base.Dispose(disposing);
         }

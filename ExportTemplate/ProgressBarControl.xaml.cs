@@ -65,11 +65,52 @@ namespace WpfTextInput
 
         #endregion
 
+        #region 梯度色彩属性
+
+        private string _startColor = "{{ProgressColor1}}";
+        private string _endColor = "{{ProgressColor2}}";
+
+        public string StartColor
+        {
+            get { return _startColor; }
+            set 
+            { 
+                _startColor = value; 
+                if (FillColorStart != null) 
+                    FillColorStart.Color = ParseColor(value, Colors.Green); 
+            }
+        }
+
+        public string EndColor
+        {
+            get { return _endColor; }
+            set 
+            { 
+                _endColor = value; 
+                if (FillColorEnd != null) 
+                    FillColorEnd.Color = ParseColor(value, Colors.Blue); 
+            }
+        }
+
+        private Color ParseColor(string hex, Color fallback)
+        {
+            try { return (Color)ColorConverter.ConvertFromString(hex); }
+            catch { return fallback; }
+        }
+
+        #endregion
+
         public ProgressBarControl()
         {
             InitializeComponent();
-            this.SizeChanged += (s, e) => UpdateFillBar();
+            this.SizeChanged += OnSizeChanged;
         }
+
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateFillBar();
+        }
+
 
         #region 公共方法
 
@@ -125,7 +166,8 @@ namespace WpfTextInput
 
             // 更新百分比文字
             if (PercentBlock != null)
-                PercentBlock.Text = $"{ratio * 100:F0}%";
+                PercentBlock.Text = string.Format("{0:F0}%", ratio * 100);
+
         }
 
         #endregion

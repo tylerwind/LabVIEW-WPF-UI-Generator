@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -39,25 +39,32 @@ namespace WpfComboBox
 
         #region 公共属性/方法
         
-        public ItemCollection Items => InputBox.Items;
+        public ItemCollection Items
+        {
+            get { return InputBox.Items; }
+        }
+
 
         public int SelectedIndex
         {
-            get => InputBox.SelectedIndex;
-            set => InputBox.SelectedIndex = value;
+            get { return InputBox.SelectedIndex; }
+            set { InputBox.SelectedIndex = value; }
         }
+
 
         public object SelectedItem
         {
-            get => InputBox.SelectedItem;
-            set => InputBox.SelectedItem = value;
+            get { return InputBox.SelectedItem; }
+            set { InputBox.SelectedItem = value; }
         }
+
 
         public string Text
         {
-            get => InputBox.Text;
-            set => InputBox.Text = value;
+            get { return InputBox.Text; }
+            set { InputBox.Text = value; }
         }
+
 
         /// <summary>
         /// 设置标签是否可见
@@ -111,7 +118,8 @@ namespace WpfComboBox
 
         private void InputBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            SelectionChanged?.Invoke(InputBox.SelectedIndex, InputBox.SelectedItem);
+            if (SelectionChanged != null) SelectionChanged(InputBox.SelectedIndex, InputBox.SelectedItem);
+
         }
 
         #endregion

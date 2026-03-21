@@ -55,8 +55,8 @@
                                                     <Border Height="6" CornerRadius="3" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,0,-8,0">
                                                         <Border.Background>
                                                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                                <GradientStop Color="{{AccentColor}}" Offset="0"/>
-                                                                <GradientStop Color="{{FocusBorderColor}}" Offset="1"/>
+                                                                <GradientStop Color="{Binding StartColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue={{SliderColor1}}}" Offset="0"/>
+                                                                <GradientStop Color="{Binding EndColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue={{SliderColor2}}}" Offset="1"/>
                                                             </LinearGradientBrush>
                                                         </Border.Background>
                                                     </Border>

@@ -4,14 +4,17 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
+using System.Runtime.InteropServices;
 
 namespace WpfButton
 {
     /// <summary>
     /// 按钮事件委托，传入 old 和 new 布尔量以迎合事件节点
     /// </summary>
+    [ComVisible(true)]
     public delegate void ButtonClickEventHandler(bool oldValue, bool newValue);
 
+    [ComVisible(true)]
     public enum ButtonActionBehavior
     {
         SwitchWhenPressed = 0,     // 按下时切换状态并保持
@@ -24,6 +27,7 @@ namespace WpfButton
     /// <summary>
     /// 新拟态质感按钮控件
     /// </summary>
+    [ComVisible(true)]
     public partial class ButtonControl : UserControl
     {
         #region 依赖属性
@@ -44,7 +48,8 @@ namespace WpfButton
 
         public event ButtonClickEventHandler Click;
 
-        public ButtonActionBehavior Behavior { get; set; } = ButtonActionBehavior.SwitchWhenReleased;
+        public ButtonActionBehavior Behavior { get; set; }
+
 
         private bool _value = false;
 
@@ -53,7 +58,8 @@ namespace WpfButton
         /// </summary>
         public bool Value
         {
-            get => _value;
+            get { return _value; }
+
             set
             {
                 if (_value != value)
@@ -61,7 +67,8 @@ namespace WpfButton
                     bool old = _value;
                     _value = value;
                     UpdatePhysicalDepthState();
-                    Click?.Invoke(old, value);
+                    if (Click != null) Click(old, value);
+
                 }
             }
         }
@@ -71,7 +78,9 @@ namespace WpfButton
         public ButtonControl()
         {
             InitializeComponent();
+            Behavior = ButtonActionBehavior.SwitchWhenReleased;
         }
+
 
         #region 公共方法
 
@@ -133,9 +142,13 @@ namespace WpfButton
                     Value = true;
                     break;
                 case ButtonActionBehavior.LatchWhenPressed:
-                    Click?.Invoke(false, true);
-                    Click?.Invoke(true, false);
+                    if (Click != null)
+                    {
+                        Click(false, true);
+                        Click(true, false);
+                    }
                     break;
+
             }
         }
 
@@ -156,9 +169,13 @@ namespace WpfButton
                         Value = false;
                         break;
                     case ButtonActionBehavior.LatchWhenReleased:
-                        Click?.Invoke(false, true);
-                        Click?.Invoke(true, false);
+                        if (Click != null)
+                        {
+                            Click(false, true);
+                            Click(true, false);
+                        }
                         break;
+
                 }
             }
         }
@@ -182,8 +199,8 @@ namespace WpfButton
             EnsureShadowInit();
             bool isDown = _isPressedByMouse || Value;
 
-            double targetScale = isDown ? 0.95 : 1.0;
-            double targetTrans = isDown ? Math.Max(1.0, _defaultShadowDepth * 0.7) : 0.0;
+            double targetScale = 1.0;
+            double targetTrans = isDown ? Math.Round(Math.Max(1.0, _defaultShadowDepth * 0.7)) : 0.0;
             double targetDepth = isDown ? 0.0 : _defaultShadowDepth;
             double targetBlur = isDown ? Math.Max(0, _defaultShadowBlur * 0.2) : _defaultShadowBlur;
             double targetOpacity = isDown ? _defaultShadowOpacity * 0.3 : _defaultShadowOpacity;
@@ -193,19 +210,25 @@ namespace WpfButton
             var scaleAnim = new DoubleAnimation(targetScale, duration);
             var transAnim = new DoubleAnimation(targetTrans, duration);
 
-            if (MainBorder.RenderTransform is TransformGroup group)
+            TransformGroup group = MainBorder.RenderTransform as TransformGroup;
+            if (group != null)
             {
                 foreach (var t in group.Children)
                 {
-                    if (t is ScaleTransform st)
+                    ScaleTransform st = t as ScaleTransform;
+                    if (st != null)
                     {
                         st.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
                         st.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
                     }
-                    else if (t is TranslateTransform tt)
+                    else
                     {
-                        tt.BeginAnimation(TranslateTransform.XProperty, transAnim);
-                        tt.BeginAnimation(TranslateTransform.YProperty, transAnim);
+                        TranslateTransform tt = t as TranslateTransform;
+                        if (tt != null)
+                        {
+                            tt.BeginAnimation(TranslateTransform.XProperty, transAnim);
+                            tt.BeginAnimation(TranslateTransform.YProperty, transAnim);
+                        }
                     }
                 }
             }

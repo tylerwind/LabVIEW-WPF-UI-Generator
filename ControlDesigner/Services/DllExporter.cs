@@ -42,7 +42,8 @@ namespace ControlDesigner.Services
                 var psi = new ProcessStartInfo
                 {
                     FileName = _msBuildPath,
-                    Arguments = $"\"{csproj}\" /p:Configuration=Release /verbosity:minimal /t:Rebuild",
+                    Arguments = string.Format("\"{0}\" /p:Configuration=Release /verbosity:minimal /t:Rebuild", csproj),
+
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -102,7 +103,8 @@ namespace ControlDesigner.Services
                 }
                 else
                 {
-                    result.ErrorMessage += $"\n[调试] 模板代码暂存于: {tempDir}";
+                    result.ErrorMessage += "\n[调试] 模板代码暂存于: " + tempDir;
+
                 }
             }
             catch (Exception ex)
@@ -132,7 +134,8 @@ namespace ControlDesigner.Services
                 var psi = new ProcessStartInfo
                 {
                     FileName = _msBuildPath,
-                    Arguments = $"\"{csproj}\" /p:Configuration=Release /verbosity:minimal /t:Rebuild",
+                    Arguments = string.Format("\"{0}\" /p:Configuration=Release /verbosity:minimal /t:Rebuild", csproj),
+
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -187,7 +190,8 @@ namespace ControlDesigner.Services
                 }
                 else
                 {
-                    result.ErrorMessage += $"\n[调试] 模板代码暂存于: {tempDir}";
+                    result.ErrorMessage += "\n[调试] 模板代码暂存于: " + tempDir;
+
                 }
             }
             catch (Exception ex)

@@ -23,6 +23,26 @@ namespace WpfSlider
             set { SetValue(LabelTextProperty, value); }
         }
 
+        public static readonly DependencyProperty StartColorProperty =
+            DependencyProperty.Register("StartColor", typeof(string), typeof(SliderControl),
+                new PropertyMetadata("{{SliderColor1}}"));
+
+        public string StartColor
+        {
+            get { return (string)GetValue(StartColorProperty); }
+            set { SetValue(StartColorProperty, value); }
+        }
+
+        public static readonly DependencyProperty EndColorProperty =
+            DependencyProperty.Register("EndColor", typeof(string), typeof(SliderControl),
+                new PropertyMetadata("{{SliderColor2}}"));
+
+        public string EndColor
+        {
+            get { return (string)GetValue(EndColorProperty); }
+            set { SetValue(EndColorProperty, value); }
+        }
+
         #endregion
 
         #region 事件
@@ -41,33 +61,38 @@ namespace WpfSlider
 
         public double Value
         {
-            get => InputBox.Value;
-            set => InputBox.Value = value;
+            get { return InputBox.Value; }
+            set { InputBox.Value = value; }
         }
+
 
         public double Minimum
         {
-            get => InputBox.Minimum;
-            set => InputBox.Minimum = value;
+            get { return InputBox.Minimum; }
+            set { InputBox.Minimum = value; }
         }
+
 
         public double Maximum
         {
-            get => InputBox.Maximum;
-            set => InputBox.Maximum = value;
+            get { return InputBox.Maximum; }
+            set { InputBox.Maximum = value; }
         }
+
 
         public double TickFrequency
         {
-            get => InputBox.TickFrequency;
-            set => InputBox.TickFrequency = value;
+            get { return InputBox.TickFrequency; }
+            set { InputBox.TickFrequency = value; }
         }
+
 
         public bool IsSnapToTickEnabled
         {
-            get => InputBox.IsSnapToTickEnabled;
-            set => InputBox.IsSnapToTickEnabled = value;
+            get { return InputBox.IsSnapToTickEnabled; }
+            set { InputBox.IsSnapToTickEnabled = value; }
         }
+
 
         /// <summary>
         /// 设置标签是否可见
@@ -118,7 +143,8 @@ namespace WpfSlider
                 if (ValueBlock != null)
                     ValueBlock.Text = e.NewValue.ToString("F2");
 
-                ValueChanged?.Invoke(e.OldValue, e.NewValue);
+                if (ValueChanged != null) ValueChanged(e.OldValue, e.NewValue);
+
             }
             catch (Exception ex)
             {

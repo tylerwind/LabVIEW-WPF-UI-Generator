@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -37,11 +37,12 @@ namespace WpfTextInput
             get
             {
                 if (_dispatcher == null) return string.Empty;
-                return (string)_dispatcher.Invoke(new Func<string>(() => _control.LabelText));
+                return (string)_dispatcher.Invoke(new Func<string>(delegate { return _control.LabelText; }));
             }
             set
             {
-                _dispatcher?.Invoke(new Action(() => { _control.LabelText = value; }));
+                if (_dispatcher != null) _dispatcher.Invoke(new Action(delegate { _control.LabelText = value; }));
+
             }
         }
 
@@ -53,11 +54,12 @@ namespace WpfTextInput
             get
             {
                 if (_dispatcher == null) return string.Empty;
-                return (string)_dispatcher.Invoke(new Func<string>(() => _hostWindow.Title));
+                return (string)_dispatcher.Invoke(new Func<string>(delegate { return _hostWindow.Title; }));
             }
             set
             {
-                _dispatcher?.Invoke(new Action(() => { _hostWindow.Title = value; }));
+                if (_dispatcher != null) _dispatcher.Invoke(new Action(delegate { _hostWindow.Title = value; }));
+
             }
         }
 
@@ -69,11 +71,12 @@ namespace WpfTextInput
             get
             {
                 if (_dispatcher == null) return 0;
-                return (double)_dispatcher.Invoke(new Func<double>(() => _hostWindow.Width));
+                return (double)_dispatcher.Invoke(new Func<double>(delegate { return _hostWindow.Width; }));
             }
             set
             {
-                _dispatcher?.Invoke(new Action(() => { _hostWindow.Width = value; }));
+                if (_dispatcher != null) _dispatcher.Invoke(new Action(delegate { _hostWindow.Width = value; }));
+
             }
         }
 
@@ -85,11 +88,12 @@ namespace WpfTextInput
             get
             {
                 if (_dispatcher == null) return 0;
-                return (double)_dispatcher.Invoke(new Func<double>(() => _hostWindow.Height));
+                return (double)_dispatcher.Invoke(new Func<double>(delegate { return _hostWindow.Height; }));
             }
             set
             {
-                _dispatcher?.Invoke(new Action(() => { _hostWindow.Height = value; }));
+                if (_dispatcher != null) _dispatcher.Invoke(new Action(delegate { _hostWindow.Height = value; }));
+
             }
         }
 
@@ -127,10 +131,14 @@ namespace WpfTextInput
         /// </summary>
         public void Write(string text)
         {
-            _dispatcher?.Invoke(new Action(() =>
+            if (_dispatcher != null)
             {
-                _control.Text = text ?? string.Empty;
-            }));
+                _dispatcher.Invoke(new Action(delegate
+                {
+                    _control.Text = text ?? string.Empty;
+                }));
+            }
+
         }
 
         /// <summary>
@@ -139,7 +147,7 @@ namespace WpfTextInput
         public string Read()
         {
             if (_dispatcher == null) return string.Empty;
-            return (string)_dispatcher.Invoke(new Func<string>(() => _control.Text));
+            return (string)_dispatcher.Invoke(new Func<string>(delegate { return _control.Text; }));
         }
 
         /// <summary>
@@ -147,11 +155,15 @@ namespace WpfTextInput
         /// </summary>
         public void Show()
         {
-            _dispatcher?.Invoke(new Action(() =>
+            if (_dispatcher != null)
             {
-                _hostWindow.Show();
-                _hostWindow.Activate();
-            }));
+                _dispatcher.Invoke(new Action(delegate
+                {
+                    _hostWindow.Show();
+                    _hostWindow.Activate();
+                }));
+            }
+
         }
 
         /// <summary>
@@ -159,10 +171,14 @@ namespace WpfTextInput
         /// </summary>
         public void Hide()
         {
-            _dispatcher?.Invoke(new Action(() =>
+            if (_dispatcher != null)
             {
-                _hostWindow.Hide();
-            }));
+                _dispatcher.Invoke(new Action(delegate
+                {
+                    _hostWindow.Hide();
+                }));
+            }
+
         }
 
         /// <summary>
@@ -170,11 +186,15 @@ namespace WpfTextInput
         /// </summary>
         public void SetPosition(double left, double top)
         {
-            _dispatcher?.Invoke(new Action(() =>
+            if (_dispatcher != null)
             {
-                _hostWindow.Left = left;
-                _hostWindow.Top = top;
-            }));
+                _dispatcher.Invoke(new Action(delegate
+                {
+                    _hostWindow.Left = left;
+                    _hostWindow.Top = top;
+                }));
+            }
+
         }
 
         /// <summary>
@@ -190,10 +210,14 @@ namespace WpfTextInput
         /// </summary>
         public void SetReadOnly(bool isReadOnly)
         {
-            _dispatcher?.Invoke(new Action(() =>
+            if (_dispatcher != null)
             {
-                _control.InputBox.IsReadOnly = isReadOnly;
-            }));
+                _dispatcher.Invoke(new Action(delegate
+                {
+                    _control.InputBox.IsReadOnly = isReadOnly;
+                }));
+            }
+
         }
 
         #endregion
@@ -231,7 +255,7 @@ namespace WpfTextInput
             _dispatcher = Dispatcher.CurrentDispatcher;
 
             // 窗口关闭时仅隐藏，不销毁
-            _hostWindow.Closing += (s, e) =>
+            _hostWindow.Closing += delegate(object s, System.ComponentModel.CancelEventArgs e)
             {
                 if (!_disposed)
                 {
@@ -250,7 +274,8 @@ namespace WpfTextInput
         private void OnControlValueChanged(string oldValue, string newValue)
         {
             // 将事件从 UI 线程转发到调用者
-            ValueChanged?.Invoke(oldValue, newValue);
+            if (ValueChanged != null) ValueChanged(oldValue, newValue);
+
         }
 
         #endregion

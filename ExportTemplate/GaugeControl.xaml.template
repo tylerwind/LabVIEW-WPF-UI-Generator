@@ -1,0 +1,40 @@
+<UserControl x:Class="WpfGauge.GaugeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{{ControlBackground}}"
+             SnapsToDevicePixels="True"
+             UseLayoutRounding="True"
+             TextOptions.TextFormattingMode="Display"
+             TextOptions.TextRenderingMode="ClearType"
+             SizeChanged="UserControl_SizeChanged">
+
+    <UserControl.Resources>
+        <LinearGradientBrush x:Key="GaugeBackground" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="{{GradientStart}}" Offset="0"/>
+            <GradientStop Color="{{GradientMid}}" Offset="0.5"/>
+            <GradientStop Color="{{GradientEnd}}" Offset="1"/>
+        </LinearGradientBrush>
+        <DropShadowEffect x:Key="GaugeShadow" BlurRadius="{{ShadowBlur}}" Direction="315" ShadowDepth="{{ShadowDepth}}" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}" />
+    </UserControl.Resources>
+
+    <Grid Margin="{{ShadowMargin}}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Margin="0,0,0,10" HorizontalAlignment="Center">
+                <TextBlock x:Name="LabelBlock" Text="{{ChartTitle}}" FontFamily="{{FontFamily}}" FontSize="{{FontSize}}" FontWeight="Bold" Foreground="{{FontColor}}" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="DescBlock" Text="{{ChartSubtitle}}" FontFamily="{{FontFamily}}" FontSize="{{LabelFontSize}}" Foreground="{{LabelColor}}" HorizontalAlignment="Center" Visibility="Collapsed"/>
+            </StackPanel>
+
+            <Grid Grid.Row="1">
+                <Canvas x:Name="GaugeCanvas"/>
+            </Grid>
+
+            <!-- 移除底部多余标签 -->
+        </Grid>
+    </Grid>
+</UserControl>

@@ -28,7 +28,7 @@ namespace ControlDesigner
             try
             {
                 string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
-                string msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {source}\n{ex}\n\n";
+                string msg = string.Format("[{0:yyyy-MM-dd HH:mm:ss}] {1}\n{2}\n\n", DateTime.Now, source, ex);
                 File.AppendAllText(logPath, msg);
             }
             catch { }

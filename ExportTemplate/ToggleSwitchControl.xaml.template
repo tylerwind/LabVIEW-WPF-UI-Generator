@@ -29,7 +29,7 @@
                 <!-- 滑轨 -->
                 <Border x:Name="Track" CornerRadius="13">
                     <Border.Background>
-                        <SolidColorBrush x:Name="TrackBrush" Color="#C8CCD0"/>
+                        <SolidColorBrush x:Name="TrackBrush" Color="{{ToggleInactiveColor}}"/>
                     </Border.Background>
                 </Border>
                 <!-- 把手 -->

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace WpfTextInput
 {
@@ -10,6 +11,7 @@ namespace WpfTextInput
     /// <summary>
     /// 值变更事件参数
     /// </summary>
+    [ComVisible(true)]
     public class ValueChangedEventArgs : EventArgs
     {
         /// <summary>
