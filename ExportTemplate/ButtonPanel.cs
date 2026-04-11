@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
@@ -88,14 +88,19 @@ namespace WpfButton
         }
 
 
-        /// <summary>
-        /// 显示或隐藏文本
-        /// </summary>
         public void SetLabelVisible(bool visible)
         {
             _wpfControl.SetLabelVisible(visible);
         }
 
+        /// <summary>
+        /// 设置标签文字 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetLabelTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
         #endregion
 
         protected override void Dispose(bool disposing)

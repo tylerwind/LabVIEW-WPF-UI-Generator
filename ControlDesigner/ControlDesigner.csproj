@@ -7,7 +7,7 @@
     <ProjectGuid>{B2C3D4E5-F6A7-8901-BCDE-F12345678901}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>ControlDesigner</RootNamespace>
-    <AssemblyName>WPF控件生成器 v2.5</AssemblyName>
+    <AssemblyName>WPF控件生成器 v2.6</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

@@ -36,6 +36,42 @@ namespace WpfPie
         {
             if (_wpfControl != null) _wpfControl.SetLabelVisible(visible);
         }
+
+        /// <summary>
+        /// 设置标签文字 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetLabelTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
+        /// <summary>
+        /// 设置描述文字 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetDescTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { DescText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
+        /// <summary>
+        /// 增加扇区 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void AddSeriesUTF8(byte[] titleBytes, double value, int colorI32)
+        {
+            if (titleBytes == null) return;
+            try { AddSeries(System.Text.Encoding.UTF8.GetString(titleBytes), value, colorI32); } catch { }
+        }
+
+        /// <summary>
+        /// 修改特定扇区值 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetValueUTF8(byte[] titleBytes, double value)
+        {
+            if (titleBytes == null) return;
+            try { SetValue(System.Text.Encoding.UTF8.GetString(titleBytes), value); } catch { }
+        }
         
 
         [Category("Appearance")]

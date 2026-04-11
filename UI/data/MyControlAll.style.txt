@@ -1,0 +1,247 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【 MyControlAll 控件库 API 使用说明书 】
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+
+■ LabVIEW 引用方式：
+
+  1. 在前面板放置一个 [.NET 容器] (位于.NET与ActiveX选板)
+
+  2. 右键容器 -> 插入 .NET 控件... -> 右上角 [浏览...]
+
+  3. 选择生成的 DLL：MyControlAll.dll
+
+  4. 从对象列表中选择您需要的控件：
+
+     -> MyControlAll.TextInputPanel
+     -> MyControlAll.NumericDisplayPanel
+     -> MyControlAll.SliderInputPanel
+     -> MyControlAll.ProgressBarInputPanel
+     -> MyControlAll.LedIndicatorPanel
+     -> MyControlAll.ToggleSwitchPanel
+     -> MyControlAll.ComboBoxInputPanel
+     -> MyControlAll.ButtonInputPanel
+     -> MyControlAll.ChartDisplayPanel
+     -> MyControlAll.PieDisplayPanel
+     -> MyControlAll.GaugeDisplayPanel
+     -> MyControlAll.DataGridDisplayPanel
+     -> MyControlAll.TreeDisplayPanel
+
+
+
+
+
+
+■ 通用外观属性 (所有控件可用)：
+
+  - BackColor   (属性) : 背景底色 (对应透明变色，控制最外围颜色)
+
+  - ForeColor   (属性) : 前置字色/标签色
+
+  - Font        (属性) : 字体样式及大小
+
+
+
+
+
+■ 各控件专有 API：
+
+  ▶ TextInputPanel (文本输入框)
+    - Text      (属性) : 获取或设置内部文本内容
+    - LabelText (属性) : 获取或设置左上方的标签文字
+    - Write     (方法) : 写入文本进入主存灌入
+    - Read      (方法) : 获取拉取当前内部的链路字符文本
+    - Clear     (方法) : 自动抹除清空输入
+    - SetLabelVisible (方法) : 隐藏或展示组件顶部的标签名称
+    - SetScrollBarVisible (方法) : 配置打开或关闭横向/纵向滚轮条支撑
+    - SetReadOnly (方法) : 驱逐配置其进入非交互静止只读模式
+    - ValueChanged (事件) : 文本变更后抛出 -> (oldValue, newValue, newValueUTF8)
+
+    - WriteUTF8  (方法) : 写入文本 (UTF8 字节流方案，解决多语言乱码)
+    - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案，解决多语言乱码)
+
+  ▶ NumericDisplayPanel (数值显示框)
+    - ValueStr  (属性) : 主体数值呈现带（带格式，字符串形态）
+    - Unit      (属性) : 连线右侧的工程常驻变量单位
+    - LabelText (属性) : 获取或设置左上方的标签文字说明
+    - WriteDouble (方法) : 写入数值（自动贴底带 fmt 格式如 "F2"）
+    - WriteString (方法) : 写入纯文本直达板注入
+    - Clear      (方法) : 彻底洗净清空显示
+    - SetLabelVisible (方法) : 隐藏或展示最外部控制文本锚位
+    - SetUnitVisible (方法) : 隐藏或展示最右端追加的刻印字段
+    - WriteStringUTF8 (方法) : 写入数值文本 (UTF8 字节流方案)
+    - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)
+    - SetUnitUTF8 (方法) : 设置单位 (UTF8 字节流方案)
+
+  ▶ SliderPanel (滑动杆)
+    - Value     (属性) : 当前游标对应的有效浮显数值
+    - Minimum   (属性) : 整体底部向左端靠拢的绝对下陷标极
+    - Maximum   (属性) : 整体顶部向右端靠拢的绝对顶峰标极
+    - TickFrequency (属性) : 拉拽期间的最小标刻浮盈增幅（步进值）
+    - IsSnapToTickEnabled (属性) : 在拖拽间自动对齐至对应的吸附阻滞节点
+    - LabelText (属性) : 标签文字
+    - StartColor (属性) : 进位背景渐变起点色彩 (**HEX**)
+    - EndColor   (属性) : 进位背景渐变终点色彩 (**HEX**)
+    - StartColorValue (属性) : 背景起点色彩 (**数字，标准 RGB**)
+    - EndColorValue   (属性) : 背景终点色彩 (**数字，标准 RGB**)
+    - SetLabelVisible (方法) : 擦除或展平顶部的标签占位框
+    - SetValueVisible (方法) : 隐藏或展示滑杆右浮悬的微调数值文本
+    - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)
+
+  ▶ ProgressBarPanel (进度条)
+    - Value     (属性) : 当前进度值
+    - Minimum   (属性) : 进度底色 0% 指向起始极值
+    - Maximum   (属性) : 进度饱和 100% 指向封顶极值
+    - ShowPercentage (属性) : 控制是否在进度最右端浮显追加比例说明码
+    - LabelText (属性) : 面板常驻主说明框
+    - StartColor (属性) : 轨道起点主色 (**HEX**)
+    - EndColor   (属性) : 轨道终点主色 (**HEX**)
+    - StartColorValue (属性) : 轨道色彩极化起点 (**数字，标准 RGB**)
+    - EndColorValue   (属性) : 轨道色彩极化终点 (**数字，标准 RGB**)
+    - SetLabelVisible (方法) : 强制擦除顶部的标签描述锚位
+    - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)
+
+  ▶ LedPanel (LED 指示灯)
+    - IsOn        (属性) : 设为 true 开启亮灯，false 熄灭
+    - ActiveColor (属性) : 亮灯点燃触发的核心球体主色 (**HEX**)
+    - ActiveColorValue (属性) : 亮灯核心球体主色 (**数字，标准 RGB**)
+    - LabelText   (属性) : 细粒度描述文本标签
+    - SetLabelVisible (方法) : 配置常驻抹平左侧标签占位框
+    - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)
+
+  ▶ ToggleSwitchPanel (开关)
+    - IsOn        (属性) : 设为 true 开启，false 关闭
+    - ActiveColor (属性) : 开状态对应的全景背景轨道主色 (**HEX**)
+    - ActiveColorValue (属性) : 开状态轨道主色 (**数字，标准 RGB**)
+    - InactiveColor (属性) : 关状态对应的全景背景轨道主色 (**HEX**)
+    - InactiveColorValue (属性) : 关状态轨道主色 (**数字，标准 RGB**)
+    - LabelText   (属性) : 开关左上翼绑定的标签文字说明
+    - SetLabelVisible (方法) : 高度剥离抹平文字对应的 label 外置区目
+    - ValueChanged (事件) : 触发拨动后向 LabVIEW 抛出 -> (oldValue, newValue, newValueUTF8)
+    - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)
+
+  ▶ ComboBoxPanel (下拉框)
+    - Items        (属性) : 一维数组全额拉通直接覆盖并展开下拉条目
+    - SelectedIndex(属性) : 被拉取的当前项数组序号标号 (-1为空)
+    - TextValue    (属性) : 选中那一行所浮显出的最终文本绝对字符串率
+    - LabelText    (属性) : 标题文字
+    - AddItem      (方法) : 动态增入单项下拉选项卡
+    - ClearItems   (方法) : 彻底洗净清除下拉弹窗中所拥有的多余条目
+    - SetLabelVisible (方法) : 设置标签描述极高压制状态
+    - ValueChanged (事件) : 选择项改变时抛出 -> (selectedIndex, selectedItem, selectedItemUTF8)
+
+    - AddItemUTF8 (方法) : 添加选项 (UTF8 字节流方案)
+    - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)
+
+  ▶ ButtonPanel (按钮)
+    - Value        (属性) : 按钮当前所释放的动作逻辑电平
+    - Behavior     (属性) : 动作机制分立（按下、抬起释放、脉冲锁定、常亮等）
+    - LabelText    (属性) : 横陈按钮中心表面最立端的标志性标题
+    - SetLabelVisible (方法) : 擦除中间浮现文字
+    - Click        (事件) : 触发连环驱动的弹压节点
+    - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)
+
+  ▶ ChartPanel (折线图/波形图)
+    - LabelText   (属性) : 主标题
+    - DescText    (属性) : 副标题
+    - YMin        (属性) : Y 轴显示极下点
+    - YMax        (属性) : Y 轴显示极上点
+    - AutoScaleY  (属性) : 启用 Y 轴波峰自动标测拉伸锁止 (True/False)
+    - MaxPoints   (属性) : X轴流向的最大颗粒占用水泵极限阀门值 
+    - ShowGridLines (属性) : 背景点阵辅助线可见性 (True/False)
+    - LineThickness (属性) : 各折线带的连结线条粗细 (2.5 等)
+    - FillOpacity   (属性) : 多翼背部的软性充注透明度 (0.0-1.0)
+    - IsXAxisVisible (属性) : 物理背侧时间轴线标码可见性 (True/False)
+    - IsYAxisVisible (属性) : 物理翼侧阈值轴线标码可见性 (True/False)
+    - ShowLegends   (属性) : 关闭或浮显整个下沉式小系列多线图例提示
+    - ShowSeriesCards (属性) : 弹出或关闭左上方数值观测总账折跃卡片
+    - SetLabelVisible (方法) : 隐藏顶层主说明标签占位锚点
+    - ClearSeries (方法) : 洗净所有连线缓存
+    - AddSeries   (方法) : 增入新波线。参数: (标题, double数据组, 线条颜色, 渐变色) 颜色支持 HEX、I32 通量或 .NET Color
+    - SetupSeries (方法) : 批量配置曲线：参数 (标签数组, 颜色数组)。支持簇数组拆分。
+    - SetXLabels  (方法) : 配置横向底部轴线常驻说明字段对应映射数组
+    - SetAllData  (方法) : 覆写灌入全量曲线(接受二维双精度数组)
+    - AppendPointUTF8 (方法) : 追加点 (UTF8 键名方案)
+    - AddSeriesUTF8   (方法) : 增加曲线 (UTF8 标题方案)
+    - SetLabelTextUTF8 (方法) : 设置主标题 (UTF8 方案)
+    - SetDescTextUTF8  (方法) : 设置副标题 (UTF8 方案)
+
+  ▶ PiePanel (饼图)
+    - LabelText (属性) : 饼框中心的绝对主标百分比填充文本
+    - DescText  (属性) : 浮悬居中于主说明栏正下方的极细粒度字段
+    - ShowSeriesCards (属性) : 隐藏或弹起右翼卡片分色观测数值报表列
+    - SeriesNames (属性) : 获取目前已知所有的饼扇页骨架标签数组表
+    - ClearSeries (方法) : 彻底摧毁所有切线，回归百分量模式
+    - AddSeries(title, value, colorI32) : 累加单条饼翼。color 接收 I32
+    - SetSeries(titles[], u[], colorIDs[]) : 批量覆写并轨同步
+    - SetValue(title, double value) : 针对单一扇页执行微量动态补值重画
+    - AddSeriesUTF8 (方法) : 增加扇区 (UTF8 方案)
+    - SetValueUTF8 (方法) : 修改值 (UTF8 标题方案)
+    - SetLabelTextUTF8 (方法) : 设置主标题 (UTF8 方案)
+    - SetDescTextUTF8  (方法) : 设置副标题 (UTF8 方案)
+
+  ▶ GaugePanel (仪表)
+    - LabelText (属性) : 表盘中部三维主标题
+    - DescText  (属性) : 表盘下翼极细粒度字段解读小字
+    - Minimum   (属性) : 左翼起始标刻缩放
+    - Maximum   (属性) : 右翼饱和标刻缩放
+    - Value     (属性) : 当前的环弦推进数值
+    - StartColor (属性) : 外围环线起点渐变色彩 (**HEX**)
+    - EndColor   (属性) : 外围环线终点渐变色彩 (**HEX**)
+    - StartColorValue (属性) : 渐变起点色彩 (**数字，标准 RGB**)
+    - EndColorValue   (属性) : 渐变终点色彩 (**数字，标准 RGB**)
+    - SetRange(min, max) (方法) : 统一覆写同步量程双重界限
+    - SetValue(value)    (方法) : 单线填充写入核心数值极
+    - SetLabelTextUTF8 (方法) : 设置主标题 (UTF8 方案)
+    - SetDescTextUTF8  (方法) : 设置副标题 (UTF8 方案)
+
+  ▶ DataGridPanel (数据表格)
+    - LabelText     (属性) : 面板大头部标题名
+    - ShowHeader    (属性) : 高亮列名可见性 (True/False)
+    - RowHeight     (属性) : 行高度配置（紧致性调节）
+    - HeaderColor   (属性) : 表头通栏高亮背景色 (**HEX字符串**)
+    - HeaderColorValue (属性) : 表头背景色 (**数字，标准 RGB**)
+    - SetLabelVisible (方法) : 去除标题常亮占位提示器
+    - SetHeaders    (方法) : 设置列名分布段 Title 组
+    - SetData       (方法) : 填充表格数据. 参数: [String 二维数组]
+    - AddRow        (方法) : 在尾部独立叠加单条字符行 [String 一维数组]
+    - Clear         (方法) : 全面抹除附着于面板上的全部条目
+    - BindDataTable (方法) : 直接绑定传统托管 .NET DataTable 数据源
+    - GetHeaders    (方法) : 获取拉出现有的合法表头列表
+    - GetAllData    (方法) : 读取对应真实的全局二维字符串数组镜像表
+    - SetLabelTextUTF8 (方法) : 设置标题 (UTF8 方案)
+
+  ▶ TreePanel (树节点控件)
+    - LabelText       (属性) : 面板左上方常驻主说明框标题
+    - SetLabelVisible (方法) : 隐藏或者展平顶部的标签占位框
+    - AddNode         (方法) : 注入节点结构. 参数: (id标识符, parentId父级标识, text节点标签内容...)
+    - AddNodeUTF8     (方法) : 注入节点 (UTF8 文本方案)
+    - SetLabelTextUTF8 (方法) : 设置标题 (UTF8 方案)
+    - RemoveNode      (方法) : 卸载摘除对应 id 的节点及其下挂载的所有子代
+    - ClearNodes      (方法) : 将整棵树全量连根拔起化空
+    - GetNode         (方法) : 借由 ID 查询匹配其底层节点原对象句柄
+    - GetCheckedNodes (方法) : 一次性获取全树域下所有正在勾选的元素字集列表 (返回 ID 一维字符串数组)
+    - SetNodeChecked  (方法) : 提供后台 API 强制扳平扭转特定节点的打勾状态
+    - ExpandNode      (方法) : 将枝干指定打开
+    - CollapseNode    (方法) : 将枝干指定闭锁合拢
+    - ExpandAll       (方法) : 全视域全局分支展开
+    - CollapseAll     (方法) : 全视域全局分支收缩
+    - NodeSelected    (事件) : 行被单击抛出 -> (NodeId, NodeText, NodeTextUTF8)
+    - NodeChecked   (事件) : 复选状态发生物理扳转后抛出 -> (NodeId, IsChecked)
+    - NodeExpanding (事件) : 被惰性拨开或动态打开父节点时抛出 -> (NodeId)
+    - NodeDoubleClicked (事件) : 元素连环遭点击确立时（双击）抛出 -> (NodeId, NodeText, NodeTextUTF8)
+
+
+
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+■ 导出信息
+
+名称: MyControlAll   时间: 2026-04-11 11:48:32
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

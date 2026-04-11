@@ -58,6 +58,23 @@ namespace ControlDesigner.Services
                     result.ExitCode = proc.ExitCode;
                 }
 
+                // 自动降级处理：如果 4.8 构建失败，降级到 4.0 再次尝试 (兼容极度古老的电脑)
+                if (result.ExitCode != 0)
+                {
+                    string csprojContent = File.ReadAllText(csproj);
+                    if (csprojContent.Contains("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>"))
+                    {
+                        File.WriteAllText(csproj, csprojContent.Replace("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>", "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>"));
+                        using (var proc2 = Process.Start(psi))
+                        {
+                            result.BuildOutput = proc2.StandardOutput.ReadToEnd();
+                            result.BuildErrors = proc2.StandardError.ReadToEnd();
+                            proc2.WaitForExit();
+                            result.ExitCode = proc2.ExitCode;
+                        }
+                    }
+                }
+
                 if (result.ExitCode == 0)
                 {
                     // 3. 复制 DLL 到目标路径（输出文件名和程序集名一致）
@@ -148,6 +165,23 @@ namespace ControlDesigner.Services
                     result.BuildErrors = proc.StandardError.ReadToEnd();
                     proc.WaitForExit();
                     result.ExitCode = proc.ExitCode;
+                }
+
+                // 自动降级处理：如果 4.8 构建失败，降级到 4.0 再次尝试 (兼容极度古老的电脑)
+                if (result.ExitCode != 0)
+                {
+                    string csprojContent = File.ReadAllText(csproj);
+                    if (csprojContent.Contains("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>"))
+                    {
+                        File.WriteAllText(csproj, csprojContent.Replace("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>", "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>"));
+                        using (var proc2 = Process.Start(psi))
+                        {
+                            result.BuildOutput = proc2.StandardOutput.ReadToEnd();
+                            result.BuildErrors = proc2.StandardError.ReadToEnd();
+                            proc2.WaitForExit();
+                            result.ExitCode = proc2.ExitCode;
+                        }
+                    }
                 }
 
                 if (result.ExitCode == 0)

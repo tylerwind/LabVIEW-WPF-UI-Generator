@@ -59,6 +59,10 @@ namespace ControlDesigner.Models
         /// <summary>
         /// 极简玻璃态数据表格
         /// </summary>
-        DataGridDisplay
+        DataGridDisplay,
+        /// <summary>
+        /// 高层级树形配置控件
+        /// </summary>
+        TreeDisplay
     }
 }

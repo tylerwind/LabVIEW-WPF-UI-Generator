@@ -124,6 +124,15 @@ namespace WpfDataGrid
             _wpfControl.SetLabelVisible(visible);
         }
 
+        /// <summary>
+        /// 设置标签文字 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetLabelTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
         [Description("获取当前表格的所有表头列名")]
         public string[] GetHeaders()
         {

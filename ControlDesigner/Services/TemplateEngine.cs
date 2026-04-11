@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -38,6 +38,7 @@ namespace ControlDesigner.Services
                 case ControlType.PieDisplay: templateFileName = "PieControl.xaml.template"; break;
                 case ControlType.GaugeDisplay: templateFileName = "GaugeControl.xaml.template"; break;
                 case ControlType.DataGridDisplay: templateFileName = "DataGridControl.xaml.template"; break;
+                case ControlType.TreeDisplay: templateFileName = "TreeControl.xaml.template"; break;
                 case ControlType.TextInput:
                 default: templateFileName = "TextInputControl.xaml.template"; break;
             }
@@ -107,6 +108,10 @@ namespace ControlDesigner.Services
                 case ControlType.DataGridDisplay:
                     xamlFileName = "DataGridControl.xaml";
                     fixedFiles = new string[] { "DataGridControl.xaml.cs", "DataGridPanel.cs" };
+                    break;
+                case ControlType.TreeDisplay:
+                    xamlFileName = "TreeControl.xaml";
+                    fixedFiles = new string[] { "TreeControl.xaml.cs", "TreePanel.cs" };
                     break;
 
                 case ControlType.TextInput:
@@ -235,6 +240,14 @@ namespace ControlDesigner.Services
                     csproj = csproj.Replace("TextInputPanel.cs", "DataGridPanel.cs");
                     csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
                 }
+                else if (type == ControlType.TreeDisplay)
+                {
+                    csproj = csproj.Replace("TextInputControl.xaml.cs", "TreeControl.xaml.cs");
+                    csproj = csproj.Replace("TextInputControl.xaml", "TreeControl.xaml");
+                    csproj = csproj.Replace("<Compile Include=\"TextInputHost.cs\" />", "");
+                    csproj = csproj.Replace("TextInputPanel.cs", "TreePanel.cs");
+                    csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
+                }
 
                 csproj = csproj.Replace("<RootNamespace>WpfTextInput</RootNamespace>",
                                        "<RootNamespace>" + controlName + "</RootNamespace>");
@@ -269,6 +282,7 @@ namespace ControlDesigner.Services
                 new { Type = ControlType.PieDisplay,        XamlTemplate = "PieControl.xaml.template",               XamlOut = "PieControl.xaml",               Files = new[] { "PieControl.xaml.cs", "PiePanel.cs" } },
                 new { Type = ControlType.GaugeDisplay,      XamlTemplate = "GaugeControl.xaml.template",             XamlOut = "GaugeControl.xaml",             Files = new[] { "GaugeControl.xaml.cs", "GaugePanel.cs" } },
                 new { Type = ControlType.DataGridDisplay,   XamlTemplate = "DataGridControl.xaml.template",          XamlOut = "DataGridControl.xaml",          Files = new[] { "DataGridControl.xaml.cs", "DataGridPanel.cs" } },
+                new { Type = ControlType.TreeDisplay,       XamlTemplate = "TreeControl.xaml.template",              XamlOut = "TreeControl.xaml",              Files = new[] { "TreeControl.xaml.cs", "TreePanel.cs" } },
             };
 
             var writtenFiles = new HashSet<string>();
@@ -383,6 +397,13 @@ namespace ControlDesigner.Services
                 { "{{ToggleActiveColor}}", CleanColor(style.ToggleColorOn) },
                 { "{{ToggleInactiveColor}}", CleanColor(style.ToggleColorOff) },
                 { "{{ComboBoxArrowColor}}", CleanColor(style.ComboBoxArrowColor) },
+
+                // Tree 专属
+                { "{{TreeItemHeight}}", FormatNumber(style.TreeItemHeight) },
+                { "{{TreeIndentSize}}", FormatNumber(style.TreeIndentSize) },
+                { "{{TreeLabelText}}", style.TreeLabelText },
+                { "{{TreeBackground}}", CleanColor(style.TreeBackground) },
+                  { "{{NodeCheckBoxVisibility}}", style.TreeShowCheckBox ? "Visibility=\"{Binding ShowCheckBox, Converter={StaticResource BooleanToVisibilityConverter}}\"" : "Visibility=\"Collapsed\"" },
             };
 
             string result = template;
@@ -431,7 +452,8 @@ namespace ControlDesigner.Services
         private string ReplaceNamespace(string content, string newNamespace)
         {
             if (string.IsNullOrEmpty(content)) return content;
-            return content.Replace("WpfTextInput", newNamespace)
+            return content.Replace("{{Namespace}}", newNamespace)
+                          .Replace("WpfTextInput", newNamespace)
                           .Replace("WpfNumericDisplay", newNamespace)
                           .Replace("WpfComboBox", newNamespace)
                           .Replace("WpfSlider", newNamespace)
@@ -442,7 +464,8 @@ namespace ControlDesigner.Services
                           .Replace("WpfChart", newNamespace)
                           .Replace("WpfPie", newNamespace)
                           .Replace("WpfGauge", newNamespace)
-                          .Replace("WpfDataGrid", newNamespace);
+                          .Replace("WpfDataGrid", newNamespace)
+                          .Replace("WpfTree", newNamespace);
         }
     }
 }

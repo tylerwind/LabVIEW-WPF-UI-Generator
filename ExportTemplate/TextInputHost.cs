@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -271,10 +271,10 @@ namespace WpfTextInput
             Dispatcher.Run();
         }
 
-        private void OnControlValueChanged(string oldValue, string newValue)
+        private void OnControlValueChanged(string oldValue, string newValue, byte[] newValueUTF8)
         {
-            // 将事件从 UI 线程转发到调用者
-            if (ValueChanged != null) ValueChanged(oldValue, newValue);
+            // 将事件从 UI 线程转发到监听者 (通常是 LabVIEW)
+            if (ValueChanged != null) ValueChanged(oldValue, newValue, newValueUTF8);
 
         }
 

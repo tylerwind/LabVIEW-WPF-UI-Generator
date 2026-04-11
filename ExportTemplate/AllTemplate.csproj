@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>WpfTextInput</RootNamespace>
     <AssemblyName>WpfTextInput</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -106,6 +106,11 @@
       <DependentUpon>DataGridControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="DataGridPanel.cs" />
+    <!-- Tree -->
+    <Compile Include="TreeControl.xaml.cs">
+      <DependentUpon>TreeControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TreePanel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="TextInputControl.xaml">
@@ -153,6 +158,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DataGridControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TreeControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

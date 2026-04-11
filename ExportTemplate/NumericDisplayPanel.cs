@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -140,6 +140,33 @@ namespace WpfTextInput
         {
             if (_wpfControl != null)
                 _wpfControl.SetUnitVisible(visible);
+        }
+
+        /// <summary>
+        /// 写入字符串数值 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void WriteStringUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { WriteString(System.Text.Encoding.UTF8.GetString(bytes)); } catch { }
+        }
+
+        /// <summary>
+        /// 设置标签文字 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetLabelTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
+        /// <summary>
+        /// 设置单位文字 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetUnitUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { Unit = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
         }
 
         #endregion

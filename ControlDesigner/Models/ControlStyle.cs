@@ -212,6 +212,22 @@ namespace ControlDesigner.Models
         private string _toggleColorOff = "#C8CCD0";
         public string ToggleColorOff { get { return _toggleColorOff; } set { Set(ref _toggleColorOff, value); } }
 
+        // === Tree 树形控件 ===
+        private double _treeItemHeight = 36;
+        public double TreeItemHeight { get { return _treeItemHeight; } set { Set(ref _treeItemHeight, value); } }
+
+        private double _treeIndentSize = 24;
+        public double TreeIndentSize { get { return _treeIndentSize; } set { Set(ref _treeIndentSize, value); } }
+
+        private string _treeLabelText = "配置节点";
+        public string TreeLabelText { get { return _treeLabelText; } set { Set(ref _treeLabelText, value); } }
+
+        private string _treeBackground = "#FFFFFF";
+        public string TreeBackground { get { return _treeBackground; } set { Set(ref _treeBackground, value); } }
+
+        private bool _treeShowCheckBox = true;
+        public bool TreeShowCheckBox { get { return _treeShowCheckBox; } set { Set(ref _treeShowCheckBox, value); } }
+
         // === 间距 ===
         private string _cardPadding = "12,8,12,6";
         public string CardPadding { get { return _cardPadding; } set { Set(ref _cardPadding, value); } }

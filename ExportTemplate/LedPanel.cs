@@ -64,6 +64,15 @@ namespace WpfTextInput
             if (_wpfControl != null) _wpfControl.SetLabelVisible(visible);
         }
 
+        /// <summary>
+        /// 设置标签文字 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetLabelTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
 
         public LedPanel()
         {

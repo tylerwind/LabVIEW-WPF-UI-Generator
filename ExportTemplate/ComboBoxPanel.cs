@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
@@ -9,7 +9,7 @@ namespace WpfComboBox
     /// <summary>
     /// 下拉框选择更改的事件委托，LabVIEW 会将其参数直接展开在事件数据节点上
     /// </summary>
-    public delegate void ComboBoxValueChangedHandler(int selectedIndex, string selectedItem);
+    public delegate void ComboBoxValueChangedHandler(int selectedIndex, string selectedItem, byte[] selectedItemUTF8);
 
     /// <summary>
     /// 用于在 LabVIEW / WinForms 中托管 WpfComboBox 的容器面板
@@ -60,8 +60,12 @@ namespace WpfComboBox
 
         private void WpfControl_SelectionChanged(int selectedIndex, object selectedItem)
         {
-            if (ValueChanged != null) ValueChanged(selectedIndex, selectedItem != null ? selectedItem.ToString() : string.Empty);
-
+            if (ValueChanged != null)
+            {
+                string text = selectedItem != null ? selectedItem.ToString() : string.Empty;
+                byte[] utf8Bytes = string.IsNullOrEmpty(text) ? new byte[0] : System.Text.Encoding.UTF8.GetBytes(text);
+                ValueChanged(selectedIndex, text, utf8Bytes);
+            }
         }
 
         #region 给 LabVIEW 或外部代码暴露的属性与方法
@@ -150,14 +154,28 @@ namespace WpfComboBox
             _wpfControl.ClearItems();
         }
 
-        /// <summary>
-        /// 显示或隐藏标签
-        /// </summary>
         public void SetLabelVisible(bool visible)
         {
             _wpfControl.SetLabelVisible(visible);
         }
 
+        /// <summary>
+        /// 设置标签文字 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetLabelTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
+        /// <summary>
+        /// 添加选项 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void AddItemUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { AddItem(System.Text.Encoding.UTF8.GetString(bytes)); } catch { }
+        }
         #endregion
 
         protected override void Dispose(bool disposing)

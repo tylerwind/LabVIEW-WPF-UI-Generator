@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -129,7 +129,11 @@ namespace WpfTextInput
             if (oldText != newText)
             {
                 _previousText = newText;
-                if (ValueChanged != null) ValueChanged(oldText, newText);
+                if (ValueChanged != null) 
+                {
+                    byte[] utf8Bytes = string.IsNullOrEmpty(newText) ? new byte[0] : System.Text.Encoding.UTF8.GetBytes(newText);
+                    ValueChanged(oldText, newText, utf8Bytes);
+                }
 
             }
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -142,6 +142,24 @@ namespace WpfTextInput
                 _wpfControl.InputBox.IsReadOnly = isReadOnly;
         }
 
+        /// <summary>
+        /// 写入文本进主存灌入 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void WriteUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { Write(System.Text.Encoding.UTF8.GetString(bytes)); } catch { }
+        }
+
+        /// <summary>
+        /// 设置标签文字 (UTF8 字节流方案，解决乱码)
+        /// </summary>
+        public void SetLabelTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
         #endregion
 
         #region 内部方法
@@ -168,9 +186,12 @@ namespace WpfTextInput
             this.Controls.Add(_elementHost);
         }
 
-        private void OnWpfValueChanged(string oldValue, string newValue)
+        private void OnWpfValueChanged(string oldValue, string newValue, byte[] newValueUTF8)
         {
-            if (ValueChanged != null) ValueChanged(oldValue, newValue);
+            if (ValueChanged != null)
+            {
+                ValueChanged(oldValue, newValue, newValueUTF8);
+            }
         }
 
 

@@ -6,7 +6,7 @@ namespace WpfTextInput
     /// <summary>
     /// 值变更事件委托 — LabVIEW 兼容的简单委托类型
     /// </summary>
-    public delegate void ValueChangedHandler(string oldValue, string newValue);
+    public delegate void ValueChangedHandler(string oldValue, string newValue, byte[] newValueUTF8);
 
     /// <summary>
     /// 值变更事件参数

@@ -1,0 +1,218 @@
+<UserControl x:Class="{{Namespace}}.TreeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:{{Namespace}}"
+             Background="Transparent">
+
+    <UserControl.Resources>
+        <!-- 布尔类型控制可见的转换器 (必须放在最前，以解决 StaticResource 向前查找崩溃的问题) -->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
+        <!-- 树节点展开收缩的三角图标样式 -->
+        <Style x:Key="ExpandCollapseToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Width="16" Height="16" Background="Transparent">
+                            <Path x:Name="ExpandPath" 
+                                  Fill="Transparent" 
+                                  Stroke="{{FontColor}}" 
+                                  StrokeThickness="1.5"
+                                  Data="M 4 4 L 10 9 L 4 14"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  RenderTransformOrigin="0.5,0.5">
+                                <Path.RenderTransform>
+                                    <RotateTransform Angle="0"/>
+                                </Path.RenderTransform>
+                            </Path>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ExpandPath" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="90"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <!-- 鼠标悬浮时提亮 -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ExpandPath" Property="Stroke" Value="{{AccentColor}}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 扁平化 CheckBox 样式 -->
+        <Style x:Key="TreeCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Foreground" Value="{{FontColor}}"/>
+            <Setter Property="Margin" Value="4,0,8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Background="Transparent">
+                            <Border x:Name="CheckBorder" 
+                                    Width="16" Height="16"
+                                    BorderBrush="{{BorderColor}}"
+                                    BorderThickness="1"
+                                    Background="Transparent"
+                                    CornerRadius="3"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <Path x:Name="CheckMark" 
+                                      Data="M 3 8 L 6 11 L 12 4" 
+                                      Stroke="{{ControlBackground}}" 
+                                      StrokeThickness="2" 
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      Visibility="Collapsed"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <!-- 选中状态 -->
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckBorder" Property="Background" Value="{{AccentColor}}"/>
+                                <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{{AccentColor}}"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <!-- 模糊/悬停/半选等情况可在这里扩展 -->
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TreeViewItemFocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 全宽选择，极简样式的 TreeViewItem -->
+        <Style TargetType="{x:Type TreeViewItem}">
+            <!-- 双向绑定底层属性以支持批量完全展开/收缩等后台操作 -> 前端 -->
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{{FontColor}}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <!-- 整体聚焦外框移除 -->
+            <Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}"/>
+            <Setter Property="Padding" Value="1,0,0,0"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <!-- {{TreeItemHeight}} -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                        <StackPanel>
+                            <!-- 当前节点行 -->
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}" MinHeight="{{TreeItemHeight}}" SnapsToDevicePixels="true">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition MinWidth="19" Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- 展开圆锥 -->
+                                    <ToggleButton x:Name="Expander" Style="{StaticResource ExpandCollapseToggleStyle}" IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press"/>
+                                    <Border Grid.Column="1" Grid.ColumnSpan="2" Background="Transparent" CornerRadius="4" x:Name="ItemHoverState">
+                                        <Grid Margin="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <CheckBox x:Name="NodeCheckBox"  Grid.Column="0" IsChecked="{Binding IsChecked, Mode=TwoWay}" Style="{StaticResource TreeCheckBoxStyle}" VerticalAlignment="Center" {{NodeCheckBoxVisibility}}/>
+                                            <ContentPresenter Grid.Column="1" x:Name="PART_Header" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                            <ItemsPresenter x:Name="ItemsHost" Margin="{{TreeIndentSize}},0,0,0"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="false">
+                                <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <Trigger Property="HasItems" Value="false">
+                                <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="true">
+                                <Setter TargetName="ItemHoverState" Property="Background" Value="{{HighlightColor}}"/>
+                                <Setter Property="Foreground" Value="{{FontColor}}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="true"/>
+                                    <Condition Property="IsSelectionActive" Value="false"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="ItemHoverState" Property="Background" Value="{{HighlightColor}}"/>
+                                <Setter Property="Foreground" Value="{{FontColor}}"/>
+                            </MultiTrigger>
+                            <Trigger SourceName="Bd" Property="IsMouseOver" Value="true">
+                                <Setter TargetName="ItemHoverState" Property="Background" Value="{{HighlightColor}}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 主 TreeView 样式 -->
+        <Style TargetType="{x:Type TreeView}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+
+    </UserControl.Resources>
+
+    <!-- 主体容器带外阴影和玻璃磨砂特效 -->
+    <Grid Margin="{{ShadowMargin}}">
+        <Border CornerRadius="{{CornerRadius}}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="{{ShadowBlur}}" Direction="315" ShadowDepth="{{ShadowDepth}}" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}" />
+            </Border.Effect>
+            <!-- 渐变层基底 -->
+            <Border Background="{{TreeBackground}}" CornerRadius="{{CornerRadius}}">
+                <Border BorderBrush="{{BorderColor}}" BorderThickness="{{BorderThickness}}" CornerRadius="{{CornerRadius}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <!-- 标签栏 -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- 树形内容 -->
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- 控件顶部的标签区，支持开关 -->
+                        <TextBlock x:Name="MainLabel" 
+                                   Text="{{TreeLabelText}}" 
+                                   Foreground="{{LabelColor}}" 
+                                   FontFamily="{{FontFamily}}" 
+                                   FontSize="{{LabelFontSize}}" 
+                                   Margin="{{CardPadding}}"
+                                   Visibility="Visible"/>
+
+                        <TreeView x:Name="InnerTree" Grid.Row="1" Margin="8,0,8,8" BorderThickness="0">
+                            <!-- HierarchicalDataTemplate 会在代码后台动态构建并绑定 -->
+                        </TreeView>
+                    </Grid>
+                </Border>
+            </Border>
+        </Border>
+    </Grid>
+
+</UserControl>
