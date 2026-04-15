@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -39,6 +39,7 @@ namespace ControlDesigner.Services
                 case ControlType.GaugeDisplay: templateFileName = "GaugeControl.xaml.template"; break;
                 case ControlType.DataGridDisplay: templateFileName = "DataGridControl.xaml.template"; break;
                 case ControlType.TreeDisplay: templateFileName = "TreeControl.xaml.template"; break;
+                case ControlType.SidebarNav: templateFileName = "SidebarControl.xaml.template"; break;
                 case ControlType.TextInput:
                 default: templateFileName = "TextInputControl.xaml.template"; break;
             }
@@ -113,6 +114,10 @@ namespace ControlDesigner.Services
                     xamlFileName = "TreeControl.xaml";
                     fixedFiles = new string[] { "TreeControl.xaml.cs", "TreePanel.cs" };
                     break;
+                case ControlType.SidebarNav:
+                    xamlFileName = "SidebarControl.xaml";
+                    fixedFiles = new string[] { "SidebarControl.xaml.cs", "SidebarPanel.cs" };
+                    break;
 
                 case ControlType.TextInput:
                 default:
@@ -133,16 +138,16 @@ namespace ControlDesigner.Services
                 string src = Path.Combine(_templateDir, file);
                 if (File.Exists(src))
                 {
-                string content = File.ReadAllText(src);
-                content = ReplaceNamespace(content, controlName);
-                
-                // 对 .cs 文件也执行 ApplyStyle 以替换可能的动态属性（如 Chart 和 DataGrid 的配置）
-                if (file.EndsWith(".cs"))
-                {
-                    content = ApplyStyle(content, style);
-                }
-                
-                File.WriteAllText(Path.Combine(outputDir, file), content, Encoding.UTF8);
+                    string content = File.ReadAllText(src);
+                    content = ReplaceNamespace(content, controlName);
+                    
+                    // 对 .cs 文件也执行 ApplyStyle 以替换可能的动态属性（如 Chart 和 DataGrid 的配置）
+                    if (file.EndsWith(".cs"))
+                    {
+                        content = ApplyStyle(content, style);
+                    }
+                    
+                    File.WriteAllText(Path.Combine(outputDir, file), content, Encoding.UTF8);
                 }
             }
 
@@ -248,6 +253,14 @@ namespace ControlDesigner.Services
                     csproj = csproj.Replace("TextInputPanel.cs", "TreePanel.cs");
                     csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
                 }
+                else if (type == ControlType.SidebarNav)
+                {
+                    csproj = csproj.Replace("TextInputControl.xaml.cs", "SidebarControl.xaml.cs");
+                    csproj = csproj.Replace("TextInputControl.xaml", "SidebarControl.xaml");
+                    csproj = csproj.Replace("<Compile Include=\"TextInputHost.cs\" />", "");
+                    csproj = csproj.Replace("TextInputPanel.cs", "SidebarPanel.cs");
+                    csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
+                }
 
                 csproj = csproj.Replace("<RootNamespace>WpfTextInput</RootNamespace>",
                                        "<RootNamespace>" + controlName + "</RootNamespace>");
@@ -283,6 +296,7 @@ namespace ControlDesigner.Services
                 new { Type = ControlType.GaugeDisplay,      XamlTemplate = "GaugeControl.xaml.template",             XamlOut = "GaugeControl.xaml",             Files = new[] { "GaugeControl.xaml.cs", "GaugePanel.cs" } },
                 new { Type = ControlType.DataGridDisplay,   XamlTemplate = "DataGridControl.xaml.template",          XamlOut = "DataGridControl.xaml",          Files = new[] { "DataGridControl.xaml.cs", "DataGridPanel.cs" } },
                 new { Type = ControlType.TreeDisplay,       XamlTemplate = "TreeControl.xaml.template",              XamlOut = "TreeControl.xaml",              Files = new[] { "TreeControl.xaml.cs", "TreePanel.cs" } },
+                new { Type = ControlType.SidebarNav,        XamlTemplate = "SidebarControl.xaml.template",           XamlOut = "SidebarControl.xaml",           Files = new[] { "SidebarControl.xaml.cs", "SidebarPanel.cs" } },
             };
 
             var writtenFiles = new HashSet<string>();
@@ -307,12 +321,12 @@ namespace ControlDesigner.Services
 
                     string src = Path.Combine(_templateDir, file);
                     if (File.Exists(src))
-                {
-                    string content = File.ReadAllText(src);
-                    content = ReplaceNamespace(content, assemblyName);
-                    content = ApplyStyle(content, style);
-                    File.WriteAllText(Path.Combine(outputDir, file), content, Encoding.UTF8);
-                }
+                    {
+                        string content = File.ReadAllText(src);
+                        content = ReplaceNamespace(content, assemblyName);
+                        content = ApplyStyle(content, style);
+                        File.WriteAllText(Path.Combine(outputDir, file), content, Encoding.UTF8);
+                    }
                 }
             }
 
@@ -403,7 +417,15 @@ namespace ControlDesigner.Services
                 { "{{TreeIndentSize}}", FormatNumber(style.TreeIndentSize) },
                 { "{{TreeLabelText}}", style.TreeLabelText },
                 { "{{TreeBackground}}", CleanColor(style.TreeBackground) },
-                  { "{{NodeCheckBoxVisibility}}", style.TreeShowCheckBox ? "Visibility=\"{Binding ShowCheckBox, Converter={StaticResource BooleanToVisibilityConverter}}\"" : "Visibility=\"Collapsed\"" },
+                { "{{NodeCheckBoxVisibility}}", style.TreeShowCheckBox ? "Visibility=\"{Binding ShowCheckBox, Converter={StaticResource BooleanToVisibilityConverter}}\"" : "Visibility=\"Collapsed\"" },
+                { "{{SidebarLogoText}}", style.SidebarLogoText },
+                { "{{SidebarLogoIconText}}", string.IsNullOrWhiteSpace(style.SidebarLogoIconText) ? "🚀" : style.SidebarLogoIconText },
+                { "{{SidebarLogoImagePath}}", string.IsNullOrWhiteSpace(style.SidebarLogoImagePath) ? string.Empty : style.SidebarLogoImagePath },
+                { "{{SidebarLogoUseImage}}", style.SidebarLogoUseImage ? "True" : "False" },
+                { "{{SidebarLogoMargin}}", style.SidebarLogoMargin },
+                { "{{SidebarBackground}}", CleanColor(style.SidebarBackground) },
+                { "{{SidebarItemHeight}}", FormatNumber(style.SidebarItemHeight) },
+                { "{{SidebarItemSpacing}}", FormatNumber(style.SidebarItemSpacing) },
             };
 
             string result = template;
@@ -465,7 +487,8 @@ namespace ControlDesigner.Services
                           .Replace("WpfPie", newNamespace)
                           .Replace("WpfGauge", newNamespace)
                           .Replace("WpfDataGrid", newNamespace)
-                          .Replace("WpfTree", newNamespace);
+                          .Replace("WpfTree", newNamespace)
+                          .Replace("WpfSidebar", newNamespace);
         }
     }
 }

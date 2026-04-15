@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neumorphic Final - Floating UI</title>
+    <style>
+        :root {
+            --bg: #e0e0e0;
+            --shadow-dark: #bebebe;
+            --shadow-light: #ffffff;
+            --text: #4a4a4a;
+            --accent: #4f46e5;
+            --sidebar-w: 280px;
+            --sidebar-collapsed-w: 80px;
+            --gap: 16px;
+        }
+
+        [data-theme="dark"] {
+            --bg: #232323;
+            --shadow-dark: #1a1a1a;
+            --shadow-light: #2c2c2c;
+            --text: #d4d4d4;
+            --accent: #818cf8;
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Inter', -apple-system, sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ===== 侧边栏 ===== */
+        .sidebar {
+            width: var(--sidebar-w);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 10px 0 30px var(--shadow-dark);
+            z-index: 100;
+            background: var(--bg);
+            position: relative;
+        }
+
+        .sidebar.collapsed { width: var(--sidebar-collapsed-w); padding: 30px 12px; }
+
+        .logo-box {
+            display: flex; align-items: center; gap: 15px;
+            margin-bottom: 40px; padding: 0 5px; overflow: hidden;
+        }
+
+        .logo-icon {
+            width: 48px; height: 48px; min-width: 48px; border-radius: 14px;
+            background: var(--bg);
+            box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent); font-weight: 900; font-size: 18px;
+        }
+
+        .logo-title { font-weight: 800; font-size: 18px; }
+        .sidebar.collapsed .logo-title { display: none; }
+
+        /* ===== 导航滚动区 ===== */
+        .nav-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: visible; /* 关键：不裁切水平方向的阴影 */
+            padding: 10px; /* 四周留白给阴影空间 */
+        }
+        .nav-scroll::-webkit-scrollbar { width: 0; }
+
+        /* ===== 一级导航按钮 ===== */
+        .nav-btn {
+            width: 100%;
+            height: 50px;
+            padding: 0 16px;
+            border-radius: 14px;
+            background: var(--bg);
+            box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+            display: flex; align-items: center; gap: 14px;
+            border: none; cursor: pointer;
+            color: var(--text); font-weight: 600; font-size: 14px;
+            margin-bottom: var(--gap);
+            outline: none;
+        }
+
+        .nav-btn:hover { transform: translateY(-1px); }
+        .nav-btn:active { transform: scale(0.98); }
+
+        /* 选中态：陷入效果 */
+        .nav-btn.active {
+            box-shadow: inset 4px 4px 8px var(--shadow-dark),
+                        inset -4px -4px 8px var(--shadow-light);
+            color: var(--accent);
+        }
+
+        .nav-btn .icon { font-size: 18px; min-width: 22px; text-align: center; }
+        .nav-btn .label { flex: 1; text-align: left; }
+        .nav-btn .arrow { font-size: 9px; opacity: 0.4; transition: transform 0.3s; }
+
+        .sidebar.collapsed .label,
+        .sidebar.collapsed .arrow { display: none; }
+
+        /* ===== 二级子项 ===== */
+        /* 核心：不使用任何包裹容器，直接用 CSS 控制显隐 */
+        .sub-btn {
+            width: calc(100% - 30px); /* 比父级窄，营造层级感 */
+            margin-left: 30px; /* 右缩进对齐 */
+            height: 44px;
+            padding: 0 14px;
+            border-radius: 12px;
+            background: var(--bg);
+            box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+            display: none; /* 默认隐藏 */
+            align-items: center; gap: 12px;
+            border: none; cursor: pointer;
+            color: var(--text); font-weight: 500; font-size: 13px;
+            margin-bottom: var(--gap);
+            outline: none;
+        }
+
+        .sub-btn:hover { transform: translateY(-1px); }
+        .sub-btn:active { transform: scale(0.98); }
+
+        .sub-btn.active {
+            box-shadow: inset 3px 3px 6px var(--shadow-dark),
+                        inset -3px -3px 6px var(--shadow-light);
+            color: var(--accent);
+        }
+
+        .sub-btn .icon { font-size: 14px; min-width: 18px; text-align: center; }
+        .sub-btn .label { flex: 1; text-align: left; }
+
+        /* 展开状态：直接显示子项 */
+        .group.open .sub-btn {
+            display: flex;
+        }
+
+        .group.open .arrow {
+            transform: rotate(90deg);
+        }
+
+        .sidebar.collapsed .sub-btn { display: none !important; }
+
+        /* ===== 收缩拨片 ===== */
+        .toggler {
+            position: absolute; right: -15px; top: 45px;
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--bg);
+            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+            border: none; cursor: pointer; z-index: 110;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+        }
+
+        /* ===== 主内容 ===== */
+        .main { flex: 1; display: flex; flex-direction: column; padding: 30px; gap: 20px; }
+
+        .topbar {
+            padding: 18px 30px; border-radius: 18px;
+            background: var(--bg);
+            box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .body-panel {
+            flex: 1; border-radius: 24px;
+            background: var(--bg);
+            box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
+
+        .theme-toggle {
+            width: 42px; height: 42px; border-radius: 12px;
+            background: var(--bg);
+            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+            border: none; cursor: pointer; font-size: 18px;
+        }
+        .theme-toggle:active {
+            box-shadow: inset 3px 3px 6px var(--shadow-dark),
+                        inset -3px -3px 6px var(--shadow-light);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <aside class="sidebar" id="sidebar">
+        <button class="toggler" onclick="toggleSidebar()">❮</button>
+
+        <div class="logo-box">
+            <div class="logo-icon">WP</div>
+            <span class="logo-title">PRO-CONSOLE</span>
+        </div>
+
+        <div class="nav-scroll">
+            <!-- 分组1：带子菜单 -->
+            <div class="group open" id="grp1">
+                <button class="nav-btn" onclick="toggleGroup('grp1')">
+                    <span class="icon">🛡️</span>
+                    <span class="label">实时防护</span>
+                    <span class="arrow">▶</span>
+                </button>
+                <!-- 子项直接平铺，无包裹容器 -->
+                <button class="sub-btn" onclick="nav(this, '防火墙策略')">
+                    <span class="icon">🔥</span>
+                    <span class="label">防火墙策略</span>
+                </button>
+                <button class="sub-btn active" onclick="nav(this, '入侵检测')">
+                    <span class="icon">🔍</span>
+                    <span class="label">入侵检测</span>
+                </button>
+            </div>
+
+            <!-- 独立项 -->
+            <button class="nav-btn" onclick="nav(this, '全局设置')">
+                <span class="icon">⚙️</span>
+                <span class="label">全局设置</span>
+            </button>
+
+            <!-- 分组2：带子菜单 -->
+            <div class="group" id="grp2">
+                <button class="nav-btn" onclick="toggleGroup('grp2')">
+                    <span class="icon">📦</span>
+                    <span class="label">资产管理</span>
+                    <span class="arrow">▶</span>
+                </button>
+                <button class="sub-btn" onclick="nav(this, '服务器节点')">
+                    <span class="icon">🖥️</span>
+                    <span class="label">服务器节点</span>
+                </button>
+                <button class="sub-btn" onclick="nav(this, '网络拓扑')">
+                    <span class="icon">🌐</span>
+                    <span class="label">网络拓扑</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <h3 id="pageTitle" style="color: var(--accent); font-weight: 800;">入侵检测</h3>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+        </header>
+        <section class="body-panel">
+            <h1 id="heroText" style="font-size: 2.5rem; font-weight: 900; opacity: 0.85;">入侵检测</h1>
+            <p style="opacity: 0.45; margin-top: 10px;">选中项陷入 · 子项直接浮出 · 无包裹容器</p>
+        </section>
+    </main>
+
+    <script>
+        function toggleGroup(id) {
+            document.getElementById(id).classList.toggle('open');
+        }
+
+        function toggleSidebar() {
+            const s = document.getElementById('sidebar');
+            s.classList.toggle('collapsed');
+            s.querySelector('.toggler').innerText = s.classList.contains('collapsed') ? '❯' : '❮';
+        }
+
+        function nav(el, title) {
+            document.getElementById('pageTitle').innerText = title;
+            document.getElementById('heroText').innerText = title;
+            document.querySelectorAll('.nav-btn, .sub-btn').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function toggleTheme() {
+            const b = document.body;
+            b.setAttribute('data-theme', b.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+        }
+    </script>
+</body>
+</html>

@@ -20,6 +20,9 @@ namespace {{Namespace}}
         public event EventHandler<NodeSelectedEventArgs> NodeSelected;
         public event EventHandler<NodeCheckedEventArgs> NodeChecked;
         public event EventHandler<NodeDoubleClickedEventArgs> NodeDoubleClicked;
+        public event EventHandler<NodeMenuClickedEventArgs> NodeMenuClicked;
+
+        private Brush _customMenuBackground = null;
 
         public TreeControl()
         {
@@ -64,6 +67,54 @@ namespace {{Namespace}}
             // Handle selection event from TreeView
             InnerTree.SelectedItemChanged += InnerTree_SelectedItemChanged;
             InnerTree.MouseDoubleClick += InnerTree_MouseDoubleClick;
+            // Handle context menu right click
+            InnerTree.PreviewMouseRightButtonDown += InnerTree_PreviewMouseRightButtonDown;
+        }
+
+        private void InnerTree_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            DependencyObject source = e.OriginalSource as DependencyObject;
+            while (source != null && !(source is TreeViewItem))
+            {
+                source = VisualTreeHelper.GetParent(source);
+            }
+            
+            TreeViewItem treeViewItem = source as TreeViewItem;
+            if (treeViewItem != null)
+            {
+                treeViewItem.Focus(); // 确保右键能够强制选中目标节点
+                e.Handled = true;     // 彻底切断底层其余鼠标事件抢占
+
+                var node = treeViewItem.DataContext as TreeNode;
+                if (node != null)
+                {
+                    if (node.ContextMenuItems != null && node.ContextMenuItems.Length > 0)
+                    {
+                        var menu = new ContextMenu();
+                        menu.Style = this.TryFindResource("FlatContextMenuStyle") as Style;
+                        if (_customMenuBackground != null) menu.Background = _customMenuBackground;
+                        menu.PlacementTarget = treeViewItem;
+                        foreach (var itemText in node.ContextMenuItems)
+                        {
+                            var mi = new MenuItem { Header = itemText };
+                            mi.Style = this.TryFindResource("FlatMenuItemStyle") as Style;
+                            mi.Click += (s, args) => {
+                                if (NodeMenuClicked != null)
+                                    NodeMenuClicked(this, new NodeMenuClickedEventArgs { NodeId = node.Id, MenuText = itemText });
+                            };
+                            menu.Items.Add(mi);
+                        }
+                        // 利用输入队列优先级推迟到鼠标抬起后执行弹拉操作，避开阻断
+                        this.Dispatcher.BeginInvoke(new Action(() => {
+                            menu.IsOpen = true;
+                        }), System.Windows.Threading.DispatcherPriority.Input);
+                    }
+                    else 
+                    {
+                        treeViewItem.ContextMenu = null;
+                    }
+                }
+            }
         }
 
         private void InnerTree_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -207,6 +258,53 @@ namespace {{Namespace}}
             }
         }
 
+        public void UpdateNodeText(string id, string text)
+        {
+            TreeNode node;
+            if (_nodeDictionary.TryGetValue(id, out node))
+            {
+                node.Text = text;
+            }
+        }
+
+        public void UpdateNodeIcon(string id, string iconPath)
+        {
+            TreeNode node;
+            if (_nodeDictionary.TryGetValue(id, out node))
+            {
+                node.IconPath = iconPath;
+            }
+        }
+
+        public void SetTreeBackground(uint color)
+        {
+            CardBackgroundBorder.Background = UintToBrush(color);
+        }
+
+        public void SetMenuBackground(uint color)
+        {
+            _customMenuBackground = UintToBrush(color);
+        }
+
+        private Brush UintToBrush(uint color)
+        {
+            byte a = (byte)((color >> 24) & 0xFF);
+            byte r = (byte)((color >> 16) & 0xFF);
+            byte g = (byte)((color >> 8) & 0xFF);
+            byte b = (byte)(color & 0xFF);
+            if (a == 0 && color != 0) a = 255;
+            return new SolidColorBrush(Color.FromArgb(a, r, g, b));
+        }
+
+        public void SetNodeContextMenu(string id, string[] menuItems)
+        {
+            TreeNode node;
+            if (_nodeDictionary.TryGetValue(id, out node))
+            {
+                node.ContextMenuItems = menuItems;
+            }
+        }
+
         public void ExpandNode(string id)
         {
             TreeNode node;
@@ -271,6 +369,7 @@ namespace {{Namespace}}
         private bool _isExpanded;
         private bool _showCheckBox = true;
         private string _iconPath;
+        private string[] _contextMenuItems;
         
         internal TreeNode ParentNode { get; set; }
 
@@ -323,6 +422,12 @@ namespace {{Namespace}}
                     }
                 }
             }
+        }
+
+        public string[] ContextMenuItems
+        {
+            get { return _contextMenuItems; }
+            set { _contextMenuItems = value; OnPropertyChanged("ContextMenuItems"); }
         }
 
                 public string IconPath
@@ -393,5 +498,11 @@ public class NodeExpandedEventArgs : EventArgs
     {
         public string NodeId { get; set; }
         public bool IsChecked { get; set; }
+    }
+
+    public class NodeMenuClickedEventArgs : EventArgs
+    {
+        public string NodeId { get; set; }
+        public string MenuText { get; set; }
     }
 }

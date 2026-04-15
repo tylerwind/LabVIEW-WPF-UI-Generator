@@ -50,9 +50,17 @@
     <Compile Include="TextInputHost.cs" />
     <Compile Include="TextInputPanel.cs" />
     <Compile Include="ValueChangedEventArgs.cs" />
+    <Compile Include="SidebarControl.xaml.cs">
+      <DependentUpon>SidebarControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SidebarPanel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="TextInputControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SidebarControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,7 +1,7 @@
-﻿<Window x:Class="ControlDesigner.MainWindow"
+<Window x:Class="ControlDesigner.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WPF 控件生成器 v2.6" Width="1100" Height="720"
+        Title="WPF 控件生成器 v3.0" Width="1200" Height="720"
         MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen"
         Background="#F0F0F3">
@@ -139,34 +139,238 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- ===== 拟态一级导航按钮 ===== -->
+        <Style x:Key="NeumorphicNavBtn" TargetType="RadioButton">
+            <Setter Property="Margin" Value="6,8,6,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <!-- 去掉 ClipToBounds，容器背景透明 -->
+                        <Grid x:Name="tplGrid" Height="48" Background="Transparent" HorizontalAlignment="Stretch">
+                            <!-- 凸起态：高光 -->
+                            <Border x:Name="lightBorder" CornerRadius="14" Margin="3">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="16" Direction="135" ShadowDepth="4" Color="#FFFFFF" Opacity="1.0"/>
+                                </Border.Effect>
+                            </Border>
+                            <!-- 凸起态：阴影 -->
+                            <Border x:Name="darkBorder" CornerRadius="14" Background="#F0F0F3" Margin="3">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="18" Direction="315" ShadowDepth="5" Color="#AEAEC0" Opacity="0.5"/>
+                                </Border.Effect>
+                                <Grid x:Name="contentGrid">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition x:Name="col0" Width="60"/>
+                                        <ColumnDefinition x:Name="col1" Width="*"/>
+                                        <ColumnDefinition x:Name="col2" Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <!-- 图标区域：矢量拟态版 -->
+                                    <Grid Grid.Column="0" x:Name="iconHost" HorizontalAlignment="Center">
+                                        <ContentControl x:Name="icon" Style="{StaticResource NeuIconCore}" 
+                                                        Content="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    </Grid>
+
+                                    <TextBlock x:Name="txt" Grid.Column="1" Text="{TemplateBinding Content}" FontSize="13" FontWeight="SemiBold" Foreground="#666677" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="arrow" Grid.Column="2" Text="▶" FontSize="8" Foreground="#BBBBCC" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 用户要求不再使用陷入态，故删除 pressedBorder -->
+                        </Grid>
+                        
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="txt" Property="Foreground" Value="#333344"/>
+                                <Setter TargetName="icon" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <!-- 激活态：不再切换为压下态，而是加强图标亮度并改变文字颜色 -->
+                                <Setter TargetName="txt" Property="Foreground" Value="#4A90E2"/>
+                                <Setter TargetName="txt" Property="FontWeight" Value="Bold"/>
+                                <Setter TargetName="arrow" Property="Text" Value="▼"/>
+                                <Setter TargetName="arrow" Property="Foreground" Value="#4A90E2"/>
+                                <Setter TargetName="darkBorder" Property="BorderBrush" Value="#D1D1D6"/>
+                                <Setter TargetName="darkBorder" Property="BorderThickness" Value="0.5"/>
+                            </Trigger>
+                            <!-- 自动适配收缩状态 -->
+                            <DataTrigger Binding="{Binding IsCollapsed, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                <Setter TargetName="txt" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="arrow" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="col0" Property="Width" Value="*"/>
+                                <Setter TargetName="col1" Property="Width" Value="0"/>
+                                <Setter TargetName="col2" Property="Width" Value="0"/>
+                                <!-- 针对收缩态的阴影余量优化 -->
+                                <Setter TargetName="tplGrid" Property="Margin" Value="4,0"/>
+                                <Setter TargetName="darkBorder" Property="Margin" Value="5"/>
+                                <Setter TargetName="lightBorder" Property="Margin" Value="5"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ===== 拟态二级子项按钮 ===== -->
+        <Style x:Key="NeumorphicSubBtn" TargetType="RadioButton">
+            <Setter Property="Margin" Value="24,6,6,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid x:Name="subTplGrid" Height="38" Background="Transparent" Margin="6,0">
+                            <!-- 凸起态 -->
+                            <Border x:Name="subLight" CornerRadius="12" Margin="2">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" Direction="135" ShadowDepth="3" Color="#FFFFFF" Opacity="0.9"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="subDark" CornerRadius="12" Background="#F0F0F3" Margin="2">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="14" Direction="315" ShadowDepth="4" Color="#AEAEC0" Opacity="0.45"/>
+                                </Border.Effect>
+                                <Grid x:Name="subContentGrid">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition x:Name="subCol0" Width="40"/>
+                                        <ColumnDefinition x:Name="subCol1" Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <Grid Grid.Column="0" x:Name="subIconHost" HorizontalAlignment="Center">
+                                        <ContentControl Style="{StaticResource NeuIconCore}" 
+                                                        Content="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    </Grid>
+                                    <TextBlock x:Name="subTxt" Grid.Column="1" Text="{TemplateBinding Content}" FontSize="12" Foreground="#777788" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 陷入态 -->
+                            <Border x:Name="subPressed" CornerRadius="12" Margin="3" Background="#E6E6E9" BorderBrush="#D1D1D6" BorderThickness="1" Visibility="Collapsed">
+                                <Grid x:Name="subPressedGrid">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition x:Name="subPCol0" Width="40"/>
+                                        <ColumnDefinition x:Name="subPCol1" Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0" HorizontalAlignment="Center">
+                                        <ContentControl Style="{StaticResource NeuIconCore}" 
+                                                        Content="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    </Grid>
+                                    <TextBlock x:Name="subPTxt" Grid.Column="1" Text="{TemplateBinding Content}" FontSize="12" Foreground="#4A90E2" FontWeight="Bold" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="subTxt" Property="Foreground" Value="#4A90E2"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="subLight" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="subDark" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="subPressed" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <!-- 二级按钮适配收缩态 -->
+                            <DataTrigger Binding="{Binding IsCollapsed, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                <!-- 移除缩进 -->
+                                <Setter Property="Margin" Value="6,6,6,0"/>
+                                <Setter TargetName="subTxt" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="subPTxt" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="subCol0" Property="Width" Value="*"/>
+                                <Setter TargetName="subCol1" Property="Width" Value="0"/>
+                                <Setter TargetName="subPCol0" Property="Width" Value="*"/>
+                                <Setter TargetName="subPCol1" Property="Width" Value="0"/>
+                                <!-- 针对收缩态的阴影余量和模糊优化 -->
+                                <Setter TargetName="subDark" Property="Margin" Value="5"/>
+                                <Setter TargetName="subLight" Property="Margin" Value="5"/>
+                                <Setter TargetName="subPressed" Property="Margin" Value="6"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="80"/> <!-- 极左侧边栏导航 -->
+            <ColumnDefinition x:Name="SidebarColumn" Width="240"/> <!-- 拟态侧边栏 -->
             <ColumnDefinition Width="340"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- ========== 极左：导航侧边栏 ========== -->
-        <Border Grid.Column="0" Background="#F5F5F8" BorderBrush="#E0E0E6" BorderThickness="0,0,1,0">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" BorderThickness="0" Background="Transparent" Margin="0,16,0,0">
-                <StackPanel>
-                    <RadioButton x:Name="TabTextInput" Tag="📝" Content="文本框" Style="{StaticResource NavTab}" IsChecked="True" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabNumeric" Tag="🔢" Content="数值框" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabComboBox" Tag="🔽" Content="下拉框" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabSlider" Tag="🎚️" Content="滑动杆" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabButton" Tag="🔘" Content="按钮" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabLed" Tag="💡" Content="指示灯" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabToggle" Tag="🔀" Content="开关" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabProgress" Tag="📊" Content="进度条" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabChart" Tag="📈" Content="折线图" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabPie" Tag="🥧" Content="饼图" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabGauge" Tag="🧭" Content="仪表" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabTable" Tag="📋" Content="数据表" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                    <RadioButton x:Name="TabTree" Tag="🌲" Content="树形" Style="{StaticResource NavTab}" Checked="Navigation_Checked"/>
-                </StackPanel>
-            </ScrollViewer>
+        <!-- ========== 拟态导航侧边栏 ========== -->
+        <Border Grid.Column="0" Background="#F0F0F3">
+            <Grid>
+                <!-- 收缩拨片 -->
+                <Button x:Name="BtnSidebarToggle" Content="❮" Click="BtnSidebarToggle_Click"
+                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,12,0,0"
+                        Width="24" Height="24" FontSize="10" Cursor="Hand"
+                        Background="#F0F0F3" BorderBrush="Transparent"/>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                              BorderThickness="0" Background="Transparent" Margin="0,40,0,0"
+                              Padding="4">
+                    <StackPanel>
+                        <!-- ===== 字符串分组 ===== -->
+                        <RadioButton x:Name="NavGrpString" Tag="{StaticResource Geo_String}" Content="字符串" Foreground="#2196F3"
+                                     Style="{StaticResource NeumorphicNavBtn}" Click="NavGroup_Click"/>
+                        <RadioButton x:Name="TabTextInput" Tag="{StaticResource Geo_Pencil}" Content="文本框" Foreground="#2196F3"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" IsChecked="True" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabComboBox" Tag="{StaticResource Geo_List}" Content="下拉框" Foreground="#2196F3"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+
+                        <!-- ===== 数值分组 ===== -->
+                        <RadioButton x:Name="NavGrpNumeric" Tag="{StaticResource Geo_Numeric}" Content="数值" Foreground="#4CAF50"
+                                     Style="{StaticResource NeumorphicNavBtn}" Click="NavGroup_Click"/>
+                        <RadioButton x:Name="TabNumeric" Tag="{StaticResource Geo_Calculator}" Content="数值框" Foreground="#4CAF50"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabSlider" Tag="{StaticResource Geo_Slider}" Content="滑动杆" Foreground="#4CAF50"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabProgress" Tag="{StaticResource Geo_Progress}" Content="进度条" Foreground="#4CAF50"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+
+                        <!-- ===== 布尔分组 ===== -->
+                        <RadioButton x:Name="NavGrpBool" Tag="{StaticResource Geo_Boolean}" Content="布尔" Foreground="#FF9800"
+                                     Style="{StaticResource NeumorphicNavBtn}" Click="NavGroup_Click"/>
+                        <RadioButton x:Name="TabButton" Tag="{StaticResource Geo_Button}" Content="按钮" Foreground="#FF9800"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabLed" Tag="{StaticResource Geo_Led}" Content="指示灯" Foreground="#FF9800"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabToggle" Tag="{StaticResource Geo_Toggle}" Content="开关" Foreground="#FF9800"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+
+                        <!-- ===== 图表分组 ===== -->
+                        <RadioButton x:Name="NavGrpChart" Tag="{StaticResource Geo_Chart}" Content="图表" Foreground="#9C27B0"
+                                     Style="{StaticResource NeumorphicNavBtn}" Click="NavGroup_Click"/>
+                        <RadioButton x:Name="TabChart" Tag="{StaticResource Geo_Wave}" Content="折线图" Foreground="#9C27B0"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabPie" Tag="{StaticResource Geo_Pie}" Content="饼图" Foreground="#9C27B0"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabGauge" Tag="{StaticResource Geo_Gauge}" Content="仪表" Foreground="#9C27B0"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabTable" Tag="{StaticResource Geo_Table}" Content="数据表" Foreground="#9C27B0"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabTree" Tag="{StaticResource Geo_Tree}" Content="树形" Foreground="#9C27B0"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+
+                        <Separator Margin="6,16,6,8" Background="#E0E0E6"/>
+
+                        <!-- ===== 容器布局 ===== -->
+                        <RadioButton x:Name="NavGrpLayout" Tag="{StaticResource Geo_Sidebar}" Content="容器布局" Foreground="#E91E63"
+                                     Style="{StaticResource NeumorphicNavBtn}" Click="NavGroup_Click"/>
+                        <RadioButton x:Name="TabSidebar" Tag="{StaticResource Geo_Sidebar}" Content="侧边栏" Foreground="#E91E63"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Visibility="Collapsed" Checked="Navigation_Checked"/>
+
+                        <Separator Margin="6,16,6,8" Background="#E0E0E6"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
         </Border>
 
         <!-- ========== 左侧：样式编辑器 ========== -->
@@ -557,6 +761,59 @@
                             <TextBlock Grid.Row="6" Text="显示表头" Style="{StaticResource PropLabel}"/>
                             <CheckBox x:Name="ChkTableHeader" Grid.Row="6" Grid.Column="1" VerticalAlignment="Center" IsChecked="True" Click="OnGenericStyleChanged"/>
                         </Grid>
+                        </StackPanel>
+
+                        <!-- 侧边栏配置 (仅侧边栏) -->
+                        <StackPanel x:Name="GroupSidebarConfig" Visibility="Collapsed">
+                            <TextBlock Text="侧边栏" Style="{StaticResource GroupTitle}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="76"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="Logo文本" Style="{StaticResource PropLabel}"/>
+                                <TextBox x:Name="TxtSidebarLogo" Grid.Row="0" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="WPF SIDEBAR" TextChanged="OnStyleChanged"/>
+
+                                <TextBlock Grid.Row="1" Text="Logo图标" Style="{StaticResource PropLabel}" Visibility="Collapsed"/>
+                                <TextBox x:Name="TxtSidebarLogoIcon" Grid.Row="1" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="🚀" TextChanged="OnStyleChanged" Visibility="Collapsed"/>
+
+                                <TextBlock Grid.Row="2" Text="Logo图片" Style="{StaticResource PropLabel}" Visibility="Collapsed"/>
+                                <TextBox x:Name="TxtSidebarLogoImagePath" Grid.Row="2" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="" TextChanged="OnStyleChanged" Visibility="Collapsed"/>
+
+                                <TextBlock Grid.Row="3" Text="使用图片" Style="{StaticResource PropLabel}" Visibility="Collapsed"/>
+                                <CheckBox x:Name="ChkSidebarLogoUseImage" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" IsChecked="False" Click="OnGenericStyleChanged" Visibility="Collapsed"/>
+
+                                <TextBlock Grid.Row="4" Text="Logo边距" Style="{StaticResource PropLabel}" Visibility="Collapsed"/>
+                                <TextBox x:Name="TxtSidebarLogoMargin" Grid.Row="4" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="10,0,12,0" TextChanged="OnStyleChanged" Visibility="Collapsed"/>
+
+                                <TextBlock Grid.Row="5" Text="行高" Style="{StaticResource PropLabel}"/>
+                                <DockPanel Grid.Row="5" Grid.Column="1">
+                                    <TextBlock x:Name="LblSidebarItemH" DockPanel.Dock="Right" Text="40" Style="{StaticResource PropLabel}" Width="30" TextAlignment="Right"/>
+                                    <Slider x:Name="SliderSidebarItemH" Minimum="20" Maximum="80" Value="40" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnSliderChanged"/>
+                                </DockPanel>
+
+                                <TextBlock Grid.Row="6" Text="行间距" Style="{StaticResource PropLabel}"/>
+                                <DockPanel Grid.Row="6" Grid.Column="1">
+                                    <TextBlock x:Name="LblSidebarItemSpacing" DockPanel.Dock="Right" Text="2" Style="{StaticResource PropLabel}" Width="30" TextAlignment="Right"/>
+                                    <Slider x:Name="SliderSidebarItemSpacing" Minimum="0" Maximum="20" Value="2" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnSliderChanged"/>
+                                </DockPanel>
+
+                                <TextBlock Grid.Row="7" Text="背景颜色" Style="{StaticResource PropLabel}"/>
+                                <DockPanel Grid.Row="7" Grid.Column="1">
+                                    <Border x:Name="SwatchSidebarBg" Width="20" Height="20" Margin="0,0,4,0" BorderBrush="Gray" BorderThickness="1" Background="#F0F2F5" MouseLeftButtonDown="Swatch_Click" ToolTip="点击选择颜色"/>
+                                    <TextBox x:Name="TxtSidebarBg" Style="{StaticResource PropTextBox}" Text="#F0F2F5" TextChanged="OnStyleChanged"/>
+                                </DockPanel>
+                            </Grid>
                         </StackPanel>
 
                         <Border Height="20"/>

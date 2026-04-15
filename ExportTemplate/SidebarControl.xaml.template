@@ -1,0 +1,193 @@
+<UserControl x:Class="{{Namespace}}.SidebarControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:{{Namespace}}"
+             Background="Transparent"
+             x:Name="root">
+    
+    <UserControl.Resources>
+        <!-- 基础转换器 -->
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <local:IndexToCheckedConverter x:Key="IndexToCheckedConverter"/>
+        
+        <!-- 侧边栏主样式：拟态容器 -->
+        <Style x:Key="NeuSidebarIconContainer" TargetType="ContentControl">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContentControl">
+                        <Grid>
+                            <!-- 拟态底座阴影 -->
+                            <Border Background="{{ControlBackground}}" CornerRadius="6">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1.2" Direction="315" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}"/>
+                                </Border.Effect>
+                            </Border>
+                            
+                            <!-- 玻璃半透明背景 -->
+                            <Rectangle Margin="4" Fill="{TemplateBinding Foreground}" RadiusX="3" RadiusY="3" Opacity="0.15">
+                                <Rectangle.Effect>
+                                    <BlurEffect Radius="3"/>
+                                </Rectangle.Effect>
+                            </Rectangle>
+
+                            <!-- 图标加载层 (路径方式) -->
+                            <Image Margin="5" Source="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" 
+                                   Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            
+                            <!-- 亮边高光 -->
+                            <Border BorderBrush="White" BorderThickness="0.8,0.8,0,0" CornerRadius="6" Opacity="0.8"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 导航按钮样式 (复刻 V3.0 生成器) -->
+        <Style x:Key="SidebarNavBtnStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="{{SidebarItemHeight}}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid x:Name="tplGrid" Height="{{SidebarItemHeight}}" Background="Transparent" HorizontalAlignment="Stretch">
+                            <!-- 凸起态：高光/阴影 -->
+                            <Border x:Name="lightBorder" CornerRadius="12" Margin="{{SidebarItemSpacing}}" Visibility="Visible">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="8" Direction="135" ShadowDepth="2" Color="#FFFFFF" Opacity="0.8"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="darkBorder" CornerRadius="12" Margin="{{SidebarItemSpacing}}" Visibility="Visible">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="{{GradientStart}}" Offset="0"/>
+                                        <GradientStop Color="{{GradientMid}}" Offset="0.5"/>
+                                        <GradientStop Color="{{GradientEnd}}" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <DropShadowEffect x:Name="darkShadow" BlurRadius="10" Direction="315" ShadowDepth="3" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}"/>
+                                </Border.Effect>
+                            </Border>
+
+                            <Grid x:Name="contentGrid">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition x:Name="col0" Width="60"/>
+                                    <ColumnDefinition x:Name="col1" Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <Grid Grid.Column="0" HorizontalAlignment="Center">
+                                    <ContentControl x:Name="icon" Style="{StaticResource NeuSidebarIconContainer}" 
+                                                    Content="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
+                                                    Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Grid>
+
+                                <TextBlock x:Name="txt" Grid.Column="1" Text="{TemplateBinding Content}" 
+                                           FontSize="{{FontSize}}" FontWeight="SemiBold" Foreground="{{FontColor}}" 
+                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            </Grid>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="txt" Property="Foreground" Value="{{AccentColor}}"/>
+                                <Setter TargetName="icon" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="lightBorder" Value="Collapsed" Property="Visibility"/>
+                                <Setter TargetName="darkBorder" Property="Effect" Value="{x:Null}"/>
+                                <Setter TargetName="txt" Property="Foreground" Value="{{AccentColor}}"/>
+                                <Setter TargetName="txt" Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <!-- 自动适配收缩状态 -->
+                            <DataTrigger Binding="{Binding IsCollapsed, ElementName=&quot;root&quot;}" Value="True">
+                                <Setter TargetName="txt" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="col0" Property="Width" Value="*"/>
+                                <Setter TargetName="col1" Property="Width" Value="0"/>
+                                <Setter TargetName="tplGrid" Property="Margin" Value="2,0"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- 主容器 -->
+    <Border Background="{{SidebarBackground}}" CornerRadius="{{CornerRadius}}" x:Name="mainBorder" Width="260" HorizontalAlignment="Left">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" Direction="315" ShadowDepth="10" Color="{{ShadowColor}}" Opacity="0.3"/>
+        </Border.Effect>
+        <Grid x:Name="mainGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Logo -->
+                <RowDefinition Height="*"/>    <!-- Items -->
+                <RowDefinition Height="Auto"/> <!-- Bottom Collapse Toggle -->
+            </Grid.RowDefinitions>
+
+            <!-- 顶部 Logo 区 -->
+            <Border Height="80" x:Name="logoArea">
+                <Grid Margin="4,0,12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Logo 图标/图片 -->
+                    <Border Grid.Column="0" Width="40" Height="40" Background="{{AccentColor}}" CornerRadius="10" x:Name="logoIconBorder">
+                        <Grid>
+                            <Image x:Name="logoImage" Source="{Binding LogoImagePath, ElementName=&quot;root&quot;}" Stretch="Uniform" Margin="7" Visibility="Collapsed"/>
+                            <TextBlock x:Name="logoIconTextBlock" Text="{Binding LogoIconText, ElementName=&quot;root&quot;}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20" Visibility="Visible"/>
+                        </Grid>
+                    </Border>
+                    
+                    <TextBlock x:Name="logoTxt" Grid.Column="1" Text="{Binding LogoText, ElementName=&quot;root&quot;}" 
+                               Foreground="{{FontColor}}" FontSize="{{FontSize}}" FontWeight="ExtraBold" 
+                               VerticalAlignment="Center" Margin="10,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCollapsed, ElementName=&quot;root&quot;}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <!-- 导航列表项 -->
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding MenuItems, ElementName=&quot;root&quot;}" Margin="8,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <RadioButton Style="{StaticResource SidebarNavBtnStyle}" 
+                                         Content="{Binding Label}" 
+                                         Tag="{Binding IconPath}"
+                                         GroupName="Nav"
+                                         Foreground="{{AccentColor}}"
+                                         Click="Item_Click">
+                                <RadioButton.IsChecked>
+                                    <MultiBinding Converter="{StaticResource IndexToCheckedConverter}" Mode="OneWay">
+                                        <Binding Path="." />
+                                        <Binding Path="DataContext.SelectedIndex" ElementName="root" />
+                                        <Binding Path="DataContext.MenuItems" ElementName="root" />
+                                    </MultiBinding>
+                                </RadioButton.IsChecked>
+                            </RadioButton>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- 底部收缩开关 -->
+            <Button Grid.Row="2" Height="{{SidebarItemHeight}}" Background="Transparent" BorderThickness="0" Click="Toggle_Click" x:Name="BtnToggle">
+                <TextBlock Text="⬅" x:Name="arrow" Foreground="{{FontColor}}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Button>
+        </Grid>
+    </Border>
+</UserControl>

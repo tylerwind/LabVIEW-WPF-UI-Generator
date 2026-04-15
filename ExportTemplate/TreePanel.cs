@@ -11,6 +11,7 @@ namespace {{Namespace}}
     public delegate void NodeSelectedHandler(string nodeId, string nodeText, byte[] nodeTextUTF8);
     public delegate void NodeCheckedHandler(string nodeId, bool isChecked);
     public delegate void NodeDoubleClickedHandler(string nodeId, string nodeText, byte[] nodeTextUTF8);
+    public delegate void NodeMenuClickedHandler(string nodeId, string menuText, byte[] menuTextUTF8);
 
     public class TreePanel : Panel
     {
@@ -21,6 +22,7 @@ namespace {{Namespace}}
         public event NodeSelectedHandler NodeSelected;
         public event NodeCheckedHandler NodeChecked;
         public event NodeDoubleClickedHandler NodeDoubleClicked;
+        public event NodeMenuClickedHandler NodeMenuClicked;
 
         public TreePanel()
         {
@@ -44,6 +46,12 @@ namespace {{Namespace}}
                     if (NodeDoubleClicked != null) {
                         byte[] utf8Bytes = string.IsNullOrEmpty(e.NodeText) ? new byte[0] : System.Text.Encoding.UTF8.GetBytes(e.NodeText);
                         NodeDoubleClicked(e.NodeId, e.NodeText, utf8Bytes); 
+                    }
+                };
+                _treeControl.NodeMenuClicked += (s, e) => {
+                    if (NodeMenuClicked != null) {
+                        byte[] utf8Bytes = string.IsNullOrEmpty(e.MenuText) ? new byte[0] : System.Text.Encoding.UTF8.GetBytes(e.MenuText);
+                        NodeMenuClicked(e.NodeId, e.MenuText, utf8Bytes);
                     }
                 };
                 // 强制创建句柄保障Invoke可靠性
@@ -178,6 +186,83 @@ namespace {{Namespace}}
                 _treeControl.SetNodeChecked(id, isChecked);
             }
             catch (Exception ex) { LogError(ex, "SetNodeChecked"); }
+        }
+
+        public void SetNodeContextMenu(string id, string menuItemsStr)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(menuItemsStr)) return;
+                string[] items = menuItemsStr.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                if (!_treeControl.Dispatcher.CheckAccess()) { _treeControl.Dispatcher.Invoke(new Action(() => _treeControl.SetNodeContextMenu(id, items))); return; }
+                _treeControl.SetNodeContextMenu(id, items);
+            }
+            catch (Exception ex) { LogError(ex, "SetNodeContextMenu"); }
+        }
+
+        public void SetNodeContextMenuUTF8(string id, byte[] menuItemsBytes)
+        {
+            try
+            {
+                if (menuItemsBytes == null || menuItemsBytes.Length == 0) return;
+                string menuItemsStr = System.Text.Encoding.UTF8.GetString(menuItemsBytes);
+                string[] items = menuItemsStr.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                if (!_treeControl.Dispatcher.CheckAccess()) { _treeControl.Dispatcher.Invoke(new Action(() => _treeControl.SetNodeContextMenu(id, items))); return; }
+                _treeControl.SetNodeContextMenu(id, items);
+            }
+            catch (Exception ex) { LogError(ex, "SetNodeContextMenuUTF8"); }
+        }
+
+        public void UpdateNodeText(string id, string text)
+        {
+            try
+            {
+                if (!_treeControl.Dispatcher.CheckAccess()) { _treeControl.Dispatcher.Invoke(new Action(() => _treeControl.UpdateNodeText(id, text))); return; }
+                _treeControl.UpdateNodeText(id, text);
+            }
+            catch (Exception ex) { LogError(ex, "UpdateNodeText"); }
+        }
+
+        public void UpdateNodeTextUTF8(string id, byte[] textBytes)
+        {
+            try
+            {
+                if (textBytes == null) return;
+                string text = System.Text.Encoding.UTF8.GetString(textBytes);
+                if (!_treeControl.Dispatcher.CheckAccess()) { _treeControl.Dispatcher.Invoke(new Action(() => _treeControl.UpdateNodeText(id, text))); return; }
+                _treeControl.UpdateNodeText(id, text);
+            }
+            catch (Exception ex) { LogError(ex, "UpdateNodeTextUTF8"); }
+        }
+
+        public void UpdateNodeIcon(string id, string iconPath)
+        {
+            try
+            {
+                if (!_treeControl.Dispatcher.CheckAccess()) { _treeControl.Dispatcher.Invoke(new Action(() => _treeControl.UpdateNodeIcon(id, iconPath))); return; }
+                _treeControl.UpdateNodeIcon(id, iconPath);
+            }
+            catch (Exception ex) { LogError(ex, "UpdateNodeIcon"); }
+        }
+
+        public void SetTreeBackground(uint color)
+        {
+            try
+            {
+                if (!_treeControl.Dispatcher.CheckAccess()) { _treeControl.Dispatcher.Invoke(new Action(() => _treeControl.SetTreeBackground(color))); return; }
+                _treeControl.SetTreeBackground(color);
+            }
+            catch (Exception ex) { LogError(ex, "SetTreeBackground"); }
+        }
+
+        public void SetMenuBackground(uint color)
+        {
+            try
+            {
+                if (!_treeControl.Dispatcher.CheckAccess()) { _treeControl.Dispatcher.Invoke(new Action(() => _treeControl.SetMenuBackground(color))); return; }
+                _treeControl.SetMenuBackground(color);
+            }
+            catch (Exception ex) { LogError(ex, "SetMenuBackground"); }
         }
 
         public void ExpandNode(string id)

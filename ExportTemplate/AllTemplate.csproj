@@ -111,6 +111,11 @@
       <DependentUpon>TreeControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="TreePanel.cs" />
+    <!-- Sidebar -->
+    <Compile Include="SidebarControl.xaml.cs">
+      <DependentUpon>SidebarControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SidebarPanel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="TextInputControl.xaml">
@@ -162,6 +167,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="TreeControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SidebarControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -228,6 +228,31 @@ namespace ControlDesigner.Models
         private bool _treeShowCheckBox = true;
         public bool TreeShowCheckBox { get { return _treeShowCheckBox; } set { Set(ref _treeShowCheckBox, value); } }
 
+        // === Sidebar 侧边栏 ===
+        private string _sidebarLogoText = "WPF SIDEBAR";
+        public string SidebarLogoText { get { return _sidebarLogoText; } set { Set(ref _sidebarLogoText, value); } }
+
+        private string _sidebarLogoIconText = "🚀";
+        public string SidebarLogoIconText { get { return _sidebarLogoIconText; } set { Set(ref _sidebarLogoIconText, value); } }
+
+        private string _sidebarLogoImagePath = "";
+        public string SidebarLogoImagePath { get { return _sidebarLogoImagePath; } set { Set(ref _sidebarLogoImagePath, value); } }
+
+        private bool _sidebarLogoUseImage = false;
+        public bool SidebarLogoUseImage { get { return _sidebarLogoUseImage; } set { Set(ref _sidebarLogoUseImage, value); } }
+
+        private string _sidebarLogoMargin = "4,0,12,0";
+        public string SidebarLogoMargin { get { return _sidebarLogoMargin; } set { Set(ref _sidebarLogoMargin, value); } }
+
+        private double _sidebarItemHeight = 40;
+        public double SidebarItemHeight { get { return _sidebarItemHeight; } set { Set(ref _sidebarItemHeight, value); } }
+
+        private double _sidebarItemSpacing = 2;
+        public double SidebarItemSpacing { get { return _sidebarItemSpacing; } set { Set(ref _sidebarItemSpacing, value); } }
+
+        private string _sidebarBackground = "#F0F2F5";
+        public string SidebarBackground { get { return _sidebarBackground; } set { Set(ref _sidebarBackground, value); } }
+
         // === 间距 ===
         private string _cardPadding = "12,8,12,6";
         public string CardPadding { get { return _cardPadding; } set { Set(ref _cardPadding, value); } }

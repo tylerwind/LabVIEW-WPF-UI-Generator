@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>3D 拟态投影图标预览</title>
+    <style>
+        body {
+            background: #F0F0F3;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h2 {
+            color: #4CAF50;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        /* 拟态容器 */
+        .neu-icon {
+            width: 120px;
+            height: 120px;
+            background: #F0F0F3;
+            border-radius: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            /* 拟态核心阴影 */
+            box-shadow: 
+                12px 12px 24px #aeaec080, 
+                -12px -12px 24px #fff;
+            transition: transform 0.2s ease;
+        }
+
+        .neu-icon:hover {
+            transform: scale(1.05);
+        }
+
+        /* 玻璃彩色点缀层 */
+        .glass-accent {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(76, 175, 80, 0.4); /* Numeric 组的绿色 */
+            border-radius: 12px;
+            filter: blur(10px);
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        /* 文字/路径层 */
+        .content {
+            z-index: 2;
+            color: #4CAF50;
+            font-weight: 900;
+            font-size: 36px;
+            letter-spacing: -2px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+
+        /* 顶部亮边（模拟光泽） */
+        .lighting-edge {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 24px;
+            border-top: 2px solid rgba(255,255,255,0.9);
+            border-left: 2px solid rgba(255,255,255,0.9);
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.1); opacity: 0.6; }
+            100% { transform: scale(1); opacity: 0.4; }
+        }
+
+        .label {
+            margin-top: 20px;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>WPF 拟态矢量图标 (数值类) 视觉预览</h2>
+    
+    <div class="neu-icon">
+        <div class="glass-accent"></div>
+        <div class="content">123</div>
+        <div class="lighting-edge"></div>
+    </div>
+
+    <div class="label">这种“温润感”和“半透明点缀”是否符合您的要求？</div>
+</div>
+
+</body>
+</html>

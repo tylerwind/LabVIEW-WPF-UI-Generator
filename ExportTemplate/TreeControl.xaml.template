@@ -127,7 +127,7 @@
                                     </Grid.ColumnDefinitions>
                                     <!-- 展开圆锥 -->
                                     <ToggleButton x:Name="Expander" Style="{StaticResource ExpandCollapseToggleStyle}" IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press"/>
-                                    <Border Grid.Column="1" Grid.ColumnSpan="2" Background="Transparent" CornerRadius="4" x:Name="ItemHoverState">
+                                    <Border Grid.Column="1" Grid.ColumnSpan="2" Background="Transparent" CornerRadius="4" x:Name="ItemHoverState" Margin="-2,0,0,0">
                                         <Grid Margin="0">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -178,6 +178,60 @@
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         </Style>
 
+        <!-- 扁平化右键菜单样式跟随主题系统（卡片风格） -->
+        <Style x:Key="FlatContextMenuStyle" TargetType="{x:Type ContextMenu}">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Foreground" Value="{{FontColor}}"/>
+            <!-- 背景采用与卡片完全一致的梯度底层 -->
+            <Setter Property="Background" Value="{{TreeBackground}}"/>
+            <Setter Property="BorderBrush" Value="{{BorderColor}}"/>
+            <!-- 边框粗细也继承外部配置 -->
+            <Setter Property="BorderThickness" Value="{{BorderThickness}}"/>
+            <Setter Property="Padding" Value="4"/>
+            <!-- 强制禁用老古董自带系统黑阴影 -->
+            <Setter Property="HasDropShadow" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ContextMenu}">
+                        <!-- 追加 ShadowMargin 防止高端柔和阴影被裁剪边界 -->
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="{{CornerRadius}}"
+                                Margin="{{ShadowMargin}}">
+                            <!-- 与主体数值卡完全对应的高级阴影效果 -->
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="{{ShadowBlur}}" Direction="315" ShadowDepth="{{ShadowDepth}}" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}"/>
+                            </Border.Effect>
+                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FlatMenuItemStyle" TargetType="{x:Type MenuItem}">
+            <Setter Property="Foreground" Value="{{FontColor}}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <!-- 增加纵向空间，更有空气呼吸感 -->
+            <Setter Property="Padding" Value="24,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type MenuItem}">
+                        <!-- 悬浮边框同样引入小圆角 -->
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Margin="2,1">
+                            <ContentPresenter ContentSource="Header" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{{HighlightColor}}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </UserControl.Resources>
 
     <!-- 主体容器带外阴影和玻璃磨砂特效 -->
@@ -187,7 +241,7 @@
                 <DropShadowEffect BlurRadius="{{ShadowBlur}}" Direction="315" ShadowDepth="{{ShadowDepth}}" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}" />
             </Border.Effect>
             <!-- 渐变层基底 -->
-            <Border Background="{{TreeBackground}}" CornerRadius="{{CornerRadius}}">
+            <Border x:Name="CardBackgroundBorder" Background="{{TreeBackground}}" CornerRadius="{{CornerRadius}}">
                 <Border BorderBrush="{{BorderColor}}" BorderThickness="{{BorderThickness}}" CornerRadius="{{CornerRadius}}">
                     <Grid>
                         <Grid.RowDefinitions>

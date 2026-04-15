@@ -52,6 +52,15 @@ namespace ControlDesigner
 
 
 
+        public static readonly DependencyProperty IsCollapsedProperty =
+            DependencyProperty.Register("IsCollapsed", typeof(bool), typeof(MainWindow), new PropertyMetadata(false));
+
+        public bool IsCollapsed
+        {
+            get { return (bool)GetValue(IsCollapsedProperty); }
+            set { SetValue(IsCollapsedProperty, value); }
+        }
+
 
 
         public MainWindow()
@@ -59,6 +68,8 @@ namespace ControlDesigner
         {
 
             _suppressUpdate = true;
+
+            DataContext = this;
 
             InitializeComponent();
 
@@ -286,6 +297,13 @@ namespace ControlDesigner
             if (TxtTreeBg != null) TxtTreeBg.Text = _style.TreeBackground;
             if (ChkTreeShowCheckBox != null) ChkTreeShowCheckBox.IsChecked = _style.TreeShowCheckBox;
 
+            if (SliderSidebarItemH != null) SliderSidebarItemH.Value = _style.SidebarItemHeight;
+            if (SliderSidebarItemSpacing != null) SliderSidebarItemSpacing.Value = _style.SidebarItemSpacing;
+
+
+            if (TxtSidebarLogo != null) TxtSidebarLogo.Text = _style.SidebarLogoText;
+            if (TxtSidebarBg != null) TxtSidebarBg.Text = _style.SidebarBackground;
+
 
 
             if (TxtGaugeColor1 != null) TxtGaugeColor1.Text = _style.GaugeColor1;
@@ -484,6 +502,9 @@ namespace ControlDesigner
 
             if (ChkTableHeader != null) _style.DataGridShowHeader = ChkTableHeader.IsChecked == true;
 
+            if (TxtSidebarLogo != null) _style.SidebarLogoText = TxtSidebarLogo.Text;
+            if (TxtSidebarBg != null) _style.SidebarBackground = CleanColorString(TxtSidebarBg.Text);
+
 
 
             if (TxtGaugeColor1 != null) _style.GaugeColor1 = CleanColorString(TxtGaugeColor1.Text);
@@ -511,6 +532,9 @@ namespace ControlDesigner
             if (TxtTreeLabel != null) _style.TreeLabelText = TxtTreeLabel.Text;
             if (TxtTreeBg != null) _style.TreeBackground = CleanColorString(TxtTreeBg.Text);
             if (ChkTreeShowCheckBox != null) _style.TreeShowCheckBox = ChkTreeShowCheckBox.IsChecked == true;
+
+            if (SliderSidebarItemH != null) _style.SidebarItemHeight = SliderSidebarItemH.Value;
+            if (SliderSidebarItemSpacing != null) _style.SidebarItemSpacing = SliderSidebarItemSpacing.Value;
 
         }
 
@@ -545,6 +569,9 @@ namespace ControlDesigner
             if (LblTableAlt != null) LblTableAlt.Text = SliderTableAlt.Value.ToString("F2");
             if (LblTreeItemH != null) LblTreeItemH.Text = SliderTreeItemH.Value.ToString("F0");
             if (LblTreeIndent != null) LblTreeIndent.Text = SliderTreeIndent.Value.ToString("F0");
+
+            if (LblSidebarItemH != null) LblSidebarItemH.Text = SliderSidebarItemH.Value.ToString("F0");
+            if (LblSidebarItemSpacing != null) LblSidebarItemSpacing.Text = SliderSidebarItemSpacing.Value.ToString("F0");
 
         }
 
@@ -581,6 +608,7 @@ namespace ControlDesigner
             if (SwatchLedOn != null) SetSwatchColor(SwatchLedOn, TxtLedOnColor.Text);
 
             if (SwatchLedOff != null) SetSwatchColor(SwatchLedOff, TxtLedOffColor.Text);
+            if (SwatchSidebarBg != null) SetSwatchColor(SwatchSidebarBg, TxtSidebarBg.Text);
 
             if (SwatchChartColor1 != null) SetSwatchColor(SwatchChartColor1, TxtChartColor1.Text);
 
@@ -720,6 +748,7 @@ namespace ControlDesigner
                 case "SwatchTableHeader": return TxtTableHeader;
 
                 case "SwatchTableBg": return TxtTableBg;
+                case "SwatchSidebarBg": return TxtSidebarBg;
 
                 case "SwatchGaugeColor1": return TxtGaugeColor1;
 
@@ -840,7 +869,7 @@ namespace ControlDesigner
 
                 Background = TryParseBrush(_style.ControlBackground, Brushes.LightGray),
 
-                HorizontalAlignment = HorizontalAlignment.Center,
+                HorizontalAlignment = (_currentControlType == ControlType.SidebarNav) ? HorizontalAlignment.Left : HorizontalAlignment.Center,
 
                 VerticalAlignment = VerticalAlignment.Center,
 
@@ -916,7 +945,7 @@ namespace ControlDesigner
 
                 // 按钮、LED、开关、滑动条、进度条等直接居中
 
-                dock.HorizontalAlignment = HorizontalAlignment.Center;
+                dock.HorizontalAlignment = (_currentControlType == ControlType.SidebarNav) ? HorizontalAlignment.Left : HorizontalAlignment.Center;
 
                 dock.VerticalAlignment = VerticalAlignment.Center;
 
@@ -2874,6 +2903,174 @@ namespace ControlDesigner
                 previewWrapper.Children.Add(treeBorder);
                 dock.Children.Add(previewWrapper);
             }
+            else if (_currentControlType == ControlType.SidebarNav)
+            {
+                // 侧边栏预览: 模拟主界面的 3D 侧边栏布局
+                var sidebarLayout = new Grid { HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center, Background = TryParseBrush(_style.ControlBackground, Brushes.Transparent) };
+                sidebarLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                sidebarLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(240) }); // 展示右侧内容区
+
+                // 侧边栏容器：包含 Logo、菜单项和底部切换开关
+                var sidebarContainer = new Border
+                {
+                    Width = 200, // 初始展开宽度
+                    Height = 400,
+                    CornerRadius = new CornerRadius(_style.CornerRadius),
+                    Background = TryParseBrush(_style.SidebarBackground, Brushes.LightGray),
+                    Effect = new DropShadowEffect { BlurRadius = _style.ShadowBlur, ShadowDepth = _style.ShadowDepth, Direction = 315, Color = TryParseColor(_style.ShadowColor, Colors.Gray), Opacity = _style.ShadowOpacity }
+                };
+
+                var mainGrid = new Grid();
+                mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Logo
+                mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Items
+                mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Toggle
+
+                // 1. Logo 区
+                var logoGrid = new Grid { Height = 56, Margin = ParseThickness(_style.SidebarLogoMargin) };
+                logoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(32) });
+                logoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var logoIcon = new Border { Width = 24, Height = 24, Background = TryParseBrush(_style.AccentColor, Brushes.DodgerBlue), CornerRadius = new CornerRadius(6) };
+                var logoTxt = new TextBlock { Text = _style.SidebarLogoText, FontSize = _style.FontSize, FontWeight = FontWeights.ExtraBold, Foreground = TryParseBrush(_style.FontColor, Brushes.Black), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8,0,0,0) };
+                Grid.SetColumn(logoIcon, 0); Grid.SetColumn(logoTxt, 1);
+                logoGrid.Children.Add(logoIcon); logoGrid.Children.Add(logoTxt);
+                Grid.SetRow(logoGrid, 0);
+                mainGrid.Children.Add(logoGrid);
+
+                // 2. 菜单项区
+                var menuSp = new StackPanel();
+                menuSp.Children.Add(new Border { Height = 1, Background = Brushes.Black, Opacity = 0.05, Margin = new Thickness(16,4,16,12) });
+
+                string[] items = { "主页", "设置", "日志" };
+                int selectedIndex = 1; // 默认选中设置
+                bool isCollapsed = false; // 初始展开状态
+                List<Grid> itemGrids = new List<Grid>();
+
+                // 核心渲染逻辑：用于刷新选中状态
+                Action refreshMenu = new Action(() => {
+                    for (int i = 0; i < itemGrids.Count; i++)
+                    {
+                        bool isActive = (i == selectedIndex);
+                        Grid ig = itemGrids[i];
+                        ig.Children.Clear(); // 简单处理：重新渲染子项
+
+                        if (isActive)
+                        {
+                            // “陷入”态拟态视觉效果
+                            var insetBg = new Border 
+                            { 
+                                Background = TryParseBrush(_style.ControlBackground, Brushes.White), 
+                                CornerRadius = new CornerRadius(8),
+                                BorderThickness = new Thickness(1.5, 1.5, 0, 0),
+                                BorderBrush = new SolidColorBrush(Color.FromArgb(40, 0, 0, 0)) // 模拟内阴影
+                            };
+                            var insetRight = new Border
+                            {
+                                BorderThickness = new Thickness(0, 0, 1.5, 1.5),
+                                BorderBrush = Brushes.White, // 模拟底部高光
+                                CornerRadius = new CornerRadius(8)
+                            };
+                            ig.Children.Add(insetBg);
+                            ig.Children.Add(insetRight);
+                        }
+                        else
+                        {
+                            // “凸起”态拟态：使用渐变色
+                            var outsetBg = new Border { CornerRadius = new CornerRadius(8) };
+                            
+                            var itemGrad = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+                            itemGrad.GradientStops.Add(new GradientStop(TryParseColor(_style.GradientStart, Colors.White), 0));
+                            itemGrad.GradientStops.Add(new GradientStop(TryParseColor(_style.GradientMid, Colors.WhiteSmoke), 0.5));
+                            itemGrad.GradientStops.Add(new GradientStop(TryParseColor(_style.GradientEnd, Colors.Gainsboro), 1));
+                            
+                            outsetBg.Background = itemGrad;
+                            outsetBg.Effect = new DropShadowEffect { BlurRadius = 4, ShadowDepth = 1.2, Direction = 315, Color = TryParseColor(_style.ShadowColor, Colors.Gray), Opacity = 0.5 };
+                            ig.Children.Add(outsetBg);
+                        }
+
+                        var content = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12,0,0,0) };
+                        var dot = new System.Windows.Shapes.Ellipse { Width = 6, Height = 6, Fill = isActive ? TryParseBrush(_style.AccentColor, Brushes.DodgerBlue) : Brushes.Gray, Opacity = isActive ? 1 : 0.4 };
+                        var txt = new TextBlock { Text = items[i], FontSize = _style.FontSize * 0.9, FontWeight = isActive ? FontWeights.Bold : FontWeights.Normal, Foreground = isActive ? TryParseBrush(_style.AccentColor, Brushes.Black) : TryParseBrush(_style.FontColor, Brushes.Black), Margin = new Thickness(12,0,0,0) };
+                        
+                        // 处理收缩状态下的文字可见性
+                        if (isCollapsed) txt.Visibility = Visibility.Collapsed;
+
+                        content.Children.Add(dot);
+                        content.Children.Add(txt);
+                        ig.Children.Add(content);
+                    }
+                });
+
+                for (int i = 0; i < items.Length; i++)
+                {
+                    int idx = i;
+                    var itemGrid = new Grid { Height = _style.SidebarItemHeight, Margin = new Thickness(8, _style.SidebarItemSpacing, 8, _style.SidebarItemSpacing), Cursor = System.Windows.Input.Cursors.Hand };
+                    itemGrid.MouseLeftButtonDown += (s, ev) => {
+                        selectedIndex = idx;
+                        refreshMenu();
+                    };
+                    itemGrids.Add(itemGrid);
+                    menuSp.Children.Add(itemGrid);
+                }
+                refreshMenu();
+                Grid.SetRow(menuSp, 1);
+                mainGrid.Children.Add(menuSp);
+
+                // 3. 底部切换开关 (状态栏)
+                var toggleBtn = new Button
+                {
+                    Height = 40,
+                    Content = "⬅",
+                    Background = Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    Cursor = System.Windows.Input.Cursors.Hand
+                };
+                Grid.SetRow(toggleBtn, 2);
+                mainGrid.Children.Add(toggleBtn);
+
+                // 交互逻辑：切换收缩/展开
+                toggleBtn.Click += (s, ev) =>
+                {
+                    isCollapsed = !isCollapsed;
+                    sidebarContainer.Width = isCollapsed ? 60 : 200;
+                    toggleBtn.Content = isCollapsed ? "➡" : "⬅";
+                    
+                    // 隐藏/显示文字
+                    foreach (object child in menuSp.Children)
+                    {
+                        Grid ig = child as Grid;
+                        if (ig != null)
+                        {
+                            foreach (object gChild in ig.Children)
+                            {
+                                StackPanel spChild = gChild as StackPanel;
+                                if (spChild != null)
+                                {
+                                    foreach (object spInner in spChild.Children)
+                                    {
+                                        TextBlock tb = spInner as TextBlock;
+                                        if (tb != null) 
+                                        {
+                                            tb.Visibility = isCollapsed ? Visibility.Collapsed : Visibility.Visible;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    logoTxt.Visibility = isCollapsed ? Visibility.Collapsed : Visibility.Visible;
+                };
+
+                sidebarContainer.Child = mainGrid;
+                Grid.SetColumn(sidebarContainer, 0);
+                sidebarLayout.Children.Add(sidebarContainer);
+
+                var contentMock = new Border { Margin = new Thickness(12,0,0,0), Background = Brushes.White, Opacity = 0.1, CornerRadius = new CornerRadius(12), BorderBrush = Brushes.Black, BorderThickness = new Thickness(1) };
+                Grid.SetColumn(contentMock, 1);
+                sidebarLayout.Children.Add(contentMock);
+
+                dock.Children.Add(sidebarLayout);
+            }
             else if (_currentControlType == ControlType.GaugeDisplay)
 
             {
@@ -3614,6 +3811,55 @@ namespace ControlDesigner
 
         #region 事件处理
 
+        // ===== 拟态侧边栏：分组展开/收缩 =====
+
+        private void NavGroup_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as RadioButton;
+            if (btn == null) return;
+
+            RadioButton[] subs = null;
+            if (btn == NavGrpString)
+                subs = new RadioButton[] { TabTextInput, TabComboBox };
+            else if (btn == NavGrpNumeric)
+                subs = new RadioButton[] { TabNumeric, TabSlider, TabProgress };
+            else if (btn == NavGrpBool)
+                subs = new RadioButton[] { TabButton, TabLed, TabToggle };
+            else if (btn == NavGrpChart)
+                subs = new RadioButton[] { TabChart, TabPie, TabGauge, TabTable, TabTree };
+            else if (btn == NavGrpLayout)
+                subs = new RadioButton[] { TabSidebar };
+
+            if (subs == null) return;
+
+            // 切换：如果第一个子项可见则全部隐藏，否则全部显示
+            bool isOpen = subs[0].Visibility == Visibility.Visible;
+            foreach (var sub in subs)
+                sub.Visibility = isOpen ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void BtnSidebarToggle_Click(object sender, RoutedEventArgs e)
+        {
+            IsCollapsed = !IsCollapsed;
+            SidebarColumn.Width = IsCollapsed ? new GridLength(70) : new GridLength(240);
+            BtnSidebarToggle.Content = IsCollapsed ? "❯" : "❮";
+
+            // 收缩时关闭所有子项
+            var allSubs = new RadioButton[] { TabTextInput, TabComboBox, TabNumeric, TabSlider, TabProgress, TabButton, TabLed, TabToggle, TabChart, TabPie, TabGauge, TabTable, TabTree, TabSidebar };
+            if (IsCollapsed)
+            {
+                foreach (var sub in allSubs)
+                    sub.Visibility = Visibility.Collapsed;
+            }
+
+            // 一级分组按钮的适配
+            var grpBtns = new RadioButton[] { NavGrpString, NavGrpNumeric, NavGrpBool, NavGrpChart, NavGrpLayout };
+            foreach (var btn in grpBtns)
+            {
+                btn.Margin = IsCollapsed ? new Thickness(4, 8, 4, 0) : new Thickness(12, 10, 12, 0);
+            }
+        }
+
 
 
         private void Navigation_Checked(object sender, RoutedEventArgs e)
@@ -3782,6 +4028,11 @@ namespace ControlDesigner
                 if (isDefaultText) TxtControlName.Text = "MyDataGrid";
 
             }
+            else if (sender == TabSidebar)
+            {
+                _currentControlType = ControlType.SidebarNav;
+                if (isDefaultText) TxtControlName.Text = "MySidebar";
+            }
 
 
 
@@ -3871,6 +4122,20 @@ namespace ControlDesigner
 
             GroupDataGridConfig.Visibility = _currentControlType == ControlType.DataGridDisplay ? Visibility.Visible : Visibility.Collapsed;
             if (GroupTreeConfig != null) GroupTreeConfig.Visibility = _currentControlType == ControlType.TreeDisplay ? Visibility.Visible : Visibility.Collapsed;
+
+            if (GroupSidebarConfig != null)
+            {
+                bool showSidebarConfig = _currentControlType == ControlType.SidebarNav;
+                GroupSidebarConfig.Visibility = showSidebarConfig ? Visibility.Visible : Visibility.Collapsed;
+                if (showSidebarConfig)
+                {
+                    if (TxtSidebarLogo != null) TxtSidebarLogo.Text = _style.SidebarLogoText;
+                    if (TxtSidebarLogoIcon != null) TxtSidebarLogoIcon.Text = _style.SidebarLogoIconText;
+                    if (TxtSidebarLogoImagePath != null) TxtSidebarLogoImagePath.Text = _style.SidebarLogoImagePath;
+                    if (ChkSidebarLogoUseImage != null) ChkSidebarLogoUseImage.IsChecked = _style.SidebarLogoUseImage;
+                    if (TxtSidebarLogoMargin != null) TxtSidebarLogoMargin.Text = _style.SidebarLogoMargin;
+                }
+            }
 
         }
 
@@ -4306,6 +4571,8 @@ namespace ControlDesigner
                                      { ControlType.TreeDisplay, @"  ▶ TreePanel (树节点控件)
     - LabelText       (属性) : 面板左上方常驻主说明框标题
     - SetLabelVisible (方法) : 隐藏或者展平顶部的标签占位框
+    - SetTreeBackground (方法) : 动态修改树控件的主体底色 (传入 ARGB 颜色数值)
+    - SetMenuBackground (方法) : 动态修改右键菜单的背景底色 (传入 ARGB 颜色数值)
     - AddNode         (方法) : 注入节点结构. 参数: (id标识符, parentId父级标识, text节点标签内容...)
     - AddNodeUTF8     (方法) : 注入节点 (UTF8 文本方案)
     - SetLabelTextUTF8 (方法) : 设置标题 (UTF8 方案)
@@ -4314,6 +4581,11 @@ namespace ControlDesigner
     - GetNode         (方法) : 借由 ID 查询匹配其底层节点原对象句柄
     - GetCheckedNodes (方法) : 一次性获取全树域下所有正在勾选的元素字集列表 (返回 ID 一维字符串数组)
     - SetNodeChecked  (方法) : 提供后台 API 强制扳平扭转特定节点的打勾状态
+    - SetNodeContextMenu (方法) : 为节点设置右键菜单(""添加|删除"" 竖线分割)
+    - SetNodeContextMenuUTF8 (方法) : 挂载右键快捷菜单 (UTF8 方案)
+    - UpdateNodeText    (方法) : 极速覆盖替换对应节点显示的文本
+    - UpdateNodeTextUTF8 (方法) : 极速覆盖替换节点文本 (UTF8 方案)
+    - UpdateNodeIcon    (方法) : 运行中无缝热切换指定节点的图标 (传入图标绝对路径或相对路径)
     - ExpandNode      (方法) : 将枝干指定打开
     - CollapseNode    (方法) : 将枝干指定闭锁合拢
     - ExpandAll       (方法) : 全视域全局分支展开
@@ -4321,7 +4593,32 @@ namespace ControlDesigner
     - NodeSelected    (事件) : 行被单击抛出 -> (NodeId, NodeText, NodeTextUTF8)
     - NodeChecked   (事件) : 复选状态发生物理扳转后抛出 -> (NodeId, IsChecked)
     - NodeExpanding (事件) : 被惰性拨开或动态打开父节点时抛出 -> (NodeId)
-    - NodeDoubleClicked (事件) : 元素连环遭点击确立时（双击）抛出 -> (NodeId, NodeText, NodeTextUTF8)" }
+    - NodeDoubleClicked (事件) : 元素连环遭点击确立时（双击）抛出 -> (NodeId, NodeText, NodeTextUTF8)
+    - NodeMenuClicked (事件) : 右键菜单子项被唤起并勾击后抛出 -> (NodeId, MenuText, MenuTextUTF8)" },
+
+                                     { ControlType.SidebarNav, @"  ▶ SidebarNavPanel (侧边栏导航控件)
+    - SelectedIndex (属性) : 被选中的菜单项索引 (从0开始)
+    - LogoText      (属性) : 左上角显示的 Logo 文本标题
+    - LogoIconText  (属性) : 左上角图标模式时显示的字符/符号
+    - LogoImagePath (属性) : 左上角图标模式时使用的图片路径
+    - LogoUseImage  (属性) : 是否启用图片模式 (True=图片, False=文字/字符)
+    - LogoMargin    (属性) : 左上角 Logo 区域边距，支持微调位置
+    - IsCollapsed   (属性) : 侧边栏当前的收缩状态 (True为收缩, False为展开)
+    - AddMenuItem   (方法) : 动态增入一个菜单项. 参数: (标题, 唯一标识Tag, 图标路径)
+    - AddMenuItemUTF8 (方法) : 动态增入菜单项 (UTF8 字节流方案)
+    - ClearMenuItems (方法) : 彻底洗净清除所有菜单项
+    - SetLogoText    (方法) : 设置 Logo 文本标题
+    - SetLogoTextUTF8 (方法) : 设置 Logo 文本标题 (UTF8 方案)
+    - SetLogoIconText (方法) : 设置左上角图标/符号
+    - SetLogoIconTextUTF8 (方法) : 设置左上角图标/符号 (UTF8 方案)
+    - SetLogoImagePath (方法) : 设置左上角图片路径
+    - SetLogoImagePathUTF8 (方法) : 设置左上角图片路径 (UTF8 方案)
+    - SetLogoUseImage (方法) : 切换 Logo 图片/文字显示模式
+    - SetLogoMargin (方法) : 设置 Logo 区域边距
+    - SetSelectedIndex (方法) : 切换选中的菜单项
+    - SetCollapsed   (方法) : 切换展开或收缩状态
+    - ItemSelected   (事件) : 选中项改变时触发 -> (index, label, tag)
+    - StateChanged   (事件) : 展开/收缩状态改变时触发 -> (isCollapsed)" }
                                  };
 
 
@@ -4457,7 +4754,7 @@ namespace ControlDesigner
 
 
 
-                            string msgText = exportAll ? "✅ {0}.dll 导出成功（含 13 种控件）" : "✅ {0}.dll 导出成功";
+                            string msgText = exportAll ? "✅ {0}.dll 导出成功（含 14 种控件）" : "✅ {0}.dll 导出成功";
 
                             TxtStatus.Text = string.Format(msgText, name);
 
@@ -4467,7 +4764,7 @@ namespace ControlDesigner
 
                             string boxMsg = exportAll 
 
-                                ? string.Format("DLL 已导出：\n{0}\n\n━━ 包含 13 种控件 ━━\nTextInput · Numeric · ComboBox · Slider · Button\nLed · Toggle · ProgressBar · Chart · Pie\nGauge · DataGrid · Tree\n\n📄 详细文档已同时生成", outputPath)
+                                ? string.Format("DLL 已导出：\n{0}\n\n━━ 包含 14 种控件 ━━\nTextInput · Numeric · ComboBox · Slider · Button\nLed · Toggle · ProgressBar · Chart · Pie\nGauge · DataGrid · Tree · Sidebar\n\n📄 详细文档已同时生成", outputPath)
 
                                 : string.Format("DLL 已导出：\n{0}\n\n📄 API 使用说明及配置已同时生成", outputPath);
 

@@ -29,6 +29,7 @@
      -> MyControlAll.GaugeDisplayPanel
      -> MyControlAll.DataGridDisplayPanel
      -> MyControlAll.TreeDisplayPanel
+     -> MyControlAll.SidebarNavPanel
 
 
 
@@ -217,6 +218,8 @@
   ▶ TreePanel (树节点控件)
     - LabelText       (属性) : 面板左上方常驻主说明框标题
     - SetLabelVisible (方法) : 隐藏或者展平顶部的标签占位框
+    - SetTreeBackground (方法) : 动态修改树控件的主体底色 (传入 ARGB 颜色数值)
+    - SetMenuBackground (方法) : 动态修改右键菜单的背景底色 (传入 ARGB 颜色数值)
     - AddNode         (方法) : 注入节点结构. 参数: (id标识符, parentId父级标识, text节点标签内容...)
     - AddNodeUTF8     (方法) : 注入节点 (UTF8 文本方案)
     - SetLabelTextUTF8 (方法) : 设置标题 (UTF8 方案)
@@ -225,6 +228,11 @@
     - GetNode         (方法) : 借由 ID 查询匹配其底层节点原对象句柄
     - GetCheckedNodes (方法) : 一次性获取全树域下所有正在勾选的元素字集列表 (返回 ID 一维字符串数组)
     - SetNodeChecked  (方法) : 提供后台 API 强制扳平扭转特定节点的打勾状态
+    - SetNodeContextMenu (方法) : 为节点设置右键菜单("添加|删除" 竖线分割)
+    - SetNodeContextMenuUTF8 (方法) : 挂载右键快捷菜单 (UTF8 方案)
+    - UpdateNodeText    (方法) : 极速覆盖替换对应节点显示的文本
+    - UpdateNodeTextUTF8 (方法) : 极速覆盖替换节点文本 (UTF8 方案)
+    - UpdateNodeIcon    (方法) : 运行中无缝热切换指定节点的图标 (传入图标绝对路径或相对路径)
     - ExpandNode      (方法) : 将枝干指定打开
     - CollapseNode    (方法) : 将枝干指定闭锁合拢
     - ExpandAll       (方法) : 全视域全局分支展开
@@ -233,6 +241,31 @@
     - NodeChecked   (事件) : 复选状态发生物理扳转后抛出 -> (NodeId, IsChecked)
     - NodeExpanding (事件) : 被惰性拨开或动态打开父节点时抛出 -> (NodeId)
     - NodeDoubleClicked (事件) : 元素连环遭点击确立时（双击）抛出 -> (NodeId, NodeText, NodeTextUTF8)
+    - NodeMenuClicked (事件) : 右键菜单子项被唤起并勾击后抛出 -> (NodeId, MenuText, MenuTextUTF8)
+
+  ▶ SidebarNavPanel (侧边栏导航控件)
+    - SelectedIndex (属性) : 被选中的菜单项索引 (从0开始)
+    - LogoText      (属性) : 左上角显示的 Logo 文本标题
+    - LogoIconText  (属性) : 左上角图标模式时显示的字符/符号
+    - LogoImagePath (属性) : 左上角图标模式时使用的图片路径
+    - LogoUseImage  (属性) : 是否启用图片模式 (True=图片, False=文字/字符)
+    - LogoMargin    (属性) : 左上角 Logo 区域边距，支持微调位置
+    - IsCollapsed   (属性) : 侧边栏当前的收缩状态 (True为收缩, False为展开)
+    - AddMenuItem   (方法) : 动态增入一个菜单项. 参数: (标题, 唯一标识Tag, 图标路径)
+    - AddMenuItemUTF8 (方法) : 动态增入菜单项 (UTF8 字节流方案)
+    - ClearMenuItems (方法) : 彻底洗净清除所有菜单项
+    - SetLogoText    (方法) : 设置 Logo 文本标题
+    - SetLogoTextUTF8 (方法) : 设置 Logo 文本标题 (UTF8 方案)
+    - SetLogoIconText (方法) : 设置左上角图标/符号
+    - SetLogoIconTextUTF8 (方法) : 设置左上角图标/符号 (UTF8 方案)
+    - SetLogoImagePath (方法) : 设置左上角图片路径
+    - SetLogoImagePathUTF8 (方法) : 设置左上角图片路径 (UTF8 方案)
+    - SetLogoUseImage (方法) : 切换 Logo 图片/文字显示模式
+    - SetLogoMargin (方法) : 设置 Logo 区域边距
+    - SetSelectedIndex (方法) : 切换选中的菜单项
+    - SetCollapsed   (方法) : 切换展开或收缩状态
+    - ItemSelected   (事件) : 选中项改变时触发 -> (index, label, tag)
+    - StateChanged   (事件) : 展开/收缩状态改变时触发 -> (isCollapsed)
 
 
 
@@ -242,6 +275,6 @@
 
 ■ 导出信息
 
-名称: MyControlAll   时间: 2026-04-11 11:48:32
+名称: MyControlAll   时间: 2026-04-15 20:37:48
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

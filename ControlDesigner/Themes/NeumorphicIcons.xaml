@@ -1,0 +1,72 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================ -->
+    <!-- 1. 基础矢量路径库 (Geometries) -->
+    <!-- ============================================================ -->
+    
+    <!-- 字符串类 -->
+    <Geometry x:Key="Geo_String">M4,4 H20 V16 H4 Z M6,7 H18 M6,10 H18 M6,13 H12</Geometry>
+    <Geometry x:Key="Geo_Pencil">M3,17.25 V21 H6.75 L17.81,9.94 L14.06,6.19 L3,17.25 M20.71,7.04 C21.1,6.65 21.1,6.02 20.71,5.63 L18.37,3.29 C17.98,2.9 17.35,2.9 16.96,3.29 L15.13,5.12 L18.88,8.87 L20.71,7.04 Z</Geometry>
+    <Geometry x:Key="Geo_List">M3,4 H21 V6 H3 Z M3,9 H21 V11 H3 Z M3,14 H21 V16 H3 Z M3,19 H21 V21 H3 Z</Geometry>
+
+    <!-- 数值类 -->
+    <Geometry x:Key="Geo_Numeric">M2,14 L12,14 L12,12 L2,12 Z M2,10 L12,10 L12,8 L2,8 Z M2,6 L12,6 L12,4 L2,4 Z</Geometry>
+    <Geometry x:Key="Geo_Calculator">M7,2 H17 C18.1,2 19,2.9 19,4 V20 C19,21.1 18.1,22 17,22 H7 C5.9,22 5,21.1 5,20 V4 C5,2.9 5.9,2 7,2 M7,4 V7 H17 V4 H7 M7,9 V11 H9 V9 H7 M11,9 V11 H13 V9 H11 M15,9 V11 H17 V9 H15 M7,13 V15 H9 V13 H7 M11,13 V15 H13 V13 H11 M15,13 V15 H17 V13 H15 M7,17 V19 H9 V17 H7 M11,17 V19 H13 V17 H11 M15,17 V19 H17 V17 H15</Geometry>
+    <Geometry x:Key="Geo_Slider">M3,17 V19 H21 V17 H3 M3,5 V7 H21 V5 H3 M10,2 H14 V10 H10 V2 M10,14 H14 V22 H10 V14 Z</Geometry>
+    <Geometry x:Key="Geo_Progress">M2,20 H22 V22 H2 Z M4,12 H8 V18 H4 Z M10,8 H14 V18 H10 Z M16,4 H20 V18 H16 Z</Geometry>
+
+    <!-- 布尔类 -->
+    <Geometry x:Key="Geo_Boolean">M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 1,1 20,12A8,8 0 0,1 12,20M12,11A1,1 0 1,0 13,12A1,1 0 0,0 12,11</Geometry>
+    <Geometry x:Key="Geo_Button">M12,2 C6.48,2 2,6.48 2,12 C2,13.82 2.41,15.53 3.12,17.06 L2,22 L6.94,20.88 C8.47,21.59 10.18,22 12,22 C17.52,22 22,17.52 22,12 C22,6.48 17.52,2 12,2 Z</Geometry>
+    <Geometry x:Key="Geo_Led">M12,2 A7,7 0 0,0 5,9 C5,12.5 7,15.5 10,16.5 V19 H14 V16.5 C17,15.5 19,12.5 19,9 A7,7 0 0,0 12,2 M9,20 H15 V22 H9 V20 Z</Geometry>
+    <Geometry x:Key="Geo_Toggle">M17,7 H7 C4.24,7 2,9.24 2,12 C2,14.76 4.24,17 7,17 H17 C19.76,17 22,14.76 22,12 C22,9.24 19.76,7 17,7 M17,15 C15.34,15 14,13.66 14,12 C14,10.34 15.34,9 17,9 C18.66,9 20,10.34 20,12 C20,13.66 18.66,15 17,15 Z</Geometry>
+
+    <!-- 图表类 -->
+    <Geometry x:Key="Geo_Chart">M5,9.2 L9,9.2 L9,19 L5,19 Z M10.2,5 L14.2,5 L14.2,19 L10.2,19 Z M15.4,12 L19.4,12 L19.4,19 L15.4,19 Z</Geometry>
+    <Geometry x:Key="Geo_Wave">M3.5,18.5 L9.5,12.5 L13.5,16.5 L20.5,9.5 L22,11 L22,7 L18,7 L19.5,8.5 L13.5,14.5 L9.5,10.5 L2,18 Z</Geometry>
+    <Geometry x:Key="Geo_Pie">M11,2 V22 C5.9,22 2,18.1 2,13 C2,7.9 5.9,4 11,2 M13,2 C18.1,2 22,5.9 22,11 H13 V2 M13,13 H22 C22,18.1 18.1,22 13,22 V13 Z</Geometry>
+    <Geometry x:Key="Geo_Gauge">M12,4 A8,8 0 0,0 4,12 A8,8 0 0,0 12,20 A8,8 0 0,0 20,12 A8,8 0 0,0 12,4 M12,18 A6,6 0 1,1 18,12 A6,6 0 0,1 12,18 M12.5,7 H11 V13 L16.2,16.2 L17,15 L12.5,12.3 V7 Z</Geometry>
+    <Geometry x:Key="Geo_Table">M3,3 H21 V21 H3 V3 M5,5 V9 H11 V5 H5 M13,5 V9 H19 V5 H13 M5,11 V15 H11 V11 H5 M13,11 V15 H19 V11 H13 M5,17 V19 H11 V17 H5 M13,17 V19 H19 V17 H13 Z</Geometry>
+    <Geometry x:Key="Geo_Tree">M20,6 H12 L10,4 H4 C2.9,4 2,4.9 2,6 V18 C2,19.1 2.9,20 4,20 H20 C21.1,20 22,19.1 22,18 V8 C22,6.9 21.1,6 20,6 Z</Geometry>
+    <Geometry x:Key="Geo_Sidebar">M4,4 H10 V20 H4 Z M12,4 H20 V6 H12 Z M12,8 H20 V10 H12 Z M12,12 H20 V14 H12 Z</Geometry>
+
+    <!-- ============================================================ -->
+    <!-- 2. 统一拟态容器模板 (Neumorphic Icon Container) -->
+    <!-- ============================================================ -->
+    
+    <Style x:Key="NeuIconCore" TargetType="ContentControl">
+        <Setter Property="Width" Value="24"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <Grid>
+                        <!-- 拟态底座阴影 -->
+                        <Border Background="#F0F0F3" CornerRadius="6">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="4" ShadowDepth="1.5" Direction="315" Color="#AEAEC0" Opacity="0.5"/>
+                            </Border.Effect>
+                        </Border>
+                        
+                        <!-- 玻璃半透明背景 (使用 Foreground 颜色并降低透明度) -->
+                        <Rectangle Margin="4" Fill="{TemplateBinding Foreground}" RadiusX="3" RadiusY="3" Opacity="0.15">
+                            <Rectangle.Effect>
+                                <BlurEffect Radius="3"/>
+                            </Rectangle.Effect>
+                        </Rectangle>
+
+                        <!-- 图标路径层 -->
+                        <Viewbox Margin="5">
+                            <Path Data="{TemplateBinding Content}" Fill="{TemplateBinding Foreground}" Stretch="Uniform"/>
+                        </Viewbox>
+                        
+                        <!-- 亮边高光 -->
+                        <Border BorderBrush="White" BorderThickness="0.8,0.8,0,0" CornerRadius="6" Opacity="0.8"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>
