@@ -10,13 +10,13 @@ using System.Windows.Media.Animation;
 
 namespace {{Namespace}}
 {
-    public class SidebarItem
+    public class TopbarItem
     {
         public string Label { get; set; }
         public string IconPath { get; set; }
         public string Tag { get; set; }
 
-        public SidebarItem()
+        public TopbarItem()
         {
             Label = "菜单项";
             IconPath = "";
@@ -24,40 +24,26 @@ namespace {{Namespace}}
         }
     }
 
-    public class SidebarEventArgs : EventArgs
-    {
-        public int Index { get; set; }
-        public string Label { get; set; }
-        public string Tag { get; set; }
-        public bool IsCollapsed { get; set; }
-    }
-
     [System.Runtime.InteropServices.ComVisible(true)]
-    public delegate void SidebarItemSelectedEventHandler(int index, string label, string tag);
+    public delegate void TopbarItemSelectedEventHandler(int index, string label, string tag);
 
-    [System.Runtime.InteropServices.ComVisible(true)]
-    public delegate void SidebarStateChangedEventHandler(bool isCollapsed);
-
-    public partial class SidebarControl : UserControl
+    public partial class TopbarControl : UserControl
     {
         public static readonly DependencyProperty LogoTextProperty =
-            DependencyProperty.Register("LogoText", typeof(string), typeof(SidebarControl), new PropertyMetadata("WPF SIDEBAR", OnLogoChanged));
+            DependencyProperty.Register("LogoText", typeof(string), typeof(TopbarControl), new PropertyMetadata("WPF TOPBAR", OnLogoChanged));
 
         public static readonly DependencyProperty LogoImagePathProperty =
-            DependencyProperty.Register("LogoImagePath", typeof(string), typeof(SidebarControl), new PropertyMetadata("", OnLogoChanged));
+            DependencyProperty.Register("LogoImagePath", typeof(string), typeof(TopbarControl), new PropertyMetadata("", OnLogoChanged));
 
         public static readonly DependencyProperty LogoIconTextProperty =
-            DependencyProperty.Register("LogoIconText", typeof(string), typeof(SidebarControl), new PropertyMetadata("🚀", OnLogoChanged));
+            DependencyProperty.Register("LogoIconText", typeof(string), typeof(TopbarControl), new PropertyMetadata("🌟", OnLogoChanged));
 
         public static readonly DependencyProperty LogoUseImageProperty =
-            DependencyProperty.Register("LogoUseImage", typeof(bool), typeof(SidebarControl), new PropertyMetadata(false, OnLogoChanged));
-
-        public static readonly DependencyProperty LogoMarginProperty =
-            DependencyProperty.Register("LogoMargin", typeof(Thickness), typeof(SidebarControl), new PropertyMetadata(new Thickness(10, 0, 12, 0), OnLogoChanged));
+            DependencyProperty.Register("LogoUseImage", typeof(bool), typeof(TopbarControl), new PropertyMetadata(false, OnLogoChanged));
 
         private static void OnLogoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            var ctrl = d as SidebarControl;
+            var ctrl = d as TopbarControl;
             if (ctrl != null)
             {
                 ctrl.UpdateLogoVisualState();
@@ -88,51 +74,24 @@ namespace {{Namespace}}
             set { SetValue(LogoUseImageProperty, value); }
         }
 
-        public Thickness LogoMargin
-        {
-            get { return (Thickness)GetValue(LogoMarginProperty); }
-            set { SetValue(LogoMarginProperty, value); }
-        }
-
         public void SetLogoImagePath(string path)
         {
             LogoImagePath = path ?? string.Empty;
             LogoUseImage = !string.IsNullOrWhiteSpace(LogoImagePath);
         }
 
-        public void SetLogoImagePathUTF8(byte[] path)
-        {
-            if (path == null) return;
-            SetLogoImagePath(System.Text.Encoding.UTF8.GetString(path));
-        }
-
-        public void SetLogoUseImage(bool useImage)
-        {
-            LogoUseImage = useImage;
-        }
-
-        public static readonly DependencyProperty IsCollapsedProperty =
-            DependencyProperty.Register("IsCollapsed", typeof(bool), typeof(SidebarControl), 
-                new PropertyMetadata(false, OnIsCollapsedChanged));
-
-        public bool IsCollapsed
-        {
-            get { return (bool)GetValue(IsCollapsedProperty); }
-            set { SetValue(IsCollapsedProperty, value); }
-        }
-
         public static readonly DependencyProperty MenuItemsProperty =
-            DependencyProperty.Register("MenuItems", typeof(ObservableCollection<SidebarItem>), typeof(SidebarControl), 
-                new PropertyMetadata(new ObservableCollection<SidebarItem>()));
+            DependencyProperty.Register("MenuItems", typeof(ObservableCollection<TopbarItem>), typeof(TopbarControl), 
+                new PropertyMetadata(new ObservableCollection<TopbarItem>()));
 
-        public ObservableCollection<SidebarItem> MenuItems
+        public ObservableCollection<TopbarItem> MenuItems
         {
-            get { return (ObservableCollection<SidebarItem>)GetValue(MenuItemsProperty); }
+            get { return (ObservableCollection<TopbarItem>)GetValue(MenuItemsProperty); }
             set { SetValue(MenuItemsProperty, value); }
         }
 
         public static readonly DependencyProperty SelectedIndexProperty =
-            DependencyProperty.Register("SelectedIndex", typeof(int), typeof(SidebarControl), 
+            DependencyProperty.Register("SelectedIndex", typeof(int), typeof(TopbarControl), 
                 new PropertyMetadata(0));
 
         public int SelectedIndex
@@ -141,21 +100,19 @@ namespace {{Namespace}}
             set { SetValue(SelectedIndexProperty, value); }
         }
 
-        public event SidebarItemSelectedEventHandler ItemSelected;
-        public event SidebarStateChangedEventHandler StateChanged;
+        public event TopbarItemSelectedEventHandler ItemSelected;
 
-        public SidebarControl()
+        public TopbarControl()
         {
             InitializeComponent();
             this.DataContext = this;
-            this.mainBorder.Width = 260; // 动画目标改为内部 Border，解决宿主容器强行居中的问题
             
             // 初始化一些默认数据（仅预览用）
             if (MenuItems.Count == 0)
             {
-                MenuItems.Add(new SidebarItem { Label = "主页", Tag = "home" });
-                MenuItems.Add(new SidebarItem { Label = "设置", Tag = "settings" });
-                MenuItems.Add(new SidebarItem { Label = "日志", Tag = "logs" });
+                MenuItems.Add(new TopbarItem { Label = "概览", Tag = "overview" });
+                MenuItems.Add(new TopbarItem { Label = "分析", Tag = "analysis" });
+                MenuItems.Add(new TopbarItem { Label = "系统", Tag = "system" });
             }
             UpdateLogoVisualState();
         }
@@ -168,39 +125,10 @@ namespace {{Namespace}}
             logoIconTextBlock.Visibility = showImage ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        private static void OnIsCollapsedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var ctrl = d as SidebarControl;
-            if (ctrl == null) return;
-            bool isCollapsed = (bool)e.NewValue;
-            
-            // 宽度动画安全性处理 (针对内部 Border)
-            if (double.IsNaN(ctrl.mainBorder.Width)) ctrl.mainBorder.Width = ctrl.mainBorder.ActualWidth > 0 ? ctrl.mainBorder.ActualWidth : 260;
-
-            DoubleAnimation anima = new DoubleAnimation();
-            anima.To = isCollapsed ? 70 : 260; // 复刻生成器尺寸
-            anima.Duration = TimeSpan.FromSeconds(0.3);
-            anima.EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut };
-            
-            ctrl.mainBorder.BeginAnimation(WidthProperty, anima);
-            
-            // 箭头更新
-            if (ctrl.arrow != null)
-            {
-                ctrl.arrow.Text = isCollapsed ? "➡" : "⬅";
-            }
-
-            var handler = ctrl.StateChanged;
-            if (handler != null)
-            {
-                handler(isCollapsed);
-            }
-        }
-
         private void Item_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as RadioButton;
-            var item = btn.DataContext as SidebarItem;
+            var item = btn.DataContext as TopbarItem;
             int idx = MenuItems.IndexOf(item);
             
             SelectedIndex = idx;
@@ -211,16 +139,11 @@ namespace {{Namespace}}
             }
         }
 
-        private void Toggle_Click(object sender, RoutedEventArgs e)
-        {
-            IsCollapsed = !IsCollapsed;
-        }
-
         #region LabVIEW API 补全
 
         public void AddMenuItem(string label, string tag, string iconPath)
         {
-            MenuItems.Add(new SidebarItem { Label = label, Tag = tag, IconPath = iconPath });
+            MenuItems.Add(new TopbarItem { Label = label, Tag = tag, IconPath = iconPath });
         }
 
         public void AddMenuItemUTF8(byte[] label, byte[] tag, byte[] iconPath)
@@ -249,7 +172,7 @@ namespace {{Namespace}}
 
         public void SetLogoIconText(string text)
         {
-            LogoIconText = string.IsNullOrWhiteSpace(text) ? "🚀" : text;
+            LogoIconText = string.IsNullOrWhiteSpace(text) ? "🌟" : text;
             LogoUseImage = false;
         }
 
@@ -258,38 +181,23 @@ namespace {{Namespace}}
             if (text != null) SetLogoIconText(System.Text.Encoding.UTF8.GetString(text));
         }
 
-        public void SetLogoMargin(double left, double top, double right, double bottom)
-        {
-            LogoMargin = new Thickness(left, top, right, bottom);
-        }
-
-        public void SetLogoMargin(double uniform)
-        {
-            LogoMargin = new Thickness(uniform);
-        }
-
         public void SetSelectedIndex(int index)
         {
             SelectedIndex = index;
-        }
-
-        public void SetCollapsed(bool collapsed)
-        {
-            IsCollapsed = collapsed;
         }
 
         #endregion
     }
 
     // 辅助转换器：用于同步项的选中状态
-    public class SidebarIndexToCheckedConverter : IMultiValueConverter
+    public class TopbarIndexToCheckedConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             if (values.Length < 2) return false;
-            var item = values[0] as SidebarItem;
+            var item = values[0] as TopbarItem;
             var selectedIdx = (int)values[1];
-            var items = values[2] as ObservableCollection<SidebarItem>;
+            var items = values[2] as ObservableCollection<TopbarItem>;
             
             if (item == null || items == null) return false;
             return items.IndexOf(item) == selectedIdx;

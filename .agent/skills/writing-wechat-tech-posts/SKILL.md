@@ -29,7 +29,7 @@ description: Writes complete WeChat tech posts (hook, TOC, body, checklists, ima
 
 ## Workflow
 1) 用“总控模板”收口需求并生成初稿（见 TEMPLATES.md）
-2) 需要钩子时用“5种开头法”
+2) 需要钩子时优先使用“高阶黄金3秒开头模板”，备选使用“经典5种开头法”
 3) 需要分节深写时用“观点-解释-例子-步骤”段落模板
 4) 遇到术语密集，改用“类比→定义→流程→误解→MVP”
 

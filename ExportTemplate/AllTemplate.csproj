@@ -116,6 +116,16 @@
       <DependentUpon>SidebarControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="SidebarPanel.cs" />
+    <!-- Topbar -->
+    <Compile Include="TopbarControl.xaml.cs">
+      <DependentUpon>TopbarControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TopbarPanel.cs" />
+    <!-- IconButton -->
+    <Compile Include="IconButtonControl.xaml.cs">
+      <DependentUpon>IconButtonControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="IconButtonPanel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="TextInputControl.xaml">
@@ -171,6 +181,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SidebarControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TopbarControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="IconButtonControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

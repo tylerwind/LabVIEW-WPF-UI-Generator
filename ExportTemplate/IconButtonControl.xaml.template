@@ -1,0 +1,112 @@
+<UserControl x:Class="{{Namespace}}.IconButtonControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{{ControlBackground}}"
+             x:Name="root">
+    <UserControl.Resources>
+        <!-- 核心转换器 -->
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- 图标容器样式 (复刻顶边栏) -->
+        <Style x:Key="IconButtonIconContainer" TargetType="ContentControl">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContentControl">
+                        <Grid>
+                            <!-- 拟态底座阴影 -->
+                            <Border Background="{{ControlBackground}}" CornerRadius="6">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1.2" Direction="315" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}"/>
+                                </Border.Effect>
+                            </Border>
+                            
+                            <!-- 亮边高光 -->
+                            <Border BorderBrush="White" BorderThickness="0.8,0.8,0,0" CornerRadius="6" Opacity="0.8"/>
+
+                            <!-- 图标内容 -->
+                            <Grid Margin="5">
+                                <TextBlock x:Name="txtIcon" Text="{Binding IconText, ElementName=root}" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"
+                                           Visibility="Visible"/>
+                                <Image x:Name="imgIcon" Source="{Binding IconPath, ElementName=root, TargetNullValue={x:Null}}" 
+                                       Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"
+                                       Visibility="Collapsed"/>
+                            </Grid>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding UseImage, ElementName=root}" Value="True">
+                                <Setter TargetName="txtIcon" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="imgIcon" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 按钮主样式 -->
+        <Style x:Key="IconBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="tplGrid" Background="Transparent">
+                            <!-- 凸起态 (与侧边栏非选中态一致) -->
+                            <Border x:Name="lightBorder" CornerRadius="{{CornerRadius}}" Margin="{{ShadowMargin}}">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="{{ShadowBlur}}" Direction="135" ShadowDepth="{{ShadowDepth}}" Color="{{HighlightColor}}" Opacity="{{HighlightOpacity}}"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="darkBorder" CornerRadius="{{CornerRadius}}" Margin="{{ShadowMargin}}">
+                                <Border.Background>
+                                    <SolidColorBrush Color="{{ControlBackground}}"/>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="{{ShadowBlur}}" Direction="315" ShadowDepth="{{ShadowDepth}}" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}"/>
+                                </Border.Effect>
+                            </Border>
+                            <!-- 按下态 (与侧边栏选中态一致) -->
+                            <Border x:Name="insetBorder" CornerRadius="{{CornerRadius}}" Margin="{{ShadowMargin}}" Visibility="Collapsed" Background="{{ControlBackground}}">
+                                <Grid>
+                                    <Border BorderThickness="1.5,1.5,0,0" BorderBrush="#25000000" CornerRadius="{{CornerRadius}}"/>
+                                    <Border BorderThickness="0,0,1.5,1.5" BorderBrush="White" CornerRadius="{{CornerRadius}}"/>
+                                </Grid>
+                            </Border>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="15,10">
+                                <!-- 图标容器 -->
+                                <ContentControl Style="{StaticResource IconButtonIconContainer}" Margin="0,0,8,0"/>
+                                
+                                <!-- 文本 -->
+                                <TextBlock x:Name="labelTxt" Text="{Binding LabelText, ElementName=root}" 
+                                           FontSize="{{FontSize}}" FontFamily="{{FontFamily}}" Foreground="{{FontColor}}" 
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                            
+                            <!-- 激活指示条 -->
+                            <Border x:Name="activeIndicator" Height="3" Background="{{AccentColor}}" VerticalAlignment="Bottom" Margin="12,0,12,8" CornerRadius="1.5" Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="labelTxt" Property="Foreground" Value="{{AccentColor}}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="lightBorder" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="darkBorder" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="insetBorder" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="activeIndicator" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="labelTxt" Property="Foreground" Value="{{AccentColor}}"/>
+                                <Setter TargetName="labelTxt" Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Button Style="{StaticResource IconBtnStyle}" Click="Button_Click"/>
+</UserControl>

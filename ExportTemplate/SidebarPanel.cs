@@ -23,9 +23,11 @@ namespace {{Namespace}}
             try
             {
                 _host = new ElementHost();
+                _host.BackColorTransparent = true; // 开启透明支持
                 _sidebar = new SidebarControl();
                 _host.Child = _sidebar;
                 _host.Dock = DockStyle.Fill;
+                this.BackColor = System.Drawing.Color.Transparent; // Panel 也设为透明
                 this.Controls.Add(_host);
 
                 _sidebar.ItemSelected += (index, label, tag) => {

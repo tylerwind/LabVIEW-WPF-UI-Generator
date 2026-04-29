@@ -1,7 +1,7 @@
 <Window x:Class="ControlDesigner.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WPF 控件生成器 v3.0" Width="1200" Height="720"
+        Title="WPF 控件生成器 v3.2" Width="1200" Height="720"
         MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen"
         Background="#F0F0F3">
@@ -46,6 +46,18 @@
             <Setter Property="BorderBrush" Value="#D1D1D1"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Margin" Value="0,2,0,2"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="PropComboBox" TargetType="ComboBox">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#D1D1D1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4,0"/>
             <Setter Property="Margin" Value="0,2,0,2"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
@@ -338,7 +350,9 @@
                         <!-- ===== 布尔分组 ===== -->
                         <RadioButton x:Name="NavGrpBool" Tag="{StaticResource Geo_Boolean}" Content="布尔" Foreground="#FF9800"
                                      Style="{StaticResource NeumorphicNavBtn}" Click="NavGroup_Click"/>
-                        <RadioButton x:Name="TabButton" Tag="{StaticResource Geo_Button}" Content="按钮" Foreground="#FF9800"
+                        <RadioButton x:Name="TabButton" Tag="{StaticResource Geo_Button}" Content="普通按钮" Foreground="#FF9800"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabIconButton" Tag="{StaticResource Geo_Button}" Content="图标按钮" Foreground="#FF9800"
                                      Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
                         <RadioButton x:Name="TabLed" Tag="{StaticResource Geo_Led}" Content="指示灯" Foreground="#FF9800"
                                      Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Checked="Navigation_Checked"/>
@@ -365,6 +379,8 @@
                         <RadioButton x:Name="NavGrpLayout" Tag="{StaticResource Geo_Sidebar}" Content="容器布局" Foreground="#E91E63"
                                      Style="{StaticResource NeumorphicNavBtn}" Click="NavGroup_Click"/>
                         <RadioButton x:Name="TabSidebar" Tag="{StaticResource Geo_Sidebar}" Content="侧边栏" Foreground="#E91E63"
+                                     Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Visibility="Collapsed" Checked="Navigation_Checked"/>
+                        <RadioButton x:Name="TabTopbar" Tag="{StaticResource Geo_Topbar}" Content="顶边栏" Foreground="#E91E63"
                                      Style="{StaticResource NeumorphicSubBtn}" GroupName="NavMain" Visibility="Collapsed" Checked="Navigation_Checked"/>
 
                         <Separator Margin="6,16,6,8" Background="#E0E0E6"/>
@@ -501,7 +517,7 @@
                                 <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Text="字族" Style="{StaticResource PropLabel}"/>
-                            <TextBox x:Name="TxtFontFamily" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Style="{StaticResource PropTextBox}" TextChanged="OnStyleChanged"/>
+                            <ComboBox x:Name="ComboFontFamily" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Style="{StaticResource PropComboBox}" IsEditable="True" SelectionChanged="OnFontSelectionChanged" TextBoxBase.TextChanged="OnFontTextChanged"/>
                             <TextBlock Grid.Row="1" Text="字号" Style="{StaticResource PropLabel}"/>
                             <Slider x:Name="SliderFontSize" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Minimum="10" Maximum="24" Value="14" ValueChanged="OnSliderChanged"/>
                             <TextBlock x:Name="LblFontSize" Grid.Row="1" Grid.Column="3" Style="{StaticResource PropLabel}"/>
@@ -813,6 +829,83 @@
                                     <Border x:Name="SwatchSidebarBg" Width="20" Height="20" Margin="0,0,4,0" BorderBrush="Gray" BorderThickness="1" Background="#F0F2F5" MouseLeftButtonDown="Swatch_Click" ToolTip="点击选择颜色"/>
                                     <TextBox x:Name="TxtSidebarBg" Style="{StaticResource PropTextBox}" Text="#F0F2F5" TextChanged="OnStyleChanged"/>
                                 </DockPanel>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <!-- 顶边栏配置 -->
+                        <StackPanel x:Name="GroupTopbarConfig" Visibility="Collapsed">
+                            <TextBlock Text="顶边栏" Style="{StaticResource GroupTitle}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="76"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="Logo文本" Style="{StaticResource PropLabel}"/>
+                                <TextBox x:Name="TxtTopbarLogo" Grid.Row="0" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="WPF TOPBAR" TextChanged="OnStyleChanged"/>
+
+                                <TextBlock Grid.Row="1" Text="Logo图标" Style="{StaticResource PropLabel}"/>
+                                <TextBox x:Name="TxtTopbarLogoIcon" Grid.Row="1" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="🌟" TextChanged="OnStyleChanged"/>
+
+                                <TextBlock Grid.Row="2" Text="Logo图片" Style="{StaticResource PropLabel}" Visibility="Collapsed"/>
+                                <TextBox x:Name="TxtTopbarLogoImagePath" Grid.Row="2" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="" TextChanged="OnStyleChanged" Visibility="Collapsed"/>
+
+                                <TextBlock Grid.Row="3" Text="使用图片" Style="{StaticResource PropLabel}" Visibility="Collapsed"/>
+                                <CheckBox x:Name="ChkTopbarLogoUseImage" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" IsChecked="False" Click="OnGenericStyleChanged" Visibility="Collapsed"/>
+
+                                <TextBlock Grid.Row="4" Text="高度" Style="{StaticResource PropLabel}"/>
+                                <DockPanel Grid.Row="4" Grid.Column="1">
+                                    <TextBlock x:Name="LblTopbarHeight" DockPanel.Dock="Right" Text="60" Style="{StaticResource PropLabel}" Width="30" TextAlignment="Right"/>
+                                    <Slider x:Name="SliderTopbarHeight" Minimum="40" Maximum="100" Value="60" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnSliderChanged"/>
+                                </DockPanel>
+
+                                <TextBlock Grid.Row="5" Text="项宽度" Style="{StaticResource PropLabel}"/>
+                                <DockPanel Grid.Row="5" Grid.Column="1">
+                                    <TextBlock x:Name="LblTopbarItemWidth" DockPanel.Dock="Right" Text="100" Style="{StaticResource PropLabel}" Width="30" TextAlignment="Right"/>
+                                    <Slider x:Name="SliderTopbarItemWidth" Minimum="60" Maximum="200" Value="100" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnSliderChanged"/>
+                                </DockPanel>
+
+                                <TextBlock Grid.Row="6" Text="背景颜色" Style="{StaticResource PropLabel}"/>
+                                <DockPanel Grid.Row="6" Grid.Column="1">
+                                    <Border x:Name="SwatchTopbarBg" Width="20" Height="20" Margin="0,0,4,0" BorderBrush="Gray" BorderThickness="1" Background="#F0F2F5" MouseLeftButtonDown="Swatch_Click" ToolTip="点击选择颜色"/>
+                                    <TextBox x:Name="TxtTopbarBg" Style="{StaticResource PropTextBox}" Text="#F0F2F5" TextChanged="OnStyleChanged"/>
+                                </DockPanel>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <!-- 图标按钮配置 -->
+                        <StackPanel x:Name="GroupIconButtonConfig" Visibility="Collapsed">
+                            <TextBlock Text="图标按钮" Style="{StaticResource GroupTitle}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="76"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="按钮文本" Style="{StaticResource PropLabel}"/>
+                                <TextBox x:Name="TxtIconButtonText" Grid.Row="0" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="图标按钮" TextChanged="OnStyleChanged"/>
+
+                                <TextBlock Grid.Row="1" Text="按钮图标" Style="{StaticResource PropLabel}"/>
+                                <TextBox x:Name="TxtIconButtonIconText" Grid.Row="1" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="🎯" TextChanged="OnStyleChanged"/>
+
+                                <TextBlock Grid.Row="2" Text="图标图片" Style="{StaticResource PropLabel}"/>
+                                <TextBox x:Name="TxtIconButtonIconPath" Grid.Row="2" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="" TextChanged="OnStyleChanged"/>
+
+                                <TextBlock Grid.Row="3" Text="使用图片" Style="{StaticResource PropLabel}"/>
+                                <CheckBox x:Name="ChkIconButtonUseImage" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" IsChecked="False" Click="OnGenericStyleChanged"/>
                             </Grid>
                         </StackPanel>
 

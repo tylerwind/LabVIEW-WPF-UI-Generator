@@ -40,6 +40,8 @@ namespace ControlDesigner.Services
                 case ControlType.DataGridDisplay: templateFileName = "DataGridControl.xaml.template"; break;
                 case ControlType.TreeDisplay: templateFileName = "TreeControl.xaml.template"; break;
                 case ControlType.SidebarNav: templateFileName = "SidebarControl.xaml.template"; break;
+                case ControlType.TopbarNav: templateFileName = "TopbarControl.xaml.template"; break;
+                case ControlType.IconButton: templateFileName = "IconButtonControl.xaml.template"; break;
                 case ControlType.TextInput:
                 default: templateFileName = "TextInputControl.xaml.template"; break;
             }
@@ -117,6 +119,14 @@ namespace ControlDesigner.Services
                 case ControlType.SidebarNav:
                     xamlFileName = "SidebarControl.xaml";
                     fixedFiles = new string[] { "SidebarControl.xaml.cs", "SidebarPanel.cs" };
+                    break;
+                case ControlType.TopbarNav:
+                    xamlFileName = "TopbarControl.xaml";
+                    fixedFiles = new string[] { "TopbarControl.xaml.cs", "TopbarPanel.cs" };
+                    break;
+                case ControlType.IconButton:
+                    xamlFileName = "IconButtonControl.xaml";
+                    fixedFiles = new string[] { "IconButtonControl.xaml.cs", "IconButtonPanel.cs" };
                     break;
 
                 case ControlType.TextInput:
@@ -261,6 +271,22 @@ namespace ControlDesigner.Services
                     csproj = csproj.Replace("TextInputPanel.cs", "SidebarPanel.cs");
                     csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
                 }
+                else if (type == ControlType.TopbarNav)
+                {
+                    csproj = csproj.Replace("TextInputControl.xaml.cs", "TopbarControl.xaml.cs");
+                    csproj = csproj.Replace("TextInputControl.xaml", "TopbarControl.xaml");
+                    csproj = csproj.Replace("<Compile Include=\"TextInputHost.cs\" />", "");
+                    csproj = csproj.Replace("TextInputPanel.cs", "TopbarPanel.cs");
+                    csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
+                }
+                else if (type == ControlType.IconButton)
+                {
+                    csproj = csproj.Replace("TextInputControl.xaml.cs", "IconButtonControl.xaml.cs");
+                    csproj = csproj.Replace("TextInputControl.xaml", "IconButtonControl.xaml");
+                    csproj = csproj.Replace("<Compile Include=\"TextInputHost.cs\" />", "");
+                    csproj = csproj.Replace("TextInputPanel.cs", "IconButtonPanel.cs");
+                    csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
+                }
 
                 csproj = csproj.Replace("<RootNamespace>WpfTextInput</RootNamespace>",
                                        "<RootNamespace>" + controlName + "</RootNamespace>");
@@ -297,6 +323,8 @@ namespace ControlDesigner.Services
                 new { Type = ControlType.DataGridDisplay,   XamlTemplate = "DataGridControl.xaml.template",          XamlOut = "DataGridControl.xaml",          Files = new[] { "DataGridControl.xaml.cs", "DataGridPanel.cs" } },
                 new { Type = ControlType.TreeDisplay,       XamlTemplate = "TreeControl.xaml.template",              XamlOut = "TreeControl.xaml",              Files = new[] { "TreeControl.xaml.cs", "TreePanel.cs" } },
                 new { Type = ControlType.SidebarNav,        XamlTemplate = "SidebarControl.xaml.template",           XamlOut = "SidebarControl.xaml",           Files = new[] { "SidebarControl.xaml.cs", "SidebarPanel.cs" } },
+                new { Type = ControlType.TopbarNav,         XamlTemplate = "TopbarControl.xaml.template",            XamlOut = "TopbarControl.xaml",            Files = new[] { "TopbarControl.xaml.cs", "TopbarPanel.cs" } },
+                new { Type = ControlType.IconButton,        XamlTemplate = "IconButtonControl.xaml.template",        XamlOut = "IconButtonControl.xaml",        Files = new[] { "IconButtonControl.xaml.cs", "IconButtonPanel.cs" } },
             };
 
             var writtenFiles = new HashSet<string>();
@@ -421,11 +449,24 @@ namespace ControlDesigner.Services
                 { "{{SidebarLogoText}}", style.SidebarLogoText },
                 { "{{SidebarLogoIconText}}", string.IsNullOrWhiteSpace(style.SidebarLogoIconText) ? "🚀" : style.SidebarLogoIconText },
                 { "{{SidebarLogoImagePath}}", string.IsNullOrWhiteSpace(style.SidebarLogoImagePath) ? string.Empty : style.SidebarLogoImagePath },
-                { "{{SidebarLogoUseImage}}", style.SidebarLogoUseImage ? "True" : "False" },
+                { "{{SidebarLogoUseImage}}", style.SidebarLogoUseImage.ToString().ToLower() },
                 { "{{SidebarLogoMargin}}", style.SidebarLogoMargin },
                 { "{{SidebarBackground}}", CleanColor(style.SidebarBackground) },
                 { "{{SidebarItemHeight}}", FormatNumber(style.SidebarItemHeight) },
                 { "{{SidebarItemSpacing}}", FormatNumber(style.SidebarItemSpacing) },
+                { "{{TopbarLogoText}}", style.TopbarLogoText },
+                { "{{TopbarLogoIconText}}", string.IsNullOrWhiteSpace(style.TopbarLogoIconText) ? "🌟" : style.TopbarLogoIconText },
+                { "{{TopbarLogoImagePath}}", string.IsNullOrWhiteSpace(style.TopbarLogoImagePath) ? string.Empty : style.TopbarLogoImagePath },
+                { "{{TopbarLogoUseImage}}", style.TopbarLogoUseImage.ToString().ToLower() },
+                { "{{TopbarHeight}}", FormatNumber(style.TopbarHeight) },
+                { "{{TopbarItemWidth}}", FormatNumber(style.TopbarItemWidth) },
+                { "{{TopbarBackground}}", CleanColor(style.TopbarBackground) },
+
+                // IconButton 专属
+                { "{{IconButtonText}}", style.IconButtonText },
+                { "{{IconButtonIconText}}", string.IsNullOrWhiteSpace(style.IconButtonIconText) ? "🔘" : style.IconButtonIconText },
+                { "{{IconButtonIconPath}}", string.IsNullOrWhiteSpace(style.IconButtonIconPath) ? string.Empty : style.IconButtonIconPath },
+                { "{{IconButtonUseImage}}", style.IconButtonUseImage.ToString().ToLower() },
             };
 
             string result = template;
@@ -488,7 +529,9 @@ namespace ControlDesigner.Services
                           .Replace("WpfGauge", newNamespace)
                           .Replace("WpfDataGrid", newNamespace)
                           .Replace("WpfTree", newNamespace)
-                          .Replace("WpfSidebar", newNamespace);
+                          .Replace("WpfSidebar", newNamespace)
+                          .Replace("WpfTopbar", newNamespace)
+                          .Replace("WpfIconButton", newNamespace);
         }
     }
 }

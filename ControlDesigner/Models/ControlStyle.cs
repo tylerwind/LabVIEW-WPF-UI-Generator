@@ -253,6 +253,40 @@ namespace ControlDesigner.Models
         private string _sidebarBackground = "#F0F2F5";
         public string SidebarBackground { get { return _sidebarBackground; } set { Set(ref _sidebarBackground, value); } }
 
+        private string _topbarLogoText = "WPF TOPBAR";
+        public string TopbarLogoText { get { return _topbarLogoText; } set { Set(ref _topbarLogoText, value); } }
+
+        private string _topbarLogoIconText = "🌟";
+        public string TopbarLogoIconText { get { return _topbarLogoIconText; } set { Set(ref _topbarLogoIconText, value); } }
+
+        private string _topbarLogoImagePath = "";
+        public string TopbarLogoImagePath { get { return _topbarLogoImagePath; } set { Set(ref _topbarLogoImagePath, value); } }
+
+        private bool _topbarLogoUseImage = false;
+        public bool TopbarLogoUseImage { get { return _topbarLogoUseImage; } set { Set(ref _topbarLogoUseImage, value); } }
+
+        private double _topbarHeight = 60;
+        public double TopbarHeight { get { return _topbarHeight; } set { Set(ref _topbarHeight, value); } }
+
+        private double _topbarItemWidth = 100;
+        public double TopbarItemWidth { get { return _topbarItemWidth; } set { Set(ref _topbarItemWidth, value); } }
+
+        private string _topbarBackground = "#F0F2F5";
+        public string TopbarBackground { get { return _topbarBackground; } set { Set(ref _topbarBackground, value); } }
+
+        // === IconButton 图标按钮 ===
+        private string _iconButtonText = "图标按钮";
+        public string IconButtonText { get { return _iconButtonText; } set { Set(ref _iconButtonText, value); } }
+
+        private string _iconButtonIconText = "🎯";
+        public string IconButtonIconText { get { return _iconButtonIconText; } set { Set(ref _iconButtonIconText, value); } }
+
+        private string _iconButtonIconPath = "";
+        public string IconButtonIconPath { get { return _iconButtonIconPath; } set { Set(ref _iconButtonIconPath, value); } }
+
+        private bool _iconButtonUseImage = false;
+        public bool IconButtonUseImage { get { return _iconButtonUseImage; } set { Set(ref _iconButtonUseImage, value); } }
+
         // === 间距 ===
         private string _cardPadding = "12,8,12,6";
         public string CardPadding { get { return _cardPadding; } set { Set(ref _cardPadding, value); } }

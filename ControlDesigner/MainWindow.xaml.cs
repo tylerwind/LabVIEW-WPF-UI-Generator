@@ -1,5 +1,5 @@
 using System;
-
+using System.Linq;
 using System.Collections.Generic;
 
 using System.IO;
@@ -17,6 +17,8 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 
 using System.Windows.Media.Animation;
+
+using System.Windows.Media.Imaging;
 
 using Microsoft.Win32;
 
@@ -78,6 +80,8 @@ namespace ControlDesigner
             LoadPresets();
 
             _style = new ControlStyle();
+
+            ComboFontFamily.ItemsSource = Fonts.SystemFontFamilies.OrderBy(f => f.Source).ToList();
 
             SyncUIFromStyle();
 
@@ -229,7 +233,7 @@ namespace ControlDesigner
 
 
 
-            TxtFontFamily.Text = _style.FontFamily;
+            ComboFontFamily.Text = _style.FontFamily;
 
             SliderFontSize.Value = _style.FontSize;
 
@@ -241,11 +245,12 @@ namespace ControlDesigner
 
 
 
-            TxtFocusBorder.Text = _style.FocusBorderColor;
-
-            TxtAccentColor.Text = _style.AccentColor;
-
             if (TxtComboBoxArrowColor != null) TxtComboBoxArrowColor.Text = _style.ComboBoxArrowColor;
+
+            if (TxtTopbarLogo != null) TxtTopbarLogo.Text = _style.TopbarLogoText;
+            if (TxtTopbarBg != null) TxtTopbarBg.Text = _style.TopbarBackground;
+            SliderTopbarHeight.Value = _style.TopbarHeight;
+            SliderTopbarItemWidth.Value = _style.TopbarItemWidth;
 
 
 
@@ -325,59 +330,51 @@ namespace ControlDesigner
             if (TxtToggleColorOn != null) TxtToggleColorOn.Text = _style.ToggleColorOn;
 
             if (TxtToggleColorOff != null) TxtToggleColorOff.Text = _style.ToggleColorOff;
+            
+            if (TxtAccentColor != null) TxtAccentColor.Text = _style.AccentColor;
+            if (TxtFocusBorder != null) TxtFocusBorder.Text = _style.FocusBorderColor;
 
+            if (TxtSidebarLogoIcon != null) TxtSidebarLogoIcon.Text = _style.SidebarLogoIconText;
+            if (TxtSidebarLogoImagePath != null) TxtSidebarLogoImagePath.Text = _style.SidebarLogoImagePath;
+            if (ChkSidebarLogoUseImage != null) ChkSidebarLogoUseImage.IsChecked = _style.SidebarLogoUseImage;
+            if (TxtSidebarLogoMargin != null) TxtSidebarLogoMargin.Text = _style.SidebarLogoMargin;
 
+            if (TxtTopbarLogoIcon != null) TxtTopbarLogoIcon.Text = _style.TopbarLogoIconText;
+            if (TxtTopbarLogoImagePath != null) TxtTopbarLogoImagePath.Text = _style.TopbarLogoImagePath;
+            if (ChkTopbarLogoUseImage != null) ChkTopbarLogoUseImage.IsChecked = _style.TopbarLogoUseImage;
+
+            if (TxtIconButtonText != null) TxtIconButtonText.Text = _style.IconButtonText;
+            if (TxtIconButtonIconText != null) TxtIconButtonIconText.Text = _style.IconButtonIconText;
+            if (TxtIconButtonIconPath != null) TxtIconButtonIconPath.Text = _style.IconButtonIconPath;
+            if (ChkIconButtonUseImage != null) ChkIconButtonUseImage.IsChecked = _style.IconButtonUseImage;
 
             UpdateSliderLabels();
+            UpdateColorSwatches();
 
             _suppressUpdate = false;
-
         }
 
 
-
         private void BtnImport_Click(object sender, RoutedEventArgs e)
-
         {
-
             var dlg = new OpenFileDialog
-
             {
-
                 Title = "导入样式配置",
-
                 Filter = "样式配置文件|*.style.json|JSON 文件|*.json|所有文件|*.*"
-
             };
 
-
-
             if (dlg.ShowDialog() == true)
-
             {
-
                 try
-
                 {
-
                     string json = File.ReadAllText(dlg.FileName);
-
                     var serializer = new JavaScriptSerializer();
-
                     var importedStyle = serializer.Deserialize<ControlStyle>(json);
-
                     
-
                     if (importedStyle != null)
-
                     {
-
                         _style = importedStyle;
-
                         SyncUIFromStyle();
-
-                        UpdateColorSwatches();
-
                         UpdatePreview();
 
                         
@@ -440,7 +437,7 @@ namespace ControlDesigner
 
 
 
-            _style.FontFamily = TxtFontFamily.Text.Trim();
+            _style.FontFamily = ComboFontFamily.Text.Trim();
 
             _style.FontSize = SliderFontSize.Value;
 
@@ -505,6 +502,11 @@ namespace ControlDesigner
             if (TxtSidebarLogo != null) _style.SidebarLogoText = TxtSidebarLogo.Text;
             if (TxtSidebarBg != null) _style.SidebarBackground = CleanColorString(TxtSidebarBg.Text);
 
+            if (TxtIconButtonText != null) _style.IconButtonText = TxtIconButtonText.Text;
+            if (TxtIconButtonIconText != null) _style.IconButtonIconText = TxtIconButtonIconText.Text;
+            if (TxtIconButtonIconPath != null) _style.IconButtonIconPath = TxtIconButtonIconPath.Text;
+            if (ChkIconButtonUseImage != null) _style.IconButtonUseImage = ChkIconButtonUseImage.IsChecked == true;
+
 
 
             if (TxtGaugeColor1 != null) _style.GaugeColor1 = CleanColorString(TxtGaugeColor1.Text);
@@ -533,8 +535,12 @@ namespace ControlDesigner
             if (TxtTreeBg != null) _style.TreeBackground = CleanColorString(TxtTreeBg.Text);
             if (ChkTreeShowCheckBox != null) _style.TreeShowCheckBox = ChkTreeShowCheckBox.IsChecked == true;
 
-            if (SliderSidebarItemH != null) _style.SidebarItemHeight = SliderSidebarItemH.Value;
             if (SliderSidebarItemSpacing != null) _style.SidebarItemSpacing = SliderSidebarItemSpacing.Value;
+
+            if (TxtTopbarLogo != null) _style.TopbarLogoText = TxtTopbarLogo.Text;
+            if (TxtTopbarBg != null) _style.TopbarBackground = CleanColorString(TxtTopbarBg.Text);
+            if (SliderTopbarHeight != null) _style.TopbarHeight = SliderTopbarHeight.Value;
+            if (SliderTopbarItemWidth != null) _style.TopbarItemWidth = SliderTopbarItemWidth.Value;
 
         }
 
@@ -570,8 +576,10 @@ namespace ControlDesigner
             if (LblTreeItemH != null) LblTreeItemH.Text = SliderTreeItemH.Value.ToString("F0");
             if (LblTreeIndent != null) LblTreeIndent.Text = SliderTreeIndent.Value.ToString("F0");
 
-            if (LblSidebarItemH != null) LblSidebarItemH.Text = SliderSidebarItemH.Value.ToString("F0");
             if (LblSidebarItemSpacing != null) LblSidebarItemSpacing.Text = SliderSidebarItemSpacing.Value.ToString("F0");
+
+            if (LblTopbarHeight != null) LblTopbarHeight.Text = SliderTopbarHeight.Value.ToString("F0");
+            if (LblTopbarItemWidth != null) LblTopbarItemWidth.Text = SliderTopbarItemWidth.Value.ToString("F0");
 
         }
 
@@ -609,6 +617,7 @@ namespace ControlDesigner
 
             if (SwatchLedOff != null) SetSwatchColor(SwatchLedOff, TxtLedOffColor.Text);
             if (SwatchSidebarBg != null) SetSwatchColor(SwatchSidebarBg, TxtSidebarBg.Text);
+            if (SwatchTopbarBg != null) SetSwatchColor(SwatchTopbarBg, TxtTopbarBg.Text);
 
             if (SwatchChartColor1 != null) SetSwatchColor(SwatchChartColor1, TxtChartColor1.Text);
 
@@ -749,6 +758,7 @@ namespace ControlDesigner
 
                 case "SwatchTableBg": return TxtTableBg;
                 case "SwatchSidebarBg": return TxtSidebarBg;
+                case "SwatchTopbarBg": return TxtTopbarBg;
 
                 case "SwatchGaugeColor1": return TxtGaugeColor1;
 
@@ -3071,6 +3081,137 @@ namespace ControlDesigner
 
                 dock.Children.Add(sidebarLayout);
             }
+            else if (_currentControlType == ControlType.IconButton)
+            {
+                // 图标按钮预览
+                var container = new Grid { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                
+                bool isPressed = false;
+                var btnGrid = new Grid { Width = 120, Height = 50, Cursor = System.Windows.Input.Cursors.Hand };
+                
+                Action updateBtn = () => {
+                    btnGrid.Children.Clear();
+                    
+                    if (isPressed)
+                    {
+                        // 内凹态 (与侧边栏选中态一致)
+                        var insetBg = new Border 
+                        { 
+                            Background = TryParseBrush(_style.ControlBackground, Brushes.White), 
+                            CornerRadius = new CornerRadius(_style.CornerRadius),
+                            BorderThickness = new Thickness(1.5, 1.5, 0, 0),
+                            BorderBrush = new SolidColorBrush(Color.FromArgb(40, 0, 0, 0)) 
+                        };
+                        var insetRight = new Border
+                        {
+                            BorderThickness = new Thickness(0, 0, 1.5, 1.5),
+                            BorderBrush = Brushes.White, 
+                            CornerRadius = new CornerRadius(_style.CornerRadius)
+                        };
+                        btnGrid.Children.Add(insetBg);
+                        btnGrid.Children.Add(insetRight);
+                    }
+                    else
+                    {
+                        // 凸起态 (与侧边栏非选中态一致)
+                        var outsetBg = new Border { 
+                            CornerRadius = new CornerRadius(_style.CornerRadius),
+                            Background = TryParseBrush(_style.ControlBackground, new SolidColorBrush(Color.FromRgb(227, 230, 236)))
+                        };
+                        
+                        outsetBg.Effect = new DropShadowEffect { 
+                            BlurRadius = _style.ShadowBlur * 0.4, 
+                            ShadowDepth = _style.ShadowDepth * 0.3, 
+                            Direction = 315, 
+                            Color = TryParseColor(_style.ShadowColor, Colors.Gray), 
+                            Opacity = _style.ShadowOpacity 
+                        };
+                        
+                        // 高光边缘
+                        var lightBorder = new Border { 
+                            CornerRadius = new CornerRadius(_style.CornerRadius),
+                            Effect = new DropShadowEffect { 
+                                BlurRadius = _style.ShadowBlur * 0.4, 
+                                ShadowDepth = _style.ShadowDepth * 0.3, 
+                                Direction = 135, 
+                                Color = TryParseColor(_style.HighlightColor, Colors.White), 
+                                Opacity = _style.HighlightOpacity 
+                            }
+                        };
+                        
+                        btnGrid.Children.Add(lightBorder);
+                        btnGrid.Children.Add(outsetBg);
+                    }
+                    
+                    var stack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(15,10,15,10) };
+                    
+                    // 图标容器 (复刻顶边栏)
+                    var iconContainer = new Grid { Width = 24, Height = 24, Margin = new Thickness(0,0,8,0) };
+                    
+                    var iconBg = new Border { 
+                        Background = TryParseBrush(_style.ControlBackground, new SolidColorBrush(Color.FromRgb(227, 230, 236))), 
+                        CornerRadius = new CornerRadius(6) 
+                    };
+                    iconBg.Effect = new DropShadowEffect { BlurRadius = 4, ShadowDepth = 1.2, Direction = 315, Color = TryParseColor(_style.ShadowColor, Colors.Gray), Opacity = 0.5 };
+                    
+                    // 高光
+                    var iconLight = new Border { BorderBrush = Brushes.White, BorderThickness = new Thickness(0.8,0.8,0,0), CornerRadius = new CornerRadius(6), Opacity = 0.8 };
+                    
+                    var iconContent = new Grid { Margin = new Thickness(5) };
+                    if (_style.IconButtonUseImage && !string.IsNullOrEmpty(_style.IconButtonIconPath))
+                    {
+                        var img = new Image { Source = TryLoadImage(_style.IconButtonIconPath), Stretch = Stretch.Uniform };
+                        iconContent.Children.Add(img);
+                    }
+                    else
+                    {
+                        var txt = new TextBlock { 
+                            Text = string.IsNullOrEmpty(_style.IconButtonIconText) ? "🔘" : _style.IconButtonIconText, 
+                            FontSize = 14, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center 
+                        };
+                        iconContent.Children.Add(txt);
+                    }
+                    
+                    iconContainer.Children.Add(iconBg);
+                    iconContainer.Children.Add(iconLight);
+                    iconContainer.Children.Add(iconContent);
+                    
+                    stack.Children.Add(iconContainer);
+                    
+                    var btnLabel = new TextBlock { 
+                        Text = _style.IconButtonText, 
+                        FontSize = _style.FontSize, 
+                        FontFamily = new FontFamily(_style.FontFamily), 
+                        Foreground = isPressed ? TryParseBrush(_style.AccentColor, Brushes.Blue) : TryParseBrush(_style.FontColor, Brushes.Black),
+                        FontWeight = isPressed ? FontWeights.Bold : FontWeights.SemiBold,
+                        VerticalAlignment = VerticalAlignment.Center 
+                    };
+                    stack.Children.Add(btnLabel);
+                    
+                    btnGrid.Children.Add(stack);
+                    
+                    // 激活指示条
+                    if (isPressed)
+                    {
+                        var indicator = new Border { 
+                            Height = 3, 
+                            Background = TryParseBrush(_style.AccentColor, Brushes.Blue), 
+                            VerticalAlignment = VerticalAlignment.Bottom, 
+                            Margin = new Thickness(12,0,12,8), 
+                            CornerRadius = new CornerRadius(1.5) 
+                        };
+                        btnGrid.Children.Add(indicator);
+                    }
+                };
+                
+                updateBtn();
+                
+                btnGrid.MouseLeftButtonDown += (s, ev) => { isPressed = true; updateBtn(); btnGrid.CaptureMouse(); };
+                btnGrid.MouseLeftButtonUp += (s, ev) => { isPressed = false; updateBtn(); btnGrid.ReleaseMouseCapture(); };
+                
+                container.Children.Add(btnGrid);
+                dock.Children.Add(container);
+            }
             else if (_currentControlType == ControlType.GaugeDisplay)
 
             {
@@ -3212,6 +3353,109 @@ namespace ControlDesigner
             }
 
 
+
+            else if (_currentControlType == ControlType.TopbarNav)
+            {
+                // 顶边栏预览
+                var topbarLayout = new Grid { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Width = 600, Height = 300, Background = Brushes.Transparent, ClipToBounds = true };
+                
+                var topbarContainer = new Border
+                {
+                    Height = _style.TopbarHeight,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Background = TryParseBrush(_style.TopbarBackground, Brushes.LightGray),
+                    Effect = new DropShadowEffect { BlurRadius = _style.ShadowBlur, ShadowDepth = _style.ShadowDepth, Direction = 90, Color = TryParseColor(_style.ShadowColor, Colors.Gray), Opacity = _style.ShadowOpacity }
+                };
+
+                var topbarGrid = new Grid();
+                topbarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Logo
+                topbarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Items
+
+                // 1. Logo 区
+                var logoStack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(20, 0, 20, 0) };
+                var logoIcon = new Border { Width = 28, Height = 28, Background = TryParseBrush(_style.AccentColor, Brushes.DodgerBlue), CornerRadius = new CornerRadius(8) };
+                var logoTxt = new TextBlock { Text = _style.TopbarLogoText, FontFamily = new FontFamily(_style.FontFamily), FontSize = _style.FontSize, FontWeight = FontWeights.ExtraBold, Foreground = TryParseBrush(_style.FontColor, Brushes.Black), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) };
+                logoStack.Children.Add(logoIcon); logoStack.Children.Add(logoTxt);
+                Grid.SetColumn(logoStack, 0);
+                topbarGrid.Children.Add(logoStack);
+
+                // 2. 菜单项区
+                var itemsPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Stretch };
+                string[] items = { "概览", "配置", "控制", "帮助" };
+                int selectedIndex = 0;
+                List<Grid> itemGrids = new List<Grid>();
+
+                Action refreshTopbar = new Action(() => {
+                    for (int i = 0; i < itemGrids.Count; i++)
+                    {
+                        bool isActive = (i == selectedIndex);
+                        Grid ig = itemGrids[i];
+                        ig.Children.Clear();
+
+                        if (isActive)
+                        {
+                            // “陷入”态拟态视觉效果
+                            var insetBg = new Border 
+                            { 
+                                Background = TryParseBrush(_style.ControlBackground, Brushes.White), 
+                                CornerRadius = new CornerRadius(10),
+                                Margin = new Thickness(4, 8, 4, 8),
+                                BorderThickness = new Thickness(1.5, 1.5, 0, 0),
+                                BorderBrush = new SolidColorBrush(Color.FromArgb(40, 0, 0, 0)) 
+                            };
+                            var insetRight = new Border
+                            {
+                                BorderThickness = new Thickness(0, 0, 1.5, 1.5),
+                                BorderBrush = Brushes.White, 
+                                CornerRadius = new CornerRadius(10),
+                                Margin = new Thickness(4, 8, 4, 8)
+                            };
+                            ig.Children.Add(insetBg);
+                            ig.Children.Add(insetRight);
+
+                            var activeIndicator = new Border { Height = 3, Background = TryParseBrush(_style.AccentColor, Brushes.DodgerBlue), VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(12, 0, 12, 10), CornerRadius = new CornerRadius(1.5) };
+                            ig.Children.Add(activeIndicator);
+                        }
+                        else
+                        {
+                            // “凸起”态拟态
+                            var outsetBg = new Border { CornerRadius = new CornerRadius(10), Margin = new Thickness(4, 8, 4, 8) };
+                            
+                            var itemGrad = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+                            itemGrad.GradientStops.Add(new GradientStop(TryParseColor(_style.GradientStart, Colors.White), 0));
+                            itemGrad.GradientStops.Add(new GradientStop(TryParseColor(_style.GradientMid, Colors.WhiteSmoke), 0.5));
+                            itemGrad.GradientStops.Add(new GradientStop(TryParseColor(_style.GradientEnd, Colors.Gainsboro), 1));
+                            
+                            outsetBg.Background = itemGrad;
+                            outsetBg.Effect = new DropShadowEffect { BlurRadius = 4, ShadowDepth = 1.2, Direction = 315, Color = TryParseColor(_style.ShadowColor, Colors.Gray), Opacity = 0.5 };
+                            ig.Children.Add(outsetBg);
+                        }
+
+                        var txt = new TextBlock { Text = items[i], FontFamily = new FontFamily(_style.FontFamily), FontSize = _style.FontSize * 0.9, FontWeight = isActive ? FontWeights.Bold : FontWeights.Normal, Foreground = isActive ? TryParseBrush(_style.AccentColor, Brushes.Black) : TryParseBrush(_style.FontColor, Brushes.Black), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(15, 0, 15, 0) };
+                        ig.Children.Add(txt);
+                    }
+                });
+
+                for (int i = 0; i < items.Length; i++)
+                {
+                    int idx = i;
+                    var itemGrid = new Grid { MinWidth = _style.TopbarItemWidth, Cursor = System.Windows.Input.Cursors.Hand, Background = Brushes.Transparent };
+                    itemGrid.MouseLeftButtonDown += (s, ev) => { selectedIndex = idx; refreshTopbar(); };
+                    itemGrids.Add(itemGrid);
+                    itemsPanel.Children.Add(itemGrid);
+                }
+                refreshTopbar();
+                Grid.SetColumn(itemsPanel, 1);
+                topbarGrid.Children.Add(itemsPanel);
+
+                topbarContainer.Child = topbarGrid;
+                topbarLayout.Children.Add(topbarContainer);
+
+                var contentMock = new Border { Margin = new Thickness(20, _style.TopbarHeight + 20, 20, 20), Background = Brushes.White, Opacity = 0.05, CornerRadius = new CornerRadius(12), BorderBrush = Brushes.Black, BorderThickness = new Thickness(1) };
+                topbarLayout.Children.Add(contentMock);
+
+                dock.Children.Add(topbarLayout);
+            }
 
             if (shouldWrap) {
 
@@ -3824,11 +4068,11 @@ namespace ControlDesigner
             else if (btn == NavGrpNumeric)
                 subs = new RadioButton[] { TabNumeric, TabSlider, TabProgress };
             else if (btn == NavGrpBool)
-                subs = new RadioButton[] { TabButton, TabLed, TabToggle };
+                subs = new RadioButton[] { TabButton, TabIconButton, TabLed, TabToggle };
             else if (btn == NavGrpChart)
                 subs = new RadioButton[] { TabChart, TabPie, TabGauge, TabTable, TabTree };
             else if (btn == NavGrpLayout)
-                subs = new RadioButton[] { TabSidebar };
+                subs = new RadioButton[] { TabSidebar, TabTopbar };
 
             if (subs == null) return;
 
@@ -3845,7 +4089,7 @@ namespace ControlDesigner
             BtnSidebarToggle.Content = IsCollapsed ? "❯" : "❮";
 
             // 收缩时关闭所有子项
-            var allSubs = new RadioButton[] { TabTextInput, TabComboBox, TabNumeric, TabSlider, TabProgress, TabButton, TabLed, TabToggle, TabChart, TabPie, TabGauge, TabTable, TabTree, TabSidebar };
+            var allSubs = new RadioButton[] { TabTextInput, TabComboBox, TabNumeric, TabSlider, TabProgress, TabButton, TabIconButton, TabLed, TabToggle, TabChart, TabPie, TabGauge, TabTable, TabTree, TabSidebar, TabTopbar };
             if (IsCollapsed)
             {
                 foreach (var sub in allSubs)
@@ -4033,6 +4277,16 @@ namespace ControlDesigner
                 _currentControlType = ControlType.SidebarNav;
                 if (isDefaultText) TxtControlName.Text = "MySidebar";
             }
+            else if (sender == TabTopbar)
+            {
+                _currentControlType = ControlType.TopbarNav;
+                if (isDefaultText) TxtControlName.Text = "MyTopbar";
+            }
+            else if (sender == TabIconButton)
+            {
+                _currentControlType = ControlType.IconButton;
+                if (isDefaultText) TxtControlName.Text = "MyIconButton";
+            }
 
 
 
@@ -4135,6 +4389,24 @@ namespace ControlDesigner
                     if (ChkSidebarLogoUseImage != null) ChkSidebarLogoUseImage.IsChecked = _style.SidebarLogoUseImage;
                     if (TxtSidebarLogoMargin != null) TxtSidebarLogoMargin.Text = _style.SidebarLogoMargin;
                 }
+            }
+
+            if (GroupTopbarConfig != null)
+            {
+                bool showTopbarConfig = _currentControlType == ControlType.TopbarNav;
+                GroupTopbarConfig.Visibility = showTopbarConfig ? Visibility.Visible : Visibility.Collapsed;
+                if (showTopbarConfig)
+                {
+                    if (TxtTopbarLogo != null) TxtTopbarLogo.Text = _style.TopbarLogoText;
+                    if (TxtTopbarLogoIcon != null) TxtTopbarLogoIcon.Text = _style.TopbarLogoIconText;
+                    if (TxtTopbarLogoImagePath != null) TxtTopbarLogoImagePath.Text = _style.TopbarLogoImagePath;
+                    if (ChkTopbarLogoUseImage != null) ChkTopbarLogoUseImage.IsChecked = _style.TopbarLogoUseImage;
+                }
+            }
+
+            if (GroupIconButtonConfig != null)
+            {
+                GroupIconButtonConfig.Visibility = _currentControlType == ControlType.IconButton ? Visibility.Visible : Visibility.Collapsed;
             }
 
         }
@@ -4250,12 +4522,40 @@ namespace ControlDesigner
             _style.CardPadding = p.CardPadding;
 
             _style.ChartShowGridLines = p.ChartShowGridLines; // Added this line
-
+            _style.TopbarBackground = p.ControlBackground; // Topbar 默认跟随主背景
             _style.ChartShowSeriesCards = true; // 预设默认显示
 
 
 
             SyncUIFromStyle();
+
+            UpdatePreview();
+
+        }
+
+
+
+        private void OnFontSelectionChanged(object sender, SelectionChangedEventArgs e)
+
+        {
+
+            if (_suppressUpdate || _style == null) return;
+
+            SyncStyleFromUI();
+
+            UpdatePreview();
+
+        }
+
+
+
+        private void OnFontTextChanged(object sender, TextChangedEventArgs e)
+
+        {
+
+            if (_suppressUpdate || _style == null) return;
+
+            SyncStyleFromUI();
 
             UpdatePreview();
 
@@ -4618,7 +4918,27 @@ namespace ControlDesigner
     - SetSelectedIndex (方法) : 切换选中的菜单项
     - SetCollapsed   (方法) : 切换展开或收缩状态
     - ItemSelected   (事件) : 选中项改变时触发 -> (index, label, tag)
-    - StateChanged   (事件) : 展开/收缩状态改变时触发 -> (isCollapsed)" }
+    - StateChanged   (事件) : 展开/收缩状态改变时触发 -> (isCollapsed)" },
+
+                                     { ControlType.TopbarNav, @"  ▶ TopbarNavPanel (顶边栏导航控件)
+    - SelectedIndex (属性) : 被选中的菜单项索引 (从0开始)
+    - LogoText      (属性) : 左上角显示的 Logo 文本标题
+    - LogoIconText  (属性) : 左上角图标模式时显示的字符/符号
+    - LogoImagePath (属性) : 左上角图标模式时使用的图片路径
+    - LogoUseImage  (属性) : 是否启用图片模式 (True=图片, False=文字/字符)
+    - AddItem       (方法) : 动态增入一个菜单项. 参数: (标题, 图标路径, 唯一标识Tag)
+    - ClearItems    (方法) : 彻底洗净清除所有菜单项
+    - ItemSelected  (事件) : 选中项改变时触发 -> (index, label, tag)" },
+
+                                      { ControlType.IconButton, @"  ▶ IconButtonPanel (图标按钮)
+    - Value        (属性) : 按钮当前所释放的动作逻辑电平 (True=按下)
+    - LabelText    (属性) : 按钮显示的文字内容
+    - IconText     (属性) : 按钮显示的图标字符/符号
+    - IconPath     (属性) : 按钮显示的图片图标路径
+    - UseImage     (属性) : 是否启用图片模式 (True=图片, False=文字/字符)
+    - ActiveColor  (属性) : 图标的高亮激活颜色 (**HEX**)
+    - ActiveColorValue (属性) : 图标的高亮激活颜色 (**数字，标准 RGB**)
+    - Click        (事件) : 触发点击动作逻辑" }
                                  };
 
 
@@ -4754,7 +5074,7 @@ namespace ControlDesigner
 
 
 
-                            string msgText = exportAll ? "✅ {0}.dll 导出成功（含 14 种控件）" : "✅ {0}.dll 导出成功";
+                            string msgText = exportAll ? "✅ {0}.dll 导出成功（含 16 种控件）" : "✅ {0}.dll 导出成功";
 
                             TxtStatus.Text = string.Format(msgText, name);
 
@@ -4764,7 +5084,7 @@ namespace ControlDesigner
 
                             string boxMsg = exportAll 
 
-                                ? string.Format("DLL 已导出：\n{0}\n\n━━ 包含 14 种控件 ━━\nTextInput · Numeric · ComboBox · Slider · Button\nLed · Toggle · ProgressBar · Chart · Pie\nGauge · DataGrid · Tree · Sidebar\n\n📄 详细文档已同时生成", outputPath)
+                                ? string.Format("DLL 已导出：\n{0}\n\n━━ 包含 15 种控件 ━━\nTextInput · Numeric · ComboBox · Slider · Button\nLed · Toggle · ProgressBar · Chart · Pie\nGauge · DataGrid · Tree · Sidebar · Topbar\n\n📄 详细文档已同时生成", outputPath)
 
                                 : string.Format("DLL 已导出：\n{0}\n\n📄 API 使用说明及配置已同时生成", outputPath);
 
@@ -4937,6 +5257,38 @@ namespace ControlDesigner
             catch { }
 
             return new Thickness(12, 8, 12, 6);
+
+        }
+
+
+
+        private static ImageSource TryLoadImage(string path)
+
+        {
+
+            try
+
+            {
+
+                if (string.IsNullOrWhiteSpace(path)) return null;
+
+                if (!File.Exists(path)) return null;
+
+                var bitmap = new BitmapImage();
+
+                bitmap.BeginInit();
+
+                bitmap.UriSource = new Uri(path, UriKind.Absolute);
+
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+
+                bitmap.EndInit();
+
+                return bitmap;
+
+            }
+
+            catch { return null; }
 
         }
 

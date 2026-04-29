@@ -1,6 +1,6 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-【 MySidebar 控件库 API 使用说明书 】
+【 MyTopbar 控件库 API 使用说明书 】
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -12,11 +12,11 @@
 
   2. 右键容器 -> 插入 .NET 控件... -> 右上角 [浏览...]
 
-  3. 选择生成的 DLL：MySidebar.dll
+  3. 选择生成的 DLL：MyTopbar.dll
 
   4. 从对象列表中选择您需要的控件：
 
-     -> MySidebar.SidebarNavPanel
+     -> MyTopbar.TopbarNavPanel
 
 
 
@@ -36,19 +36,15 @@
 
 ■ 各控件专有 API：
 
-  ▶ SidebarNavPanel (侧边栏导航控件)
+  ▶ TopbarNavPanel (顶边栏导航控件)
     - SelectedIndex (属性) : 被选中的菜单项索引 (从0开始)
-    - LogoText      (属性) : 左上角显示的 Logo 标题文字
-    - IsCollapsed   (属性) : 侧边栏当前的收缩状态 (True为收缩, False为展开)
-    - AddMenuItem   (方法) : 动态增入一个菜单项. 参数: (标题, 唯一标识Tag, 图标路径)
-    - AddMenuItemUTF8 (方法) : 动态增入菜单项 (UTF8 字节流方案)
-    - ClearMenuItems (方法) : 彻底洗净清除所有菜单项
-    - SetLogoText    (方法) : 设置 Logo 标题
-    - SetLogoTextUTF8 (方法) : 设置 Logo 标题 (UTF8 方案)
-    - SetSelectedIndex (方法) : 切换选中的菜单项
-    - SetCollapsed   (方法) : 切换展开或收缩状态
-    - ItemSelected   (事件) : 选中项改变时触发 -> (index, label, tag)
-    - StateChanged   (事件) : 展开/收缩状态改变时触发 -> (isCollapsed)
+    - LogoText      (属性) : 左上角显示的 Logo 文本标题
+    - LogoIconText  (属性) : 左上角图标模式时显示的字符/符号
+    - LogoImagePath (属性) : 左上角图标模式时使用的图片路径
+    - LogoUseImage  (属性) : 是否启用图片模式 (True=图片, False=文字/字符)
+    - AddItem       (方法) : 动态增入一个菜单项. 参数: (标题, 图标路径, 唯一标识Tag)
+    - ClearItems    (方法) : 彻底洗净清除所有菜单项
+    - ItemSelected  (事件) : 选中项改变时触发 -> (index, label, tag)
 
 
 
@@ -56,6 +52,6 @@
 
 ■ 导出信息
 
-名称: MySidebar   时间: 2026-04-15 00:57:37
+名称: MyTopbar   时间: 2026-04-26 12:42:12
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -40,6 +40,7 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="12,12"/>
             <Setter Property="Foreground" Value="{{FontColor}}"/>
+            <Setter Property="FontFamily" Value="{{FontFamily}}"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="Template">

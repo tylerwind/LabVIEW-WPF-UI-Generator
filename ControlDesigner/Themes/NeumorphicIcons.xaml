@@ -30,6 +30,7 @@
     <Geometry x:Key="Geo_Table">M3,3 H21 V21 H3 V3 M5,5 V9 H11 V5 H5 M13,5 V9 H19 V5 H13 M5,11 V15 H11 V11 H5 M13,11 V15 H19 V11 H13 M5,17 V19 H11 V17 H5 M13,17 V19 H19 V17 H13 Z</Geometry>
     <Geometry x:Key="Geo_Tree">M20,6 H12 L10,4 H4 C2.9,4 2,4.9 2,6 V18 C2,19.1 2.9,20 4,20 H20 C21.1,20 22,19.1 22,18 V8 C22,6.9 21.1,6 20,6 Z</Geometry>
     <Geometry x:Key="Geo_Sidebar">M4,4 H10 V20 H4 Z M12,4 H20 V6 H12 Z M12,8 H20 V10 H12 Z M12,12 H20 V14 H12 Z</Geometry>
+    <Geometry x:Key="Geo_Topbar">M2,4 H22 V8 H2 Z M4,12 H7 V15 H4 Z M10,12 H13 V15 H10 Z M16,12 H19 V15 H16 Z</Geometry>
 
     <!-- ============================================================ -->
     <!-- 2. 统一拟态容器模板 (Neumorphic Icon Container) -->

@@ -67,6 +67,14 @@ namespace ControlDesigner.Models
         /// <summary>
         /// 原生拟态响应式侧边栏导航
         /// </summary>
-        SidebarNav
+        SidebarNav,
+        /// <summary>
+        /// 原生拟态响应式顶边栏导航
+        /// </summary>
+        TopbarNav,
+        /// <summary>
+        /// 图标按钮 (拟态风格，带图标和文字)
+        /// </summary>
+        IconButton
     }
 }
