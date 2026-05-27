@@ -131,6 +131,50 @@ namespace WpfChart
             set { _wpfControl.IsYAxisVisible = value; }
         }
 
+        [Category("Axis")]
+        [Description("X轴坐标显示模式：0=序列数值，1=相对时间，2=绝对时间")]
+        public int XAxisMode
+        {
+            get { return (int)_wpfControl.XAxisMode; }
+            set { _wpfControl.XAxisMode = (ChartXAxisMode)value; }
+        }
+
+        [Category("Axis")]
+        [Description("X轴缩放比例（采样间隔 dt / 采样率倒数，单位：秒）")]
+        public double XScale
+        {
+            get { return _wpfControl.XScale; }
+            set { _wpfControl.XScale = value; }
+        }
+
+        [Category("Axis")]
+        [Description("绝对时间起始点 T0")]
+        public DateTime T0
+        {
+            get { return _wpfControl.T0; }
+            set { _wpfControl.T0 = value; }
+        }
+
+        /// <summary>
+        /// 使用秒数设置绝对时间起始点 T0（智能兼容 LabVIEW 1904 纪元和 Unix 1970 纪元）
+        /// </summary>
+        public void SetT0Seconds(double seconds)
+        {
+            if (seconds <= 0) return;
+            try
+            {
+                if (seconds > 2500000000.0)
+                {
+                    _wpfControl.T0 = new DateTime(1904, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(seconds).ToLocalTime();
+                }
+                else
+                {
+                    _wpfControl.T0 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(seconds).ToLocalTime();
+                }
+            }
+            catch {}
+        }
+
         [Category("Series")]
         public double LineThickness
         {

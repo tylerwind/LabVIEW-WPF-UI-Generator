@@ -25,10 +25,50 @@ namespace WpfChart
     }
 
     [ComVisible(true)]
+    public enum ChartXAxisMode
+    {
+        Sequence = 0,
+        RelativeTime = 1,
+        AbsoluteTime = 2
+    }
+
+    [ComVisible(true)]
     public partial class ChartControl : UserControl
     {
         private List<ChartSeries> _seriesList = new List<ChartSeries>();
         private List<string> _xLabels = new List<string> { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug" };
+        
+        private ChartXAxisMode _xAxisMode = ChartXAxisMode.Sequence;
+        private double _xScale = 1.0;
+        private DateTime _t0 = DateTime.Now;
+        private List<DateTime> _pointTimestamps = new List<DateTime>();
+        private long _totalPoints = 0;
+        private bool _autoXLabels = true;
+
+        public ChartXAxisMode XAxisMode
+        {
+            get { return _xAxisMode; }
+            set { _xAxisMode = value; RedrawChart(); }
+        }
+
+        public double XScale
+        {
+            get { return _xScale; }
+            set { _xScale = value; RedrawChart(); }
+        }
+
+        public DateTime T0
+        {
+            get { return _t0; }
+            set { _t0 = value; RedrawChart(); }
+        }
+
+        public bool AutoXLabels
+        {
+            get { return _autoXLabels; }
+            set { _autoXLabels = value; RedrawChart(); }
+        }
+
         public double YMin { get { return _yMin; } set { _yMin = value; RedrawChart(); } }
         public double YMax { get { return _yMax; } set { _yMax = value; RedrawChart(); } }
         public bool AutoScaleY { get { return _autoScaleY; } set { _autoScaleY = value; RecalculateScale(); RedrawChart(); } }
@@ -118,6 +158,9 @@ namespace WpfChart
         public void ClearSeries()
         {
             _seriesList.Clear();
+            _pointTimestamps.Clear();
+            _totalPoints = 0;
+            _t0 = DateTime.Now;
             if(ChartAreaCanvas != null) ChartAreaCanvas.Children.Clear();
             if(LegendStack != null) LegendStack.Children.Clear();
             if(SeriesPanel != null) SeriesPanel.Children.Clear();
@@ -187,6 +230,8 @@ namespace WpfChart
                 ChartAreaCanvas.Children.Add(series.LinePath);
             }
 
+            SyncTimeline();
+
             BuildLegends();
             RecalculateScale();
             RedrawChart();
@@ -203,6 +248,17 @@ namespace WpfChart
             if (series.Data.Count > _maxPoints)
             {
                 series.Data.RemoveAt(0);
+            }
+
+            int currentMaxLen = _seriesList.Count > 0 ? _seriesList.Max(s => s.Data.Count) : 0;
+            if (series.Data.Count == currentMaxLen)
+            {
+                _totalPoints++;
+                _pointTimestamps.Add(DateTime.Now);
+                if (_pointTimestamps.Count > _maxPoints)
+                {
+                    _pointTimestamps.RemoveAt(0);
+                }
             }
 
             RecalculateScale();
@@ -224,6 +280,13 @@ namespace WpfChart
                 }
             }
 
+            _totalPoints++;
+            _pointTimestamps.Add(DateTime.Now);
+            if (_pointTimestamps.Count > _maxPoints)
+            {
+                _pointTimestamps.RemoveAt(0);
+            }
+
             RecalculateScale();
             RedrawChart();
         }
@@ -243,6 +306,18 @@ namespace WpfChart
                 {
                     series.Data.Add(data2D[i, j]);
                 }
+            }
+
+            _totalPoints = cols;
+            _pointTimestamps.Clear();
+            for (int j = 0; j < cols; j++)
+            {
+                double secondsBack = (cols - 1 - j) * _xScale;
+                _pointTimestamps.Add(DateTime.Now.AddSeconds(-secondsBack));
+            }
+            if (_pointTimestamps.Count > _maxPoints)
+            {
+                _pointTimestamps.RemoveRange(0, _pointTimestamps.Count - _maxPoints);
             }
 
             RecalculateScale();
@@ -501,7 +576,15 @@ namespace WpfChart
 
         public void SetXLabels(string[] labels)
         {
-            if (labels != null) _xLabels = labels.ToList();
+            if (labels != null)
+            {
+                _xLabels = labels.ToList();
+                _autoXLabels = false;
+            }
+            else
+            {
+                _autoXLabels = true;
+            }
             RedrawChart();
         }
 
@@ -558,6 +641,107 @@ namespace WpfChart
             UpdateSeriesCardsValue();
         }
 
+        private void SyncTimeline()
+        {
+            int currentMaxLen = _seriesList.Count > 0 ? _seriesList.Max(s => s.Data.Count) : 0;
+            
+            if (_totalPoints < currentMaxLen)
+            {
+                _totalPoints = currentMaxLen;
+            }
+
+            while (_pointTimestamps.Count < currentMaxLen)
+            {
+                double secondsBack = (currentMaxLen - _pointTimestamps.Count) * _xScale;
+                _pointTimestamps.Insert(0, DateTime.Now.AddSeconds(-secondsBack));
+            }
+
+            while (_pointTimestamps.Count > currentMaxLen)
+            {
+                _pointTimestamps.RemoveAt(0);
+            }
+
+            if (_pointTimestamps.Count > _maxPoints)
+            {
+                _pointTimestamps.RemoveAt(0);
+            }
+        }
+
+        private List<string> GetAutoXLabels(int count)
+        {
+            var labels = new List<string>();
+            int currentMaxLen = _seriesList.Count > 0 ? _seriesList.Max(s => s.Data.Count) : 0;
+            if (currentMaxLen < 2)
+            {
+                for (int i = 0; i < count; i++) labels.Add(string.Empty);
+                return labels;
+            }
+
+            long globalStartIndex = _totalPoints - currentMaxLen;
+            if (globalStartIndex < 0) globalStartIndex = 0;
+
+            for (int k = 0; k < count; k++)
+            {
+                double p = (double)k / (count - 1);
+                double idxDouble = p * (currentMaxLen - 1);
+                int idx = (int)Math.Round(idxDouble);
+
+                string labelText = string.Empty;
+                if (_xAxisMode == ChartXAxisMode.Sequence)
+                {
+                    double val = (globalStartIndex + idxDouble) * _xScale;
+                    labelText = val.ToString("0.##");
+                }
+                else if (_xAxisMode == ChartXAxisMode.RelativeTime)
+                {
+                    double elapsedSeconds = (globalStartIndex + idxDouble) * _xScale;
+                    TimeSpan relTime = TimeSpan.FromSeconds(elapsedSeconds);
+                    if (relTime.TotalHours >= 1)
+                    {
+                        labelText = string.Format("{0:00}:{1:00}:{2:00}", (int)relTime.TotalHours, relTime.Minutes, relTime.Seconds);
+                    }
+                    else if (_xScale < 0.1)
+                    {
+                        labelText = string.Format("{0:00}:{1:00}.{2:000}", relTime.Minutes, relTime.Seconds, relTime.Milliseconds);
+                    }
+                    else
+                    {
+                        labelText = string.Format("{0:00}:{1:00}", relTime.Minutes, relTime.Seconds);
+                    }
+                }
+                else if (_xAxisMode == ChartXAxisMode.AbsoluteTime)
+                {
+                    DateTime dtVal;
+                    if (idx < _pointTimestamps.Count)
+                    {
+                        dtVal = _pointTimestamps[idx];
+                    }
+                    else
+                    {
+                        dtVal = _t0.AddSeconds((globalStartIndex + idxDouble) * _xScale);
+                    }
+
+                    labelText = (_xScale < 0.1) ? dtVal.ToString("HH:mm:ss.fff") : dtVal.ToString("HH:mm:ss");
+                }
+
+                labels.Add(labelText);
+            }
+
+            return labels;
+        }
+
+        private List<string> GetActiveXLabels()
+        {
+            if (_autoXLabels)
+            {
+                return GetAutoXLabels(5);
+            }
+            else
+            {
+                return _xLabels;
+            }
+        }
+
         private void RenderGridLines()
         {
             if (GridCanvas == null) return;
@@ -582,7 +766,8 @@ namespace WpfChart
             }
 
             // 垂直网格线
-            int xCount = _xLabels.Count > 1 ? _xLabels.Count : 5;
+            var activeLabels = GetActiveXLabels();
+            int xCount = activeLabels.Count > 1 ? activeLabels.Count : 5;
             for (int i = 0; i < xCount; i++)
             {
                 double x = (width / (xCount - 1)) * i;
@@ -717,20 +902,23 @@ namespace WpfChart
             if (XAxisCanvas == null) return;
             XAxisCanvas.Children.Clear();
             XAxisCanvas.Visibility = _isXAxisVisible ? Visibility.Visible : Visibility.Collapsed;
-            if (!_isXAxisVisible || _xLabels == null || _xLabels.Count == 0) return;
+            if (!_isXAxisVisible) return;
+            
+            var activeLabels = GetActiveXLabels();
+            if (activeLabels == null || activeLabels.Count == 0) return;
             
             double width = ChartAreaCanvas.ActualWidth;
-            for (int i = 0; i < _xLabels.Count; i++)
+            for (int i = 0; i < activeLabels.Count; i++)
             {
                 var tb = new TextBlock
                 {
-                    Text = _xLabels[i],
+                    Text = activeLabels[i],
                     Foreground = DescBlock.Foreground,
                     FontSize = DescBlock.FontSize,
                     FontFamily = DescBlock.FontFamily
                 };
                 
-                double x = (width / (_xLabels.Count - 1)) * i;
+                double x = (width / (activeLabels.Count - 1)) * i;
                 tb.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
                 Canvas.SetLeft(tb, x - (tb.DesiredSize.Width / 2));
                 Canvas.SetTop(tb, 0);
