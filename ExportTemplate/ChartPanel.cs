@@ -132,6 +132,14 @@ namespace WpfChart
         }
 
         [Category("Axis")]
+        [Description("是否启用自动计算X轴坐标")]
+        public bool AutoXLabels
+        {
+            get { return _wpfControl.AutoXLabels; }
+            set { _wpfControl.AutoXLabels = value; }
+        }
+
+        [Category("Axis")]
         [Description("X轴坐标显示模式：0=序列数值，1=相对时间，2=绝对时间")]
         public int XAxisMode
         {

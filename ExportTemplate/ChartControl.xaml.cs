@@ -734,7 +734,15 @@ namespace WpfChart
         {
             if (_autoXLabels)
             {
-                return GetAutoXLabels(5);
+                double width = ChartAreaCanvas != null ? ChartAreaCanvas.ActualWidth : 0;
+                if (width <= 0 && ChartAreaCanvas != null) width = ChartAreaCanvas.Width;
+                if (double.IsNaN(width) || width <= 0) width = 500;
+
+                int count = (int)(width / 100);
+                if (count < 2) count = 2;
+                if (count > 10) count = 10;
+
+                return GetAutoXLabels(count);
             }
             else
             {
