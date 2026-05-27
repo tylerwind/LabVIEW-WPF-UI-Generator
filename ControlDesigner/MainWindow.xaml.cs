@@ -4946,6 +4946,9 @@ namespace ControlDesigner
     - FillOpacity   (属性) : 多翼背部的软性充注透明度 (0.0-1.0)
     - IsXAxisVisible (属性) : 物理背侧时间轴线标码可见性 (True/False)
     - IsYAxisVisible (属性) : 物理翼侧阈值轴线标码可见性 (True/False)
+    - XAxisMode     (属性) : X轴坐标显示模式：0=序列数值，1=相对时间，2=绝对时间
+    - XScale        (属性) : X轴缩放比例（采样间隔 dt / 采样率倒数，单位：秒）
+    - T0            (属性) : 绝对时间起始点 T0 (.NET DateTime)
     - ShowLegends   (属性) : 关闭或浮显整个下沉式小系列多线图例提示
     - ShowSeriesCards (属性) : 弹出或关闭左上方数值观测总账折跃卡片
     - SetLabelVisible (方法) : 隐藏顶层主说明标签占位锚点
@@ -4957,7 +4960,8 @@ namespace ControlDesigner
     - AppendPointUTF8 (方法) : 追加点 (UTF8 键名方案)
     - AddSeriesUTF8   (方法) : 增加曲线 (UTF8 标题方案)
     - SetLabelTextUTF8 (方法) : 设置主标题 (UTF8 方案)
-    - SetDescTextUTF8  (方法) : 设置副标题 (UTF8 方案)" },
+    - SetDescTextUTF8  (方法) : 设置副标题 (UTF8 方案)
+    - SetT0Seconds  (方法) : 使用秒数设置绝对时间起始点 T0（智能兼容 LabVIEW 1904 纪元和 Unix 1970 纪元）" },
  
                                      { ControlType.PieDisplay, @"  ▶ PiePanel (饼图)
     - LabelText (属性) : 饼框中心的绝对主标百分比填充文本
