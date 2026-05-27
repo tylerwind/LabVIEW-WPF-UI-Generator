@@ -16,6 +16,12 @@ namespace WpfTextInput
         private ElementHost _host;
         private ProgressBarControl _wpfControl;
 
+        /// <summary>
+        /// 获取内部嵌入的 WPF 控件实例 (可测试性自检接口)
+        /// </summary>
+        [Browsable(false)]
+        public ProgressBarControl WpfControl { get { return _wpfControl; } }
+
         #region LabVIEW 可见属性
         [Category("ProgressBar"), Description("标签文字")]
         public string LabelText
@@ -151,5 +157,65 @@ namespace WpfTextInput
             }
             base.Dispose(disposing);
         }
+
+        #region 运行时风格重绘
+
+        /// <summary>
+        /// 根据指定的 JSON 样式配置文件实时重绘 UI
+        /// </summary>
+        public void UpdateStyleFromJson(string jsonPath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(jsonPath) || !System.IO.File.Exists(jsonPath))
+                    return;
+
+                string json = System.IO.File.ReadAllText(jsonPath, System.Text.Encoding.UTF8);
+                var serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+                var dict = serializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(json);
+                if (dict != null)
+                {
+                    ApplyStyleDictionary(dict);
+                }
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    System.IO.File.AppendAllText("StyleUpdateError.txt",
+                        DateTime.Now.ToString() + " : " + ex.Message + "\n" + ex.StackTrace + "\n");
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>
+        /// 在内存中直接覆盖视觉原件的属性以重载样式
+        /// </summary>
+        public void ApplyStyleDictionary(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            try
+            {
+                // 1. 重写 Panel 自体 BackColor
+                if (style.ContainsKey("ControlBackground"))
+                {
+                    string ctrlBg = style["ControlBackground"] as string;
+                    if (!string.IsNullOrEmpty(ctrlBg))
+                    {
+                        this.BackColor = System.Drawing.ColorTranslator.FromHtml(ctrlBg.StartsWith("#") ? ctrlBg : "#" + ctrlBg);
+                    }
+                }
+
+                // 2. 将样式字典透传给内嵌 of WPF 控件
+                if (_wpfControl != null)
+                {
+                    _wpfControl.ApplyStyle(style);
+                }
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }

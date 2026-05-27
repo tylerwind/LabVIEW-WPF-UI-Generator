@@ -42,6 +42,7 @@
     <Reference Include="WindowsFormsIntegration" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TextInputControl.xaml.cs">

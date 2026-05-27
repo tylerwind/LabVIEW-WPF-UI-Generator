@@ -39,6 +39,7 @@ namespace ControlDesigner.Services
                 case ControlType.GaugeDisplay: templateFileName = "GaugeControl.xaml.template"; break;
                 case ControlType.DataGridDisplay: templateFileName = "DataGridControl.xaml.template"; break;
                 case ControlType.TreeDisplay: templateFileName = "TreeControl.xaml.template"; break;
+                case ControlType.TreeListDisplay: templateFileName = "TreeListControl.xaml.template"; break;
                 case ControlType.SidebarNav: templateFileName = "SidebarControl.xaml.template"; break;
                 case ControlType.TopbarNav: templateFileName = "TopbarControl.xaml.template"; break;
                 case ControlType.IconButton: templateFileName = "IconButtonControl.xaml.template"; break;
@@ -115,6 +116,10 @@ namespace ControlDesigner.Services
                 case ControlType.TreeDisplay:
                     xamlFileName = "TreeControl.xaml";
                     fixedFiles = new string[] { "TreeControl.xaml.cs", "TreePanel.cs" };
+                    break;
+                case ControlType.TreeListDisplay:
+                    xamlFileName = "TreeListControl.xaml";
+                    fixedFiles = new string[] { "TreeListControl.xaml.cs", "TreeListPanel.cs" };
                     break;
                 case ControlType.SidebarNav:
                     xamlFileName = "SidebarControl.xaml";
@@ -263,6 +268,14 @@ namespace ControlDesigner.Services
                     csproj = csproj.Replace("TextInputPanel.cs", "TreePanel.cs");
                     csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
                 }
+                else if (type == ControlType.TreeListDisplay)
+                {
+                    csproj = csproj.Replace("TextInputControl.xaml.cs", "TreeListControl.xaml.cs");
+                    csproj = csproj.Replace("TextInputControl.xaml", "TreeListControl.xaml");
+                    csproj = csproj.Replace("<Compile Include=\"TextInputHost.cs\" />", "");
+                    csproj = csproj.Replace("TextInputPanel.cs", "TreeListPanel.cs");
+                    csproj = csproj.Replace("<Compile Include=\"ValueChangedEventArgs.cs\" />", "");
+                }
                 else if (type == ControlType.SidebarNav)
                 {
                     csproj = csproj.Replace("TextInputControl.xaml.cs", "SidebarControl.xaml.cs");
@@ -322,6 +335,7 @@ namespace ControlDesigner.Services
                 new { Type = ControlType.GaugeDisplay,      XamlTemplate = "GaugeControl.xaml.template",             XamlOut = "GaugeControl.xaml",             Files = new[] { "GaugeControl.xaml.cs", "GaugePanel.cs" } },
                 new { Type = ControlType.DataGridDisplay,   XamlTemplate = "DataGridControl.xaml.template",          XamlOut = "DataGridControl.xaml",          Files = new[] { "DataGridControl.xaml.cs", "DataGridPanel.cs" } },
                 new { Type = ControlType.TreeDisplay,       XamlTemplate = "TreeControl.xaml.template",              XamlOut = "TreeControl.xaml",              Files = new[] { "TreeControl.xaml.cs", "TreePanel.cs" } },
+                new { Type = ControlType.TreeListDisplay,   XamlTemplate = "TreeListControl.xaml.template",          XamlOut = "TreeListControl.xaml",          Files = new[] { "TreeListControl.xaml.cs", "TreeListPanel.cs" } },
                 new { Type = ControlType.SidebarNav,        XamlTemplate = "SidebarControl.xaml.template",           XamlOut = "SidebarControl.xaml",           Files = new[] { "SidebarControl.xaml.cs", "SidebarPanel.cs" } },
                 new { Type = ControlType.TopbarNav,         XamlTemplate = "TopbarControl.xaml.template",            XamlOut = "TopbarControl.xaml",            Files = new[] { "TopbarControl.xaml.cs", "TopbarPanel.cs" } },
                 new { Type = ControlType.IconButton,        XamlTemplate = "IconButtonControl.xaml.template",        XamlOut = "IconButtonControl.xaml",        Files = new[] { "IconButtonControl.xaml.cs", "IconButtonPanel.cs" } },

@@ -242,5 +242,110 @@ namespace WpfButton
         }
 
         #endregion
+
+        #region 运行时风格重绘
+
+        /// <summary>
+        /// 获取当前应用的动态重绘配置
+        /// </summary>
+        public System.Collections.Generic.Dictionary<string, object> CurrentStyle { get; private set; }
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            this.CurrentStyle = style;
+            try
+            {
+                // 1. 背景渐变重绘
+                string startCol = style.ContainsKey("GradientStart") ? style["GradientStart"] as string : null;
+                string midCol = style.ContainsKey("GradientMid") ? style["GradientMid"] as string : null;
+                string endCol = style.ContainsKey("GradientEnd") ? style["GradientEnd"] as string : null;
+                if (MainBorder != null && !string.IsNullOrEmpty(startCol) && !string.IsNullOrEmpty(midCol) && !string.IsNullOrEmpty(endCol))
+                {
+                    var brush = new LinearGradientBrush();
+                    brush.StartPoint = new Point(0, 0);
+                    brush.EndPoint = new Point(1, 1);
+                    brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(startCol), 0));
+                    brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(midCol), 0.5));
+                    brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(endCol), 1));
+                    MainBorder.Background = brush;
+                }
+
+                // 2. 圆角与边框粗细
+                if (style.ContainsKey("CornerRadius"))
+                {
+                    var cr = new CornerRadius(Convert.ToDouble(style["CornerRadius"]));
+                    if (LightShadowBorder != null) LightShadowBorder.CornerRadius = cr;
+                    if (MainBorder != null) MainBorder.CornerRadius = cr;
+                    if (HoverOverlay != null) HoverOverlay.CornerRadius = cr;
+                    if (InnerBorder != null) InnerBorder.CornerRadius = cr;
+                }
+
+                if (InnerBorder != null && style.ContainsKey("BorderThickness"))
+                {
+                    InnerBorder.BorderThickness = new Thickness(Convert.ToDouble(style["BorderThickness"]));
+                }
+
+                // 3. 边框颜色
+                if (InputBorderBrush != null && style.ContainsKey("BorderColor"))
+                {
+                    InputBorderBrush.Color = (Color)ColorConverter.ConvertFromString(style["BorderColor"] as string);
+                }
+
+                // 4. 高光颜色 (HoverOverlay)
+                if (HoverOverlay != null && style.ContainsKey("HighlightColor"))
+                {
+                    HoverOverlay.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["HighlightColor"] as string));
+                }
+
+                // 5. 阴影重绘
+                if (PartShadow != null)
+                {
+                    if (style.ContainsKey("ShadowBlur"))
+                    {
+                        PartShadow.BlurRadius = Convert.ToDouble(style["ShadowBlur"]);
+                        _defaultShadowBlur = PartShadow.BlurRadius;
+                    }
+                    if (style.ContainsKey("ShadowDepth"))
+                    {
+                        PartShadow.ShadowDepth = Convert.ToDouble(style["ShadowDepth"]);
+                        _defaultShadowDepth = PartShadow.ShadowDepth;
+                    }
+                    if (style.ContainsKey("ShadowColor"))
+                    {
+                        PartShadow.Color = (Color)ColorConverter.ConvertFromString(style["ShadowColor"] as string);
+                    }
+                    if (style.ContainsKey("ShadowOpacity"))
+                    {
+                        PartShadow.Opacity = Convert.ToDouble(style["ShadowOpacity"]);
+                        _defaultShadowOpacity = PartShadow.Opacity;
+                    }
+                }
+
+                // 5.1 亮部高光阴影重绘 (LightShadow)
+                if (LightShadow != null)
+                {
+                    if (style.ContainsKey("HighlightColor"))
+                    {
+                        LightShadow.Color = (Color)ColorConverter.ConvertFromString(style["HighlightColor"] as string);
+                    }
+                    if (style.ContainsKey("HighlightOpacity"))
+                    {
+                        LightShadow.Opacity = Convert.ToDouble(style["HighlightOpacity"]);
+                    }
+                }
+
+                // 6. 字体样式与颜色重绘
+                if (LabelBlock != null)
+                {
+                    if (style.ContainsKey("FontFamily")) LabelBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
+                    if (style.ContainsKey("FontSize")) LabelBlock.FontSize = Convert.ToDouble(style["FontSize"]);
+                    if (style.ContainsKey("FontColor")) LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["FontColor"] as string));
+                }
+            }
+            catch {}
+        }
+
+        #endregion
     }
 }

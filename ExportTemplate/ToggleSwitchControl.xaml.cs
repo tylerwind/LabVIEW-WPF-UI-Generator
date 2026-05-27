@@ -148,5 +148,41 @@ namespace WpfTextInput
         }
 
         #endregion
+
+        #region 运行时风格重绘
+
+        /// <summary>
+        /// 获取当前应用的动态重绘配置
+        /// </summary>
+        public System.Collections.Generic.Dictionary<string, object> CurrentStyle { get; private set; }
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            this.CurrentStyle = style;
+            try
+            {
+                // 1. 开关颜色重绘
+                if (style.ContainsKey("ToggleColorOn"))
+                {
+                    this.ActiveColor = style["ToggleColorOn"] as string;
+                }
+                if (style.ContainsKey("ToggleColorOff"))
+                {
+                    this.InactiveColor = style["ToggleColorOff"] as string;
+                }
+
+                // 2. 标签字体及颜色重绘
+                if (LabelBlock != null)
+                {
+                    if (style.ContainsKey("FontFamily")) LabelBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
+                    if (style.ContainsKey("LabelColor")) LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["LabelColor"] as string));
+                    if (style.ContainsKey("LabelFontSize")) LabelBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                }
+            }
+            catch {}
+        }
+
+        #endregion
     }
 }

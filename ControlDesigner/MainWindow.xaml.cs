@@ -2913,6 +2913,137 @@ namespace ControlDesigner
                 previewWrapper.Children.Add(treeBorder);
                 dock.Children.Add(previewWrapper);
             }
+            else if (_currentControlType == ControlType.TreeListDisplay)
+            {
+                // 多列树形控件预览
+                label.Text = _style.TreeLabelText;
+                dock.Children.Add(label);
+
+                var previewWrapper = new Grid { Margin = new Thickness(0, 12, 0, 0), MaxWidth = 720, MinWidth = 550, HorizontalAlignment = HorizontalAlignment.Center };
+
+                var shadowFrame = new Border {
+                    Background = TryParseBrush(_style.TreeBackground, Brushes.White),
+                    CornerRadius = new CornerRadius(_style.CornerRadius),
+                    Effect = new DropShadowEffect { 
+                        BlurRadius = _style.ShadowBlur, 
+                        ShadowDepth = _style.ShadowDepth, 
+                        Opacity = _style.ShadowOpacity, 
+                        Color = TryParseColor(_style.ShadowColor, Colors.Gray),
+                        Direction = 315
+                    }
+                };
+
+                var treeBorder = new Border { 
+                    BorderBrush = TryParseBrush(_style.BorderColor, Brushes.LightGray), 
+                    BorderThickness = new Thickness(_style.BorderThickness), 
+                    CornerRadius = new CornerRadius(_style.CornerRadius), 
+                    Background = Brushes.Transparent,
+                    ClipToBounds = true
+                };
+
+                var contentStack = new StackPanel { 
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    Margin = new Thickness(8)
+                };
+
+                // Add header for tree list
+                var headerGrid = new Grid { Margin = new Thickness(0, 0, 0, 4) };
+                headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(200) });
+                headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
+                headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                var h1 = new TextBlock { Text = "节点名称", FontWeight = FontWeights.SemiBold, Foreground = Brushes.Gray, FontSize = 12 };
+                var h2 = new TextBlock { Text = "状态", FontWeight = FontWeights.SemiBold, Foreground = Brushes.Gray, FontSize = 12 };
+                var h3 = new TextBlock { Text = "备注", FontWeight = FontWeights.SemiBold, Foreground = Brushes.Gray, FontSize = 12 };
+                Grid.SetColumn(h1, 0); Grid.SetColumn(h2, 1); Grid.SetColumn(h3, 2);
+                headerGrid.Children.Add(h1); headerGrid.Children.Add(h2); headerGrid.Children.Add(h3);
+                contentStack.Children.Add(headerGrid);
+                contentStack.Children.Add(new Border { Height = 1, Background = Brushes.LightGray, Margin = new Thickness(0,0,0,4) });
+
+                double itemH = _style.TreeItemHeight;
+                double indent = _style.TreeIndentSize;
+                bool showCheck = _style.TreeShowCheckBox;
+                Color fontCol = TryParseColor(_style.FontColor, Colors.Black);
+
+                Func<int, string, string, string, bool, bool, bool, Grid> createRow = (depth, text, col2Text, col3Text, isExpanded, isChecked, hasChildren) => {
+                    var rGrid = new Grid { Height = itemH, HorizontalAlignment = HorizontalAlignment.Stretch, Tag = depth };
+                    
+                    var colsGrid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
+                    colsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(200) });
+                    colsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
+                    colsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                    var hoverGrid = new Grid { Margin = new Thickness(depth * indent, 0, 0, 0), Background = Brushes.Transparent };
+                    hoverGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) });
+                    if(showCheck) hoverGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });
+                    hoverGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    
+                    var expander = new TextBlock { 
+                        Text = isExpanded ? "◢" : "▶", 
+                        FontSize = 10, 
+                        VerticalAlignment = VerticalAlignment.Center, 
+                        Foreground = new SolidColorBrush(fontCol),
+                        Cursor = System.Windows.Input.Cursors.Hand,
+                        Padding = new Thickness(4),
+                        Visibility = hasChildren ? System.Windows.Visibility.Visible : System.Windows.Visibility.Hidden
+                    };
+                    Grid.SetColumn(expander, 0); hoverGrid.Children.Add(expander);
+                    
+                    int colIdx = 1;
+                    if(showCheck) {
+                        var chk = new CheckBox { IsChecked = isChecked, VerticalAlignment = VerticalAlignment.Center };
+                        Grid.SetColumn(chk, colIdx++); hoverGrid.Children.Add(chk);
+                    }
+                    var txt = new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, FontSize = _style.FontSize, Foreground = new SolidColorBrush(fontCol), Margin = new Thickness(4,0,0,0) };
+                    Grid.SetColumn(txt, colIdx); hoverGrid.Children.Add(txt);
+                    Grid.SetColumn(hoverGrid, 0); colsGrid.Children.Add(hoverGrid);
+
+                    var col2 = new TextBlock { Text = col2Text, VerticalAlignment = VerticalAlignment.Center, FontSize = _style.FontSize, Foreground = new SolidColorBrush(fontCol) };
+                    Grid.SetColumn(col2, 1); colsGrid.Children.Add(col2);
+
+                    var col3 = new TextBlock { Text = col3Text, VerticalAlignment = VerticalAlignment.Center, FontSize = _style.FontSize, Foreground = new SolidColorBrush(fontCol) };
+                    Grid.SetColumn(col3, 2); colsGrid.Children.Add(col3);
+
+                    rGrid.Children.Add(colsGrid);
+
+                    hoverGrid.MouseDown += (s, ev) => {
+                        ev.Handled = true;
+                        if (!hasChildren) return;
+                        bool isNowExpanded = expander.Text == "◢";
+                        expander.Text = isNowExpanded ? "▶" : "◢";
+                        
+                        int idx = contentStack.Children.IndexOf(rGrid);
+                        for (int k = idx + 1; k < contentStack.Children.Count; k++) {
+                            var childGrid = contentStack.Children[k] as Grid;
+                            if (childGrid == null) continue;
+                            int childDepth = (int)childGrid.Tag;
+                            if (childDepth <= depth) break;
+                            
+                            childGrid.Visibility = isNowExpanded ? Visibility.Collapsed : Visibility.Visible;
+                        }
+                    };
+
+                    return rGrid;
+                };
+
+                var nodeData = new[] {
+                    new { Depth = 0, Text = "主控节点", Col2 = "Online", Col3 = "Core Manager", IsChecked = true },
+                    new { Depth = 1, Text = "网络数据流", Col2 = "Active", Col3 = "TCP/IP Port 8080", IsChecked = false },
+                    new { Depth = 1, Text = "缓存监控", Col2 = "Warning", Col3 = "85% Used", IsChecked = true },
+                    new { Depth = 2, Text = "内存盘 (D:)", Col2 = "Normal", Col3 = "Read-Only", IsChecked = true },
+                    new { Depth = 1, Text = "硬件通讯桥", Col2 = "Offline", Col3 = "Serial COM3", IsChecked = false }
+                };
+
+                for (int i = 0; i < nodeData.Length; i++) {
+                    bool hasChildren = (i + 1 < nodeData.Length) && (nodeData[i+1].Depth > nodeData[i].Depth);
+                    var rGrid = createRow(nodeData[i].Depth, nodeData[i].Text, nodeData[i].Col2, nodeData[i].Col3, true, nodeData[i].IsChecked, hasChildren);
+                    contentStack.Children.Add(rGrid);
+                }
+
+                treeBorder.Child = contentStack;
+                previewWrapper.Children.Add(shadowFrame);
+                previewWrapper.Children.Add(treeBorder);
+                dock.Children.Add(previewWrapper);
+            }
             else if (_currentControlType == ControlType.SidebarNav)
             {
                 // 侧边栏预览: 模拟主界面的 3D 侧边栏布局
@@ -4070,7 +4201,7 @@ namespace ControlDesigner
             else if (btn == NavGrpBool)
                 subs = new RadioButton[] { TabButton, TabIconButton, TabLed, TabToggle };
             else if (btn == NavGrpChart)
-                subs = new RadioButton[] { TabChart, TabPie, TabGauge, TabTable, TabTree };
+                subs = new RadioButton[] { TabChart, TabPie, TabGauge, TabTable, TabTree, TabTreeList };
             else if (btn == NavGrpLayout)
                 subs = new RadioButton[] { TabSidebar, TabTopbar };
 
@@ -4089,7 +4220,7 @@ namespace ControlDesigner
             BtnSidebarToggle.Content = IsCollapsed ? "❯" : "❮";
 
             // 收缩时关闭所有子项
-            var allSubs = new RadioButton[] { TabTextInput, TabComboBox, TabNumeric, TabSlider, TabProgress, TabButton, TabIconButton, TabLed, TabToggle, TabChart, TabPie, TabGauge, TabTable, TabTree, TabSidebar, TabTopbar };
+            var allSubs = new RadioButton[] { TabTextInput, TabComboBox, TabNumeric, TabSlider, TabProgress, TabButton, TabIconButton, TabLed, TabToggle, TabChart, TabPie, TabGauge, TabTable, TabTree, TabTreeList, TabSidebar, TabTopbar };
             if (IsCollapsed)
             {
                 foreach (var sub in allSubs)
@@ -4263,6 +4394,11 @@ namespace ControlDesigner
                 _currentControlType = ControlType.TreeDisplay;
                 if (isDefaultText) TxtControlName.Text = "MyTree";
             }
+            else if (sender == TabTreeList)
+            {
+                _currentControlType = ControlType.TreeListDisplay;
+                if (isDefaultText) TxtControlName.Text = "MyTreeList";
+            }
             else if (sender == TabTable)
 
             {
@@ -4375,7 +4511,7 @@ namespace ControlDesigner
             GroupToggleConfig.Visibility = _currentControlType == ControlType.ToggleSwitch ? Visibility.Visible : Visibility.Collapsed;
 
             GroupDataGridConfig.Visibility = _currentControlType == ControlType.DataGridDisplay ? Visibility.Visible : Visibility.Collapsed;
-            if (GroupTreeConfig != null) GroupTreeConfig.Visibility = _currentControlType == ControlType.TreeDisplay ? Visibility.Visible : Visibility.Collapsed;
+            if (GroupTreeConfig != null) GroupTreeConfig.Visibility = (_currentControlType == ControlType.TreeDisplay || _currentControlType == ControlType.TreeListDisplay) ? Visibility.Visible : Visibility.Collapsed;
 
             if (GroupSidebarConfig != null)
             {
@@ -4895,6 +5031,31 @@ namespace ControlDesigner
     - NodeExpanding (事件) : 被惰性拨开或动态打开父节点时抛出 -> (NodeId)
     - NodeDoubleClicked (事件) : 元素连环遭点击确立时（双击）抛出 -> (NodeId, NodeText, NodeTextUTF8)
     - NodeMenuClicked (事件) : 右键菜单子项被唤起并勾击后抛出 -> (NodeId, MenuText, MenuTextUTF8)" },
+
+                                     { ControlType.TreeListDisplay, @"  ▶ TreeListPanel (多列树控件)
+    - LabelText       (属性) : 面板左上方常驻主说明框标题
+    - SetLabelVisible (方法) : 隐藏或者展平顶部的标签占位框
+    - SetHeaders      (方法) : 设置表头列名分布. 参数: (string[] headers, double[] widths)
+    - SetTreeBackground (方法) : 动态修改树控件的主体底色 (传入 ARGB 颜色数值)
+    - SetMenuBackground (方法) : 动态修改右键菜单的背景底色 (传入 ARGB 颜色数值)
+    - AddNode         (方法) : 注入节点. 参数: (id标识, parentId父级标识, string[] columnTexts, isChecked, showCheckBox, hasDummyChild, iconPath)
+    - AddNodeUTF8     (方法) : 注入节点 (UTF8 文本方案)
+    - SetLabelTextUTF8 (方法) : 设置标题 (UTF8 方案)
+    - RemoveNode      (方法) : 卸载摘除对应 id 的节点及其下挂载的所有子代
+    - ClearNodes      (方法) : 清空所有节点
+    - GetNode         (方法) : 根据 ID 获取节点对象句柄
+    - GetCheckedNodes (方法) : 获取所有勾选的节点 ID 数组
+    - SetNodeChecked  (方法) : 设置节点勾选状态
+    - SetNodeContextMenu (方法) : 设置右键菜单 (竖线分割)
+    - UpdateNodeColumns (方法) : 更新指定节点的多列文本内容
+    - UpdateNodeIcon    (方法) : 更新节点图标
+    - ExpandNode      (方法) : 展开指定节点
+    - CollapseNode    (方法) : 折叠指定节点
+    - NodeSelected    (事件) : 选中项改变 -> (NodeId, NodeText)
+    - NodeChecked     (事件) : 勾选状态改变 -> (NodeId, IsChecked)
+    - NodeExpanding   (事件) : 节点展开中 -> (NodeId)
+    - NodeDoubleClicked (事件) : 节点双击 -> (NodeId, NodeText)
+    - NodeMenuClicked (事件) : 右键菜单点击 -> (NodeId, MenuText)" },
 
                                      { ControlType.SidebarNav, @"  ▶ SidebarNavPanel (侧边栏导航控件)
     - SelectedIndex (属性) : 被选中的菜单项索引 (从0开始)

@@ -171,5 +171,48 @@ namespace WpfTextInput
         }
 
         #endregion
+
+        #region 运行时风格重绘
+
+        /// <summary>
+        /// 获取当前应用的动态重绘配置
+        /// </summary>
+        public System.Collections.Generic.Dictionary<string, object> CurrentStyle { get; private set; }
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            this.CurrentStyle = style;
+            try
+            {
+                // 1. 进度条渐变色重绘
+                if (style.ContainsKey("ProgressColor1"))
+                {
+                    this.StartColor = style["ProgressColor1"] as string;
+                }
+                if (style.ContainsKey("ProgressColor2"))
+                {
+                    this.EndColor = style["ProgressColor2"] as string;
+                }
+
+                // 2. 标签与百分比字体及颜色重绘
+                if (LabelBlock != null)
+                {
+                    if (style.ContainsKey("FontFamily")) LabelBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
+                    if (style.ContainsKey("LabelColor")) LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["LabelColor"] as string));
+                    if (style.ContainsKey("LabelFontSize")) LabelBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                }
+
+                if (PercentBlock != null)
+                {
+                    if (style.ContainsKey("FontFamily")) PercentBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
+                    if (style.ContainsKey("FontColor")) PercentBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["FontColor"] as string));
+                    if (style.ContainsKey("LabelFontSize")) PercentBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                }
+            }
+            catch {}
+        }
+
+        #endregion
     }
 }

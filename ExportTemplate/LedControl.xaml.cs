@@ -127,5 +127,51 @@ namespace WpfTextInput
         }
 
         #endregion
+
+        #region 运行时风格重绘
+
+        /// <summary>
+        /// 获取当前应用的动态重绘配置
+        /// </summary>
+        public System.Collections.Generic.Dictionary<string, object> CurrentStyle { get; private set; }
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            this.CurrentStyle = style;
+            try
+            {
+                // 1. LED 灯颜色重绘
+                if (style.ContainsKey("LedOnColor"))
+                {
+                    this.ActiveColor = style["LedOnColor"] as string;
+                }
+                if (style.ContainsKey("LedOffColor"))
+                {
+                    this.OffColor = style["LedOffColor"] as string;
+                }
+
+                // 2. 标签字体及颜色重绘
+                if (LabelBlock != null)
+                {
+                    if (style.ContainsKey("FontFamily")) LabelBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
+                    if (style.ContainsKey("LabelColor")) LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["LabelColor"] as string));
+                    if (style.ContainsKey("LabelFontSize")) LabelBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                }
+
+                // 3. 晕光范围重绘
+                if (LedHalo != null && style.ContainsKey("ShadowBlur"))
+                {
+                    var blur = LedHalo.Effect as System.Windows.Media.Effects.BlurEffect;
+                    if (blur != null)
+                    {
+                        blur.Radius = Convert.ToDouble(style["ShadowBlur"]);
+                    }
+                }
+            }
+            catch {}
+        }
+
+        #endregion
     }
 }

@@ -139,5 +139,80 @@ namespace WpfTextInput
         }
 
         #endregion
+
+        #region 运行时风格重绘
+
+        /// <summary>
+        /// 获取当前应用的动态重绘配置
+        /// </summary>
+        public System.Collections.Generic.Dictionary<string, object> CurrentStyle { get; private set; }
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            this.CurrentStyle = style;
+            try
+            {
+                // 1. 背景渐变重绘
+                string startCol = style.ContainsKey("GradientStart") ? style["GradientStart"] as string : null;
+                string midCol = style.ContainsKey("GradientMid") ? style["GradientMid"] as string : null;
+                string endCol = style.ContainsKey("GradientEnd") ? style["GradientEnd"] as string : null;
+                if (MainCard != null && !string.IsNullOrEmpty(startCol) && !string.IsNullOrEmpty(midCol) && !string.IsNullOrEmpty(endCol))
+                {
+                    var brush = new LinearGradientBrush();
+                    brush.StartPoint = new Point(0, 0);
+                    brush.EndPoint = new Point(1, 1);
+                    brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(startCol), 0));
+                    brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(midCol), 0.5));
+                    brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(endCol), 1));
+                    MainCard.Background = brush;
+                }
+
+                // 2. 圆角与边框粗细
+                if (MainCard != null)
+                {
+                    if (style.ContainsKey("CornerRadius"))
+                        MainCard.CornerRadius = new CornerRadius(Convert.ToDouble(style["CornerRadius"]));
+                    if (style.ContainsKey("BorderThickness"))
+                        MainCard.BorderThickness = new Thickness(Convert.ToDouble(style["BorderThickness"]));
+                }
+
+                // 3. 边框颜色 (动画引用)
+                if (InputBorderBrush != null && style.ContainsKey("BorderColor"))
+                {
+                    InputBorderBrush.Color = (Color)ColorConverter.ConvertFromString(style["BorderColor"] as string);
+                }
+
+                // 4. 阴影重绘
+                var shadow = (MainCard != null) ? (MainCard.Effect as System.Windows.Media.Effects.DropShadowEffect) : null;
+                if (shadow != null)
+                {
+                    if (style.ContainsKey("ShadowBlur")) shadow.BlurRadius = Convert.ToDouble(style["ShadowBlur"]);
+                    if (style.ContainsKey("ShadowDepth")) shadow.ShadowDepth = Convert.ToDouble(style["ShadowDepth"]);
+                    if (style.ContainsKey("ShadowColor")) shadow.Color = (Color)ColorConverter.ConvertFromString(style["ShadowColor"] as string);
+                    if (style.ContainsKey("ShadowOpacity")) shadow.Opacity = Convert.ToDouble(style["ShadowOpacity"]);
+                }
+
+                // 5. 字体样式与颜色重绘
+                if (InputBox != null)
+                {
+                    if (style.ContainsKey("FontFamily")) InputBox.FontFamily = new FontFamily(style["FontFamily"] as string);
+                    if (style.ContainsKey("FontSize")) InputBox.FontSize = Convert.ToDouble(style["FontSize"]);
+                    if (style.ContainsKey("FontColor")) InputBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["FontColor"] as string));
+                    if (style.ContainsKey("CaretColor")) InputBox.CaretBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["CaretColor"] as string));
+                }
+
+                // 6. 标签字体与颜色重绘
+                if (LabelBlock != null)
+                {
+                    if (style.ContainsKey("FontFamily")) LabelBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
+                    if (style.ContainsKey("LabelColor")) LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["LabelColor"] as string));
+                    if (style.ContainsKey("LabelFontSize")) LabelBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                }
+            }
+            catch {}
+        }
+
+        #endregion
     }
 }

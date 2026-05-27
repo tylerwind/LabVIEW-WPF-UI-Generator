@@ -65,6 +65,10 @@ namespace ControlDesigner.Models
         /// </summary>
         TreeDisplay,
         /// <summary>
+        /// 多列树形列表控件
+        /// </summary>
+        TreeListDisplay,
+        /// <summary>
         /// 原生拟态响应式侧边栏导航
         /// </summary>
         SidebarNav,

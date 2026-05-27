@@ -154,5 +154,48 @@ namespace WpfSlider
         }
 
         #endregion
+
+        #region 运行时风格重绘
+
+        /// <summary>
+        /// 获取当前应用的动态重绘配置
+        /// </summary>
+        public System.Collections.Generic.Dictionary<string, object> CurrentStyle { get; private set; }
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            this.CurrentStyle = style;
+            try
+            {
+                // 1. 滑块渐变色重绘 (通过修改 StartColor 和 EndColor 依赖属性触发绑定更新)
+                if (style.ContainsKey("SliderColor1"))
+                {
+                    this.StartColor = style["SliderColor1"] as string;
+                }
+                if (style.ContainsKey("SliderColor2"))
+                {
+                    this.EndColor = style["SliderColor2"] as string;
+                }
+
+                // 2. 标签与数值的字体及颜色重绘
+                if (LabelBlock != null)
+                {
+                    if (style.ContainsKey("FontFamily")) LabelBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
+                    if (style.ContainsKey("LabelColor")) LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["LabelColor"] as string));
+                    if (style.ContainsKey("LabelFontSize")) LabelBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                }
+
+                if (ValueBlock != null)
+                {
+                    if (style.ContainsKey("FontFamily")) ValueBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
+                    if (style.ContainsKey("LabelColor")) ValueBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["LabelColor"] as string));
+                    if (style.ContainsKey("LabelFontSize")) ValueBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                }
+            }
+            catch {}
+        }
+
+        #endregion
     }
 }
