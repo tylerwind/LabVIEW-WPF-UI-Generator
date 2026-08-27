@@ -48,7 +48,7 @@ namespace ControlDesigner.Services
             }
 
             string templatePath = Path.Combine(_templateDir, templateFileName);
-            string template = File.ReadAllText(templatePath);
+            string template = File.ReadAllText(templatePath, Encoding.UTF8);
             string xaml = ApplyStyle(template, style);
             // 替换所有可能的占位命名空间
             xaml = ReplaceNamespace(xaml, controlName);
@@ -153,7 +153,7 @@ namespace ControlDesigner.Services
                 string src = Path.Combine(_templateDir, file);
                 if (File.Exists(src))
                 {
-                    string content = File.ReadAllText(src);
+                    string content = File.ReadAllText(src, Encoding.UTF8);
                     content = ReplaceNamespace(content, controlName);
                     
                     // 对 .cs 文件也执行 ApplyStyle 以替换可能的动态属性（如 Chart 和 DataGrid 的配置）
@@ -166,11 +166,20 @@ namespace ControlDesigner.Services
                 }
             }
 
+            // 复制公共基类文件 WpfPanelBase.cs
+            string baseSrc = Path.Combine(_templateDir, "WpfPanelBase.cs");
+            if (File.Exists(baseSrc))
+            {
+                string baseContent = File.ReadAllText(baseSrc, Encoding.UTF8);
+                baseContent = ReplaceNamespace(baseContent, controlName);
+                File.WriteAllText(Path.Combine(outputDir, "WpfPanelBase.cs"), baseContent, Encoding.UTF8);
+            }
+
             // 生成 .csproj —— 替换 AssemblyName 和 RootNamespace
             string csprojSrc = Path.Combine(_templateDir, "Template.csproj");
             if (File.Exists(csprojSrc))
             {
-                string csproj = File.ReadAllText(csprojSrc);
+                string csproj = File.ReadAllText(csprojSrc, Encoding.UTF8);
 
                 if (type == ControlType.NumericDisplay)
                 {
@@ -349,7 +358,7 @@ namespace ControlDesigner.Services
                 string templatePath = Path.Combine(_templateDir, ctrl.XamlTemplate);
                 if (File.Exists(templatePath))
                 {
-                    string template = File.ReadAllText(templatePath);
+                    string template = File.ReadAllText(templatePath, Encoding.UTF8);
                     string xaml = ApplyStyle(template, style);
                     xaml = ReplaceNamespace(xaml, assemblyName);
                     File.WriteAllText(Path.Combine(outputDir, ctrl.XamlOut), xaml, Encoding.UTF8);
@@ -364,7 +373,7 @@ namespace ControlDesigner.Services
                     string src = Path.Combine(_templateDir, file);
                     if (File.Exists(src))
                     {
-                        string content = File.ReadAllText(src);
+                        string content = File.ReadAllText(src, Encoding.UTF8);
                         content = ReplaceNamespace(content, assemblyName);
                         content = ApplyStyle(content, style);
                         File.WriteAllText(Path.Combine(outputDir, file), content, Encoding.UTF8);
@@ -372,11 +381,20 @@ namespace ControlDesigner.Services
                 }
             }
 
+            // 复制公共基类文件 WpfPanelBase.cs
+            string allBaseSrc = Path.Combine(_templateDir, "WpfPanelBase.cs");
+            if (File.Exists(allBaseSrc))
+            {
+                string baseContent = File.ReadAllText(allBaseSrc, Encoding.UTF8);
+                baseContent = ReplaceNamespace(baseContent, assemblyName);
+                File.WriteAllText(Path.Combine(outputDir, "WpfPanelBase.cs"), baseContent, Encoding.UTF8);
+            }
+
             // 生成 .csproj
             string csprojSrc = Path.Combine(_templateDir, "AllTemplate.csproj");
             if (File.Exists(csprojSrc))
             {
-                string csproj = File.ReadAllText(csprojSrc);
+                string csproj = File.ReadAllText(csprojSrc, Encoding.UTF8);
                 csproj = csproj.Replace("<RootNamespace>WpfTextInput</RootNamespace>",
                                        "<RootNamespace>" + assemblyName + "</RootNamespace>");
                 csproj = csproj.Replace("<AssemblyName>WpfTextInput</AssemblyName>",
@@ -461,7 +479,7 @@ namespace ControlDesigner.Services
                 { "{{TreeBackground}}", CleanColor(style.TreeBackground) },
                 { "{{NodeCheckBoxVisibility}}", style.TreeShowCheckBox ? "Visibility=\"{Binding ShowCheckBox, Converter={StaticResource BooleanToVisibilityConverter}}\"" : "Visibility=\"Collapsed\"" },
                 { "{{SidebarLogoText}}", style.SidebarLogoText },
-                { "{{SidebarLogoIconText}}", string.IsNullOrWhiteSpace(style.SidebarLogoIconText) ? "🚀" : style.SidebarLogoIconText },
+                { "{{SidebarLogoIconText}}", string.IsNullOrWhiteSpace(style.SidebarLogoIconText) ? "Logo" : style.SidebarLogoIconText },
                 { "{{SidebarLogoImagePath}}", string.IsNullOrWhiteSpace(style.SidebarLogoImagePath) ? string.Empty : style.SidebarLogoImagePath },
                 { "{{SidebarLogoUseImage}}", style.SidebarLogoUseImage.ToString().ToLower() },
                 { "{{SidebarLogoMargin}}", style.SidebarLogoMargin },
@@ -469,7 +487,7 @@ namespace ControlDesigner.Services
                 { "{{SidebarItemHeight}}", FormatNumber(style.SidebarItemHeight) },
                 { "{{SidebarItemSpacing}}", FormatNumber(style.SidebarItemSpacing) },
                 { "{{TopbarLogoText}}", style.TopbarLogoText },
-                { "{{TopbarLogoIconText}}", string.IsNullOrWhiteSpace(style.TopbarLogoIconText) ? "🌟" : style.TopbarLogoIconText },
+                { "{{TopbarLogoIconText}}", string.IsNullOrWhiteSpace(style.TopbarLogoIconText) ? "Logo" : style.TopbarLogoIconText },
                 { "{{TopbarLogoImagePath}}", string.IsNullOrWhiteSpace(style.TopbarLogoImagePath) ? string.Empty : style.TopbarLogoImagePath },
                 { "{{TopbarLogoUseImage}}", style.TopbarLogoUseImage.ToString().ToLower() },
                 { "{{TopbarHeight}}", FormatNumber(style.TopbarHeight) },
@@ -478,7 +496,7 @@ namespace ControlDesigner.Services
 
                 // IconButton 专属
                 { "{{IconButtonText}}", style.IconButtonText },
-                { "{{IconButtonIconText}}", string.IsNullOrWhiteSpace(style.IconButtonIconText) ? "🔘" : style.IconButtonIconText },
+                { "{{IconButtonIconText}}", string.IsNullOrWhiteSpace(style.IconButtonIconText) ? "Icon" : style.IconButtonIconText },
                 { "{{IconButtonIconPath}}", string.IsNullOrWhiteSpace(style.IconButtonIconPath) ? string.Empty : style.IconButtonIconPath },
                 { "{{IconButtonUseImage}}", style.IconButtonUseImage.ToString().ToLower() },
             };

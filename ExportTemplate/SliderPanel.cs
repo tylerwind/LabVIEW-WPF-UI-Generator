@@ -16,7 +16,7 @@ namespace WpfSlider
     /// </summary>
     [ToolboxItem(true)]
     [Description("带有新拟态样式的滑动杆控件")]
-    public class SliderPanel : Panel
+    public class SliderPanel : WpfPanelBase
     {
         private ElementHost _host;
         private SliderControl _wpfControl;
@@ -84,7 +84,7 @@ namespace WpfSlider
         /// 获取或设置标签文本
         /// </summary>
         [Category("Appearance"), Description("滑动杆左上方显示的标签文本")]
-        public string LabelText
+        public override string LabelText
         {
             get { return _wpfControl.LabelText; }
             set { _wpfControl.LabelText = value; }
@@ -203,7 +203,7 @@ namespace WpfSlider
         /// <summary>
         /// 显示或隐藏标签
         /// </summary>
-        public void SetLabelVisible(bool visible)
+        public override void SetLabelVisible(bool visible)
         {
             _wpfControl.SetLabelVisible(visible);
         }
@@ -219,7 +219,7 @@ namespace WpfSlider
         /// <summary>
         /// 设置标签文字 (UTF8 字节流方案，解决乱码)
         /// </summary>
-        public void SetLabelTextUTF8(byte[] bytes)
+        public override void SetLabelTextUTF8(byte[] bytes)
         {
             if (bytes == null) return;
             try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
@@ -244,56 +244,24 @@ namespace WpfSlider
         #region 运行时风格重绘
 
         /// <summary>
-        /// 根据指定的 JSON 样式配置文件实时重绘 UI
-        /// </summary>
-        public void UpdateStyleFromJson(string jsonPath)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(jsonPath) || !System.IO.File.Exists(jsonPath))
-                    return;
-
-                string json = System.IO.File.ReadAllText(jsonPath, System.Text.Encoding.UTF8);
-                var serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
-                var dict = serializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(json);
-                if (dict != null)
-                {
-                    ApplyStyleDictionary(dict);
-                }
-            }
-            catch (Exception ex)
-            {
-                try
-                {
-                    System.IO.File.AppendAllText("StyleUpdateError.txt",
-                        DateTime.Now.ToString() + " : " + ex.Message + "\n" + ex.StackTrace + "\n");
-                }
-                catch { }
-            }
-        }
-
-        /// <summary>
         /// 在内存中直接覆盖视觉原件的属性以重载样式
         /// </summary>
-        public void ApplyStyleDictionary(System.Collections.Generic.Dictionary<string, object> style)
+        public override void ApplyStyleDictionary(System.Collections.Generic.Dictionary<string, object> style)
         {
+            base.ApplyStyleDictionary(style);
             if (style == null) return;
             try
             {
-                // 1. 重写 Panel 自体 BackColor
-                if (style.ContainsKey("ControlBackground"))
-                {
-                    string ctrlBg = style["ControlBackground"] as string;
-                    if (!string.IsNullOrEmpty(ctrlBg))
-                    {
-                        this.BackColor = System.Drawing.ColorTranslator.FromHtml(ctrlBg.StartsWith("#") ? ctrlBg : "#" + ctrlBg);
-                    }
-                }
-
-                // 2. 将样式字典透传给内嵌 of WPF 控件
                 if (_wpfControl != null)
                 {
-                    _wpfControl.ApplyStyle(style);
+                    if (!_wpfControl.Dispatcher.CheckAccess())
+                    {
+                        _wpfControl.Dispatcher.Invoke(new Action(() => _wpfControl.ApplyStyle(style)));
+                    }
+                    else
+                    {
+                        _wpfControl.ApplyStyle(style);
+                    }
                 }
             }
             catch { }

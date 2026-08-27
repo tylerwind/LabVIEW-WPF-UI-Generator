@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;EXPORT_ALL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -25,7 +25,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;EXPORT_ALL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -45,6 +45,8 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Base -->
+    <Compile Include="WpfPanelBase.cs" />
     <!-- TextInput -->
     <Compile Include="TextInputControl.xaml.cs">
       <DependentUpon>TextInputControl.xaml</DependentUpon>
@@ -112,6 +114,11 @@
       <DependentUpon>TreeControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="TreePanel.cs" />
+    <!-- TreeList -->
+    <Compile Include="TreeListControl.xaml.cs">
+      <DependentUpon>TreeListControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TreeListPanel.cs" />
     <!-- Sidebar -->
     <Compile Include="SidebarControl.xaml.cs">
       <DependentUpon>SidebarControl.xaml</DependentUpon>
@@ -178,6 +185,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="TreeControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TreeListControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,7 +1,7 @@
 <Window x:Class="ControlDesigner.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WPF 控件生成器 v3.3" Width="1280" Height="740"
+        Title="WPF 控件生成器 v3.3 [Antigravity 优化版]" Width="1280" Height="740"
         MinWidth="980" MinHeight="600"
         WindowStartupLocation="CenterScreen"
         Background="#F0F0F3">
@@ -803,7 +803,7 @@
                                 <TextBox x:Name="TxtSidebarLogo" Grid.Row="0" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="WPF SIDEBAR" TextChanged="OnStyleChanged"/>
 
                                 <TextBlock Grid.Row="1" Text="Logo图标" Style="{StaticResource PropLabel}" Visibility="Collapsed"/>
-                                <TextBox x:Name="TxtSidebarLogoIcon" Grid.Row="1" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="🚀" TextChanged="OnStyleChanged" Visibility="Collapsed"/>
+                                <TextBox x:Name="TxtSidebarLogoIcon" Grid.Row="1" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="Logo" TextChanged="OnStyleChanged" Visibility="Collapsed"/>
 
                                 <TextBlock Grid.Row="2" Text="Logo图片" Style="{StaticResource PropLabel}" Visibility="Collapsed"/>
                                 <TextBox x:Name="TxtSidebarLogoImagePath" Grid.Row="2" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="" TextChanged="OnStyleChanged" Visibility="Collapsed"/>
@@ -816,8 +816,8 @@
 
                                 <TextBlock Grid.Row="5" Text="行高" Style="{StaticResource PropLabel}"/>
                                 <DockPanel Grid.Row="5" Grid.Column="1">
-                                    <TextBlock x:Name="LblSidebarItemH" DockPanel.Dock="Right" Text="40" Style="{StaticResource PropLabel}" Width="30" TextAlignment="Right"/>
-                                    <Slider x:Name="SliderSidebarItemH" Minimum="20" Maximum="80" Value="40" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnSliderChanged"/>
+                                    <TextBlock x:Name="LblSidebarItemH" DockPanel.Dock="Right" Text="56" Style="{StaticResource PropLabel}" Width="30" TextAlignment="Right"/>
+                                    <Slider x:Name="SliderSidebarItemH" Minimum="20" Maximum="80" Value="56" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnSliderChanged"/>
                                 </DockPanel>
 
                                 <TextBlock Grid.Row="6" Text="行间距" Style="{StaticResource PropLabel}"/>
@@ -855,7 +855,7 @@
                                 <TextBox x:Name="TxtTopbarLogo" Grid.Row="0" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="WPF TOPBAR" TextChanged="OnStyleChanged"/>
 
                                 <TextBlock Grid.Row="1" Text="Logo图标" Style="{StaticResource PropLabel}"/>
-                                <TextBox x:Name="TxtTopbarLogoIcon" Grid.Row="1" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="🌟" TextChanged="OnStyleChanged"/>
+                                <TextBox x:Name="TxtTopbarLogoIcon" Grid.Row="1" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="Logo" TextChanged="OnStyleChanged"/>
 
                                 <TextBlock Grid.Row="2" Text="Logo图片" Style="{StaticResource PropLabel}" Visibility="Collapsed"/>
                                 <TextBox x:Name="TxtTopbarLogoImagePath" Grid.Row="2" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="" TextChanged="OnStyleChanged" Visibility="Collapsed"/>
@@ -901,7 +901,7 @@
                                 <TextBox x:Name="TxtIconButtonText" Grid.Row="0" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="图标按钮" TextChanged="OnStyleChanged"/>
 
                                 <TextBlock Grid.Row="1" Text="按钮图标" Style="{StaticResource PropLabel}"/>
-                                <TextBox x:Name="TxtIconButtonIconText" Grid.Row="1" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="🎯" TextChanged="OnStyleChanged"/>
+                                <TextBox x:Name="TxtIconButtonIconText" Grid.Row="1" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="Icon" TextChanged="OnStyleChanged"/>
 
                                 <TextBlock Grid.Row="2" Text="图标图片" Style="{StaticResource PropLabel}"/>
                                 <TextBox x:Name="TxtIconButtonIconPath" Grid.Row="2" Grid.Column="1" Style="{StaticResource PropTextBox}" Text="" TextChanged="OnStyleChanged"/>

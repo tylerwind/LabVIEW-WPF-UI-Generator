@@ -1,11 +1,12 @@
-<UserControl x:Class="WpfPie.PieControl"
+<UserControl
+             TextOptions.TextFormattingMode="Display"
+             TextOptions.TextRenderingMode="ClearType"
+             RenderOptions.ClearTypeHint="Enabled" x:Class="WpfPie.PieControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{{ControlBackground}}"
              SnapsToDevicePixels="True"
              UseLayoutRounding="True"
-             TextOptions.TextFormattingMode="Display"
-             TextOptions.TextRenderingMode="ClearType"
              SizeChanged="UserControl_SizeChanged">
 
     <UserControl.Resources>
@@ -26,7 +27,7 @@
             </Grid.RowDefinitions>
 
             <!-- 顶部标题区域 -->
-            <StackPanel Grid.Row="0" Margin="0,0,0,16" HorizontalAlignment="Center">
+            <StackPanel x:Name="TitleArea" Grid.Row="0" Margin="0,0,0,10" HorizontalAlignment="Center" Visibility="Collapsed">
                 <TextBlock x:Name="LabelBlock" Text="{{ChartTitle}}" FontFamily="{{FontFamily}}" FontSize="{{FontSize}}" FontWeight="Bold" Foreground="{{FontColor}}" HorizontalAlignment="Center"/>
                 <TextBlock x:Name="DescBlock" Text="{{ChartSubtitle}}" FontFamily="{{FontFamily}}" FontSize="{{LabelFontSize}}" Foreground="{{LabelColor}}" HorizontalAlignment="Center" Visibility="Collapsed"/>
             </StackPanel>

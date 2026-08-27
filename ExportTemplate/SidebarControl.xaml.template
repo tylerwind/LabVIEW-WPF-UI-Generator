@@ -1,4 +1,7 @@
-<UserControl x:Class="{{Namespace}}.SidebarControl"
+<UserControl
+             TextOptions.TextFormattingMode="Display"
+             TextOptions.TextRenderingMode="ClearType"
+             RenderOptions.ClearTypeHint="Enabled" x:Class="{{Namespace}}.SidebarControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:{{Namespace}}"
@@ -10,6 +13,17 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <local:SidebarIndexToCheckedConverter x:Key="IndexToCheckedConverter"/>
         
+        <!-- 动态画刷资源 -->
+        <SolidColorBrush x:Key="SidebarBgBrush" Color="{{SidebarBackground}}"/>
+        <SolidColorBrush x:Key="SidebarFontBrush" Color="{{FontColor}}"/>
+        <SolidColorBrush x:Key="SidebarAccentBrush" Color="{{AccentColor}}"/>
+        <SolidColorBrush x:Key="SidebarCtrlBgBrush" Color="{{ControlBackground}}"/>
+        <LinearGradientBrush x:Key="SidebarBtnGradBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="{{GradientStart}}" Offset="0"/>
+            <GradientStop Color="{{GradientMid}}" Offset="0.5"/>
+            <GradientStop Color="{{GradientEnd}}" Offset="1"/>
+        </LinearGradientBrush>
+
         <!-- 侧边栏主样式：拟态容器 -->
         <Style x:Key="NeuSidebarIconContainer" TargetType="ContentControl">
             <Setter Property="Width" Value="24"/>
@@ -19,7 +33,7 @@
                     <ControlTemplate TargetType="ContentControl">
                         <Grid>
                             <!-- 拟态底座阴影 -->
-                            <Border Background="{{ControlBackground}}" CornerRadius="6">
+                            <Border Background="{DynamicResource SidebarCtrlBgBrush}" CornerRadius="6">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="4" ShadowDepth="1.2" Direction="315" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}"/>
                                 </Border.Effect>
@@ -49,29 +63,24 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Height" Value="{{SidebarItemHeight}}"/>
+            <Setter Property="MinHeight" Value="56"/>
+            <Setter Property="Margin" Value="0,0,0,{{SidebarItemSpacing}}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Grid x:Name="tplGrid" Height="{{SidebarItemHeight}}" Background="Transparent" HorizontalAlignment="Stretch">
+                        <Grid x:Name="tplGrid" Height="{{SidebarItemHeight}}" MinHeight="56" Background="Transparent" HorizontalAlignment="Stretch">
                             <!-- 凸起态：高光/阴影 -->
-                            <Border x:Name="lightBorder" CornerRadius="12" Margin="{{SidebarItemSpacing}}" Visibility="Visible">
+                            <Border x:Name="lightBorder" CornerRadius="12" Margin="4" Visibility="Visible">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="8" Direction="135" ShadowDepth="2" Color="#FFFFFF" Opacity="0.8"/>
                                 </Border.Effect>
                             </Border>
-                            <Border x:Name="darkBorder" CornerRadius="12" Margin="{{SidebarItemSpacing}}" Visibility="Visible">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="{{GradientStart}}" Offset="0"/>
-                                        <GradientStop Color="{{GradientMid}}" Offset="0.5"/>
-                                        <GradientStop Color="{{GradientEnd}}" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Border.Background>
+                            <Border x:Name="darkBorder" CornerRadius="12" Margin="4" Visibility="Visible" Background="{DynamicResource SidebarBtnGradBrush}">
                                 <Border.Effect>
                                     <DropShadowEffect x:Name="darkShadow" BlurRadius="10" Direction="315" ShadowDepth="3" Color="{{ShadowColor}}" Opacity="{{ShadowOpacity}}"/>
                                 </Border.Effect>
                             </Border>
-                            <Border x:Name="insetBorder" CornerRadius="12" Margin="{{SidebarItemSpacing}}" Visibility="Collapsed" Background="{{ControlBackground}}">
+                            <Border x:Name="insetBorder" CornerRadius="12" Margin="4" Visibility="Collapsed" Background="{DynamicResource SidebarCtrlBgBrush}">
                                 <Grid>
                                     <Border BorderThickness="1.5,1.5,0,0" BorderBrush="#25000000" CornerRadius="12"/>
                                     <Border BorderThickness="0,0,1.5,1.5" BorderBrush="White" CornerRadius="12"/>
@@ -92,20 +101,20 @@
                                 </Grid>
 
                                 <TextBlock x:Name="txt" Grid.Column="1" Text="{TemplateBinding Content}" 
-                                           FontSize="{{FontSize}}" FontWeight="SemiBold" Foreground="{{FontColor}}" 
+                                           FontSize="{{FontSize}}" FontWeight="SemiBold" Foreground="{DynamicResource SidebarFontBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,10,0"/>
                             </Grid>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="txt" Property="Foreground" Value="{{AccentColor}}"/>
+                                <Setter TargetName="txt" Property="Foreground" Value="{DynamicResource SidebarAccentBrush}"/>
                                 <Setter TargetName="icon" Property="Opacity" Value="0.8"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="lightBorder" Value="Collapsed" Property="Visibility"/>
                                 <Setter TargetName="darkBorder" Value="Collapsed" Property="Visibility"/>
                                 <Setter TargetName="insetBorder" Value="Visible" Property="Visibility"/>
-                                <Setter TargetName="txt" Property="Foreground" Value="{{AccentColor}}"/>
+                                <Setter TargetName="txt" Property="Foreground" Value="{DynamicResource SidebarAccentBrush}"/>
                                 <Setter TargetName="txt" Property="FontWeight" Value="Bold"/>
                             </Trigger>
                             <!-- 自动适配收缩状态 -->
@@ -123,7 +132,7 @@
     </UserControl.Resources>
 
     <!-- 主容器 -->
-    <Border Background="{{SidebarBackground}}" CornerRadius="{{CornerRadius}}" x:Name="mainBorder" Width="260" HorizontalAlignment="Left">
+    <Border Background="{DynamicResource SidebarBgBrush}" CornerRadius="{{CornerRadius}}" x:Name="mainBorder" Width="260" HorizontalAlignment="Left">
         <Border.Effect>
             <DropShadowEffect BlurRadius="20" Direction="315" ShadowDepth="10" Color="{{ShadowColor}}" Opacity="0.3"/>
         </Border.Effect>
@@ -143,7 +152,7 @@
                     </Grid.ColumnDefinitions>
                     
                     <!-- Logo 图标/图片 -->
-                    <Border Grid.Column="0" Width="40" Height="40" Background="{{AccentColor}}" CornerRadius="10" x:Name="logoIconBorder">
+                    <Border Grid.Column="0" Width="40" Height="40" Background="{DynamicResource SidebarAccentBrush}" CornerRadius="10" x:Name="logoIconBorder">
                         <Grid>
                             <Image x:Name="logoImage" Source="{Binding LogoImagePath, ElementName=&quot;root&quot;}" Stretch="Uniform" Margin="7" Visibility="Collapsed"/>
                             <TextBlock x:Name="logoIconTextBlock" Text="{Binding LogoIconText, ElementName=&quot;root&quot;}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20" Visibility="Visible"/>
@@ -151,7 +160,7 @@
                     </Border>
                     
                     <TextBlock x:Name="logoTxt" Grid.Column="1" Text="{Binding LogoText, ElementName=&quot;root&quot;}" 
-                               Foreground="{{FontColor}}" FontSize="{{FontSize}}" FontWeight="ExtraBold" 
+                               Foreground="{DynamicResource SidebarFontBrush}" FontSize="{{FontSize}}" FontWeight="ExtraBold" 
                                VerticalAlignment="Center" Margin="10,0,0,0">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -176,7 +185,7 @@
                                          Content="{Binding Label}" 
                                          Tag="{Binding IconPath}"
                                          GroupName="Nav"
-                                         Foreground="{{AccentColor}}"
+                                         Foreground="{DynamicResource SidebarAccentBrush}"
                                          Click="Item_Click">
                                 <RadioButton.IsChecked>
                                     <MultiBinding Converter="{StaticResource IndexToCheckedConverter}" Mode="OneWay">
@@ -193,7 +202,7 @@
 
             <!-- 底部收缩开关 -->
             <Button Grid.Row="2" Height="{{SidebarItemHeight}}" Background="Transparent" BorderThickness="0" Click="Toggle_Click" x:Name="BtnToggle">
-                <TextBlock Text="⬅" x:Name="arrow" Foreground="{{FontColor}}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <TextBlock Text="⬅" x:Name="arrow" Foreground="{DynamicResource SidebarFontBrush}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
         </Grid>
     </Border>

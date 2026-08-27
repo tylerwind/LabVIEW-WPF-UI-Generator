@@ -13,7 +13,7 @@ namespace WpfChart
     [ComVisible(true)]
     [ToolboxItem(true)]
     [Description("带有动态多线平滑贝塞尔算法及渐变样式的进阶图表控件")]
-    public class ChartPanel : Panel
+    public class ChartPanel : WpfPanelBase
     {
         private ElementHost _host;
         private ChartControl _wpfControl;
@@ -42,7 +42,7 @@ namespace WpfChart
         #region 给 LabVIEW 或外部代码暴露的属性与方法
 
         [Category("Appearance")]
-        public string LabelText
+        public override string LabelText
         {
             get { return _wpfControl.LabelText; }
             set { _wpfControl.LabelText = value; }
@@ -55,7 +55,7 @@ namespace WpfChart
             set { _wpfControl.DescText = value; }
         }
 
-        public void SetLabelVisible(bool visible)
+        public override void SetLabelVisible(bool visible)
         {
             _wpfControl.SetLabelVisible(visible);
         }
@@ -63,7 +63,7 @@ namespace WpfChart
         /// <summary>
         /// 设置标签文字 (UTF8 字节流方案，解决乱码)
         /// </summary>
-        public void SetLabelTextUTF8(byte[] bytes)
+        public override void SetLabelTextUTF8(byte[] bytes)
         {
             if (bytes == null) return;
             try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
@@ -352,5 +352,30 @@ namespace WpfChart
             if (disposing && _host != null) _host.Dispose();
             base.Dispose(disposing);
         }
+
+        #region 运行时风格重绘
+
+        public override void ApplyStyleDictionary(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            base.ApplyStyleDictionary(style);
+            if (style == null) return;
+            try
+            {
+                if (_wpfControl != null)
+                {
+                    if (!_wpfControl.Dispatcher.CheckAccess())
+                    {
+                        _wpfControl.Dispatcher.Invoke(new Action(() => _wpfControl.ApplyStyle(style)));
+                    }
+                    else
+                    {
+                        _wpfControl.ApplyStyle(style);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }

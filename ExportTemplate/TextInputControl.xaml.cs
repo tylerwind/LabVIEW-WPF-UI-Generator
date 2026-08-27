@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -7,13 +7,13 @@ using System.Windows.Media.Animation;
 namespace WpfTextInput
 {
     /// <summary>
-    /// 新拟态质感文本输入控件
+    /// 鏂版嫙鎬佽川鎰熸枃鏈緭鍏ユ帶浠?
     /// </summary>
     public partial class TextInputControl : UserControl
     {
         private string _previousText = string.Empty;
 
-        #region 依赖属性
+        #region 渚濊禆灞炴€?
 
         public static readonly DependencyProperty TextProperty =
             DependencyProperty.Register("Text", typeof(string), typeof(TextInputControl),
@@ -22,7 +22,7 @@ namespace WpfTextInput
 
         public static readonly DependencyProperty LabelTextProperty =
             DependencyProperty.Register("LabelText", typeof(string), typeof(TextInputControl),
-                new PropertyMetadata("标签", OnLabelTextPropertyChanged));
+                new PropertyMetadata("鏍囩", OnLabelTextPropertyChanged));
 
         public string Text
         {
@@ -38,7 +38,7 @@ namespace WpfTextInput
 
         #endregion
 
-        #region 事件
+        #region 浜嬩欢
 
         public event ValueChangedHandler ValueChanged;
 
@@ -49,10 +49,10 @@ namespace WpfTextInput
             InitializeComponent();
         }
 
-        #region 公共方法
+        #region 鍏叡鏂规硶
 
         /// <summary>
-        /// 设置标签是否可见
+        /// 璁剧疆鏍囩鏄惁鍙
         /// </summary>
         public void SetLabelVisible(bool visible)
         {
@@ -61,7 +61,7 @@ namespace WpfTextInput
         }
 
         /// <summary>
-        /// 设置是否显示垂直滚动条
+        /// 璁剧疆鏄惁鏄剧ず鍨傜洿婊氬姩鏉?
         /// </summary>
         public void SetScrollBarVisible(bool visible)
         {
@@ -70,14 +70,14 @@ namespace WpfTextInput
                 InputBox.VerticalScrollBarVisibility = visible
                     ? ScrollBarVisibility.Auto
                     : ScrollBarVisibility.Hidden;
-                InputBox.AcceptsReturn = visible; // 有滚动条时允许多行
+                InputBox.AcceptsReturn = visible; // 鏈夋粴鍔ㄦ潯鏃跺厑璁稿琛?
                 InputBox.TextWrapping = visible ? TextWrapping.Wrap : TextWrapping.NoWrap;
             }
         }
 
         #endregion
 
-        #region 属性变更回调
+        #region 灞炴€у彉鏇村洖璋?
 
         private static void OnTextPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -94,13 +94,13 @@ namespace WpfTextInput
             var control = (TextInputControl)d;
             if (control.LabelBlock != null)
             {
-                control.LabelBlock.Text = e.NewValue as string ?? "标签";
+                control.LabelBlock.Text = e.NewValue as string ?? "鏍囩";
             }
         }
 
         #endregion
 
-        #region UI 事件处理
+        #region UI 浜嬩欢澶勭悊
 
         private void InputBox_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -140,12 +140,41 @@ namespace WpfTextInput
 
         #endregion
 
-        #region 运行时风格重绘
+        #region 杩愯鏃堕鏍奸噸缁?
 
         /// <summary>
-        /// 获取当前应用的动态重绘配置
+        /// 鑾峰彇褰撳墠搴旂敤鐨勫姩鎬侀噸缁橀厤缃?
         /// </summary>
         public System.Collections.Generic.Dictionary<string, object> CurrentStyle { get; private set; }
+
+        private Color? ParseColor(object val)
+        {
+            if (val == null) return null;
+            string str = val as string;
+            if (string.IsNullOrEmpty(str)) return null;
+            try { return (Color)ColorConverter.ConvertFromString(str.StartsWith("#") ? str : "#" + str); }
+            catch { return null; }
+        }
+
+        private double? ParseDouble(object val)
+        {
+            if (val == null) return null;
+            try { return Convert.ToDouble(val); }
+            catch { return null; }
+        }
+
+        private FontWeight? ParseFontWeight(object val)
+        {
+            if (val == null) return null;
+            string str = val as string;
+            if (string.IsNullOrEmpty(str)) return null;
+            try
+            {
+                var converter = new FontWeightConverter();
+                return (FontWeight)converter.ConvertFromString(str);
+            }
+            catch { return null; }
+        }
 
         public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
         {
@@ -153,61 +182,127 @@ namespace WpfTextInput
             this.CurrentStyle = style;
             try
             {
-                // 1. 背景渐变重绘
-                string startCol = style.ContainsKey("GradientStart") ? style["GradientStart"] as string : null;
-                string midCol = style.ContainsKey("GradientMid") ? style["GradientMid"] as string : null;
-                string endCol = style.ContainsKey("GradientEnd") ? style["GradientEnd"] as string : null;
-                if (MainCard != null && !string.IsNullOrEmpty(startCol) && !string.IsNullOrEmpty(midCol) && !string.IsNullOrEmpty(endCol))
+                // 0. 鎺т欢搴曡壊閲嶇粯
+                if (style.ContainsKey("ControlBackground"))
                 {
-                    var brush = new LinearGradientBrush();
-                    brush.StartPoint = new Point(0, 0);
-                    brush.EndPoint = new Point(1, 1);
-                    brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(startCol), 0));
-                    brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(midCol), 0.5));
-                    brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(endCol), 1));
-                    MainCard.Background = brush;
+                    Color? ctrlBg = ParseColor(style["ControlBackground"]);
+                    if (ctrlBg.HasValue)
+                    {
+                        this.Background = new SolidColorBrush(ctrlBg.Value);
+                    }
                 }
 
-                // 2. 圆角与边框粗细
+                // 1. 鑳屾櫙娓愬彉閲嶇粯
+                if (MainCard != null && style.ContainsKey("GradientStart") && style.ContainsKey("GradientMid") && style.ContainsKey("GradientEnd"))
+                {
+                    Color? startCol = ParseColor(style["GradientStart"]);
+                    Color? midCol = ParseColor(style["GradientMid"]);
+                    Color? endCol = ParseColor(style["GradientEnd"]);
+                    if (startCol.HasValue && midCol.HasValue && endCol.HasValue)
+                    {
+                        var brush = new LinearGradientBrush();
+                        brush.StartPoint = new Point(0, 0);
+                        brush.EndPoint = new Point(1, 1);
+                        brush.GradientStops.Add(new GradientStop(startCol.Value, 0));
+                        brush.GradientStops.Add(new GradientStop(midCol.Value, 0.5));
+                        brush.GradientStops.Add(new GradientStop(endCol.Value, 1));
+                        MainCard.Background = brush;
+                    }
+                }
+
+                // 2. 鍦嗚涓庤竟妗嗙矖缁?
                 if (MainCard != null)
                 {
                     if (style.ContainsKey("CornerRadius"))
-                        MainCard.CornerRadius = new CornerRadius(Convert.ToDouble(style["CornerRadius"]));
+                    {
+                        double? val = ParseDouble(style["CornerRadius"]);
+                        if (val.HasValue) MainCard.CornerRadius = new CornerRadius(val.Value);
+                    }
                     if (style.ContainsKey("BorderThickness"))
-                        MainCard.BorderThickness = new Thickness(Convert.ToDouble(style["BorderThickness"]));
+                    {
+                        double? val = ParseDouble(style["BorderThickness"]);
+                        if (val.HasValue) MainCard.BorderThickness = new Thickness(val.Value);
+                    }
                 }
 
-                // 3. 边框颜色 (动画引用)
+                // 3. 杈规棰滆壊 (鍔ㄧ敾寮曠敤)
                 if (InputBorderBrush != null && style.ContainsKey("BorderColor"))
                 {
-                    InputBorderBrush.Color = (Color)ColorConverter.ConvertFromString(style["BorderColor"] as string);
+                    Color? bcVal = ParseColor(style["BorderColor"]);
+                    if (bcVal.HasValue) InputBorderBrush.Color = bcVal.Value;
                 }
 
-                // 4. 阴影重绘
+                // 4. 闃村奖閲嶇粯
                 var shadow = (MainCard != null) ? (MainCard.Effect as System.Windows.Media.Effects.DropShadowEffect) : null;
                 if (shadow != null)
                 {
-                    if (style.ContainsKey("ShadowBlur")) shadow.BlurRadius = Convert.ToDouble(style["ShadowBlur"]);
-                    if (style.ContainsKey("ShadowDepth")) shadow.ShadowDepth = Convert.ToDouble(style["ShadowDepth"]);
-                    if (style.ContainsKey("ShadowColor")) shadow.Color = (Color)ColorConverter.ConvertFromString(style["ShadowColor"] as string);
-                    if (style.ContainsKey("ShadowOpacity")) shadow.Opacity = Convert.ToDouble(style["ShadowOpacity"]);
+                    if (style.ContainsKey("ShadowBlur"))
+                    {
+                        double? val = ParseDouble(style["ShadowBlur"]);
+                        if (val.HasValue) shadow.BlurRadius = val.Value;
+                    }
+                    if (style.ContainsKey("ShadowDepth"))
+                    {
+                        double? val = ParseDouble(style["ShadowDepth"]);
+                        if (val.HasValue) shadow.ShadowDepth = val.Value;
+                    }
+                    if (style.ContainsKey("ShadowColor"))
+                    {
+                        Color? val = ParseColor(style["ShadowColor"]);
+                        if (val.HasValue) shadow.Color = val.Value;
+                    }
+                    if (style.ContainsKey("ShadowOpacity"))
+                    {
+                        double? val = ParseDouble(style["ShadowOpacity"]);
+                        if (val.HasValue) shadow.Opacity = val.Value;
+                    }
                 }
 
-                // 5. 字体样式与颜色重绘
+                // 5. 瀛椾綋鏍峰紡涓庨鑹查噸缁?
                 if (InputBox != null)
                 {
                     if (style.ContainsKey("FontFamily")) InputBox.FontFamily = new FontFamily(style["FontFamily"] as string);
-                    if (style.ContainsKey("FontSize")) InputBox.FontSize = Convert.ToDouble(style["FontSize"]);
-                    if (style.ContainsKey("FontColor")) InputBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["FontColor"] as string));
-                    if (style.ContainsKey("CaretColor")) InputBox.CaretBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["CaretColor"] as string));
+                    if (style.ContainsKey("FontSize"))
+                    {
+                        double? val = ParseDouble(style["FontSize"]);
+                        if (val.HasValue) InputBox.FontSize = val.Value;
+                    }
+                    if (style.ContainsKey("FontColor"))
+                    {
+                        Color? val = ParseColor(style["FontColor"]);
+                        if (val.HasValue) InputBox.Foreground = new SolidColorBrush(val.Value);
+                    }
+                    if (style.ContainsKey("CaretColor"))
+                    {
+                        Color? val = ParseColor(style["CaretColor"]);
+                        if (val.HasValue) InputBox.CaretBrush = new SolidColorBrush(val.Value);
+                    }
+                    if (style.ContainsKey("FontWeight"))
+                    {
+                        FontWeight? val = ParseFontWeight(style["FontWeight"]);
+                        if (val.HasValue) InputBox.FontWeight = val.Value;
+                    }
                 }
 
-                // 6. 标签字体与颜色重绘
+                // 6. 鏍囩瀛椾綋涓庨鑹查噸缁?
                 if (LabelBlock != null)
                 {
                     if (style.ContainsKey("FontFamily")) LabelBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
-                    if (style.ContainsKey("LabelColor")) LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["LabelColor"] as string));
-                    if (style.ContainsKey("LabelFontSize")) LabelBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                    if (style.ContainsKey("LabelColor"))
+                    {
+                        Color? val = ParseColor(style["LabelColor"]);
+                        if (val.HasValue) LabelBlock.Foreground = new SolidColorBrush(val.Value);
+                    }
+                    if (style.ContainsKey("LabelFontSize"))
+                    {
+                        double? val = ParseDouble(style["LabelFontSize"]);
+                        if (val.HasValue) LabelBlock.FontSize = val.Value;
+                    }
+                    if (style.ContainsKey("FontWeight"))
+                    {
+                        FontWeight? val = ParseFontWeight(style["FontWeight"]);
+                        if (val.HasValue) LabelBlock.FontWeight = val.Value;
+                    }
                 }
             }
             catch {}
@@ -216,3 +311,6 @@ namespace WpfTextInput
         #endregion
     }
 }
+
+
+

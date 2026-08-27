@@ -7,15 +7,15 @@ using System.Windows.Media.Animation;
 namespace WpfTextInput
 {
     /// <summary>
-    /// 进度条控件
+    /// 杩涘害鏉℃帶浠?
     /// </summary>
     public partial class ProgressBarControl : UserControl
     {
-        #region 依赖属性
+        #region 渚濊禆灞炴€?
 
         public static readonly DependencyProperty LabelTextProperty =
             DependencyProperty.Register("LabelText", typeof(string), typeof(ProgressBarControl),
-                new PropertyMetadata("进度", OnLabelTextChanged));
+                new PropertyMetadata("杩涘害", OnLabelTextChanged));
 
         public static readonly DependencyProperty ValueProperty =
             DependencyProperty.Register("Value", typeof(double), typeof(ProgressBarControl),
@@ -65,7 +65,7 @@ namespace WpfTextInput
 
         #endregion
 
-        #region 梯度色彩属性
+        #region 姊害鑹插僵灞炴€?
 
         private string _startColor = "{{ProgressColor1}}";
         private string _endColor = "{{ProgressColor2}}";
@@ -112,7 +112,7 @@ namespace WpfTextInput
         }
 
 
-        #region 公共方法
+        #region 鍏叡鏂规硶
 
         public void SetLabelVisible(bool visible)
         {
@@ -122,13 +122,13 @@ namespace WpfTextInput
 
         #endregion
 
-        #region 内部逻辑
+        #region 鍐呴儴閫昏緫
 
         private static void OnLabelTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var c = (ProgressBarControl)d;
             if (c.LabelBlock != null)
-                c.LabelBlock.Text = e.NewValue as string ?? "进度";
+                c.LabelBlock.Text = e.NewValue as string ?? "杩涘害";
         }
 
         private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -164,7 +164,15 @@ namespace WpfTextInput
             };
             FillBar.BeginAnimation(WidthProperty, anim);
 
-            // 更新百分比文字
+            // Ensure the gradient stretches over the full track width (0 to Max)
+            var brush = FillBar.Background as LinearGradientBrush;
+            if (brush != null)
+            {
+                brush.MappingMode = BrushMappingMode.Absolute;
+                brush.EndPoint = new Point(trackWidth, 0);
+            }
+
+            // 鏇存柊鐧惧垎姣旀枃瀛?
             if (PercentBlock != null)
                 PercentBlock.Text = string.Format("{0:F0}%", ratio * 100);
 
@@ -172,12 +180,41 @@ namespace WpfTextInput
 
         #endregion
 
-        #region 运行时风格重绘
+        #region 杩愯鏃堕鏍奸噸缁?
 
         /// <summary>
-        /// 获取当前应用的动态重绘配置
+        /// 鑾峰彇褰撳墠搴旂敤鐨勫姩鎬侀噸缁橀厤缃?
         /// </summary>
         public System.Collections.Generic.Dictionary<string, object> CurrentStyle { get; private set; }
+
+        private Color? ParseColor(object val)
+        {
+            if (val == null) return null;
+            string str = val as string;
+            if (string.IsNullOrEmpty(str)) return null;
+            try { return (Color)ColorConverter.ConvertFromString(str.StartsWith("#") ? str : "#" + str); }
+            catch { return null; }
+        }
+
+        private double? ParseDouble(object val)
+        {
+            if (val == null) return null;
+            try { return Convert.ToDouble(val); }
+            catch { return null; }
+        }
+
+        private FontWeight? ParseFontWeight(object val)
+        {
+            if (val == null) return null;
+            string str = val as string;
+            if (string.IsNullOrEmpty(str)) return null;
+            try
+            {
+                var converter = new FontWeightConverter();
+                return (FontWeight)converter.ConvertFromString(str);
+            }
+            catch { return null; }
+        }
 
         public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
         {
@@ -185,7 +222,17 @@ namespace WpfTextInput
             this.CurrentStyle = style;
             try
             {
-                // 1. 进度条渐变色重绘
+                // 0. 鎺т欢搴曡壊閲嶇粯
+                if (style.ContainsKey("ControlBackground"))
+                {
+                    Color? ctrlBg = ParseColor(style["ControlBackground"]);
+                    if (ctrlBg.HasValue)
+                    {
+                        this.Background = new SolidColorBrush(ctrlBg.Value);
+                    }
+                }
+
+                // 1. 杩涘害鏉℃笎鍙樿壊閲嶇粯
                 if (style.ContainsKey("ProgressColor1"))
                 {
                     this.StartColor = style["ProgressColor1"] as string;
@@ -195,19 +242,45 @@ namespace WpfTextInput
                     this.EndColor = style["ProgressColor2"] as string;
                 }
 
-                // 2. 标签与百分比字体及颜色重绘
+                // 2. 鏍囩涓庣櫨鍒嗘瘮瀛椾綋鍙婇鑹查噸缁?
                 if (LabelBlock != null)
                 {
                     if (style.ContainsKey("FontFamily")) LabelBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
-                    if (style.ContainsKey("LabelColor")) LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["LabelColor"] as string));
-                    if (style.ContainsKey("LabelFontSize")) LabelBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                    if (style.ContainsKey("LabelColor"))
+                    {
+                        Color? val = ParseColor(style["LabelColor"]);
+                        if (val.HasValue) LabelBlock.Foreground = new SolidColorBrush(val.Value);
+                    }
+                    if (style.ContainsKey("LabelFontSize"))
+                    {
+                        double? val = ParseDouble(style["LabelFontSize"]);
+                        if (val.HasValue) LabelBlock.FontSize = val.Value;
+                    }
+                    if (style.ContainsKey("FontWeight"))
+                    {
+                        FontWeight? val = ParseFontWeight(style["FontWeight"]);
+                        if (val.HasValue) LabelBlock.FontWeight = val.Value;
+                    }
                 }
 
                 if (PercentBlock != null)
                 {
                     if (style.ContainsKey("FontFamily")) PercentBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
-                    if (style.ContainsKey("FontColor")) PercentBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["FontColor"] as string));
-                    if (style.ContainsKey("LabelFontSize")) PercentBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                    if (style.ContainsKey("FontColor"))
+                    {
+                        Color? val = ParseColor(style["FontColor"]);
+                        if (val.HasValue) PercentBlock.Foreground = new SolidColorBrush(val.Value);
+                    }
+                    if (style.ContainsKey("LabelFontSize"))
+                    {
+                        double? val = ParseDouble(style["LabelFontSize"]);
+                        if (val.HasValue) PercentBlock.FontSize = val.Value;
+                    }
+                    if (style.ContainsKey("FontWeight"))
+                    {
+                        FontWeight? val = ParseFontWeight(style["FontWeight"]);
+                        if (val.HasValue) PercentBlock.FontWeight = val.Value;
+                    }
                 }
             }
             catch {}
@@ -216,3 +289,6 @@ namespace WpfTextInput
         #endregion
     }
 }
+
+
+

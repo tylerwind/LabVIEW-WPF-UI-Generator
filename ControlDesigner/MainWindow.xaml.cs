@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -147,7 +147,7 @@ namespace ControlDesigner
 
                 {
 
-                    string json = File.ReadAllText(jsonPath);
+                    string json = File.ReadAllText(jsonPath, System.Text.Encoding.UTF8);
 
                     _presets = SimpleJsonParser.ParsePresets(json);
 
@@ -367,7 +367,7 @@ namespace ControlDesigner
             {
                 try
                 {
-                    string json = File.ReadAllText(dlg.FileName);
+                    string json = File.ReadAllText(dlg.FileName, System.Text.Encoding.UTF8);
                     var serializer = new JavaScriptSerializer();
                     var importedStyle = serializer.Deserialize<ControlStyle>(json);
                     
@@ -1485,7 +1485,9 @@ namespace ControlDesigner
 
                     VerticalAlignment = VerticalAlignment.Center,
 
-                    Margin = new Thickness(0, 0, 12, 0)
+                    Margin = new Thickness(0, 0, 12, 0),
+
+                    Visibility = Visibility.Collapsed
 
                 };
 
@@ -1499,102 +1501,69 @@ namespace ControlDesigner
 
 
 
-                var ledContainer = new Grid { Width = 40, Height = 40, Cursor = System.Windows.Input.Cursors.Hand };
+                var ledContainer = new Grid { Width = 32, Height = 32, Cursor = System.Windows.Input.Cursors.Hand, Margin = new Thickness(1) };
+                var ledCorner = new CornerRadius(_style.CornerRadius);
+
+                // 外发光 (置于底层)
+                var halo = new Border
+                {
+                    CornerRadius = ledCorner,
+                    Margin = new Thickness(1),
+                    Opacity = _style.ShadowOpacity,
+                    IsHitTestVisible = false,
+                    Background = new SolidColorBrush(onCol),
+                    Effect = new System.Windows.Media.Effects.BlurEffect { Radius = _style.ShadowBlur * 0.5 }
+                };
 
                 // 凹槽底座
-
-                var ledBase = new System.Windows.Shapes.Ellipse
-
+                var ledBase = new Border
                 {
-
-                    Margin = new Thickness(-2),
-
-                    Fill = new RadialGradientBrush(
-
+                    Margin = new Thickness(1.5),
+                    CornerRadius = ledCorner,
+                    Background = new RadialGradientBrush(
                         new GradientStopCollection { new GradientStop(Color.FromArgb(80, 200, 200, 200), 0.7), new GradientStop(Colors.Transparent, 1.0) })
-
                 };
 
                 // 灯体
-
                 bool isOn = true;
-
-                var ledBulb = new System.Windows.Shapes.Ellipse
-
+                var ledBulb = new Border
                 {
-
-                    Fill = new RadialGradientBrush(onCol, Color.FromArgb(180, onCol.R, onCol.G, onCol.B))
-
+                    CornerRadius = ledCorner,
+                    Margin = new Thickness(2),
+                    BorderThickness = new Thickness(0.5),
+                    BorderBrush = new SolidColorBrush(Color.FromArgb(80, 150, 150, 150)),
+                    Background = new RadialGradientBrush(onCol, Color.FromArgb(180, onCol.R, onCol.G, onCol.B))
                 };
 
                 // 高光
-
-                var ledHL = new System.Windows.Shapes.Ellipse
-
+                var ledHL = new Border
                 {
-
-                    Margin = new Thickness(4, 3, 8, 12), Opacity = 0.45,
-
-                    Fill = new RadialGradientBrush(
-
+                    CornerRadius = ledCorner,
+                    Margin = new Thickness(6, 5, 10, 14),
+                    Opacity = 0.45,
+                    Background = new RadialGradientBrush(
                         new GradientStopCollection { new GradientStop(Colors.White, 0), new GradientStop(Colors.Transparent, 1) })
-
                     { Center = new Point(0.5, 0.3), GradientOrigin = new Point(0.5, 0.2) }
-
                 };
-
-                // 外发光
-
-                var halo = new System.Windows.Shapes.Ellipse
-
-                {
-
-                    Margin = new Thickness(-4), Opacity = _style.ShadowOpacity, IsHitTestVisible = false,
-
-                    Fill = new SolidColorBrush(onCol),
-
-                    Effect = new System.Windows.Media.Effects.BlurEffect { Radius = _style.ShadowBlur * 0.5 }
-
-                };
-
-
-
-                ledContainer.Children.Add(ledBase);
-
-                ledContainer.Children.Add(ledBulb);
-
-                ledContainer.Children.Add(ledHL);
 
                 ledContainer.Children.Add(halo);
-
-
+                ledContainer.Children.Add(ledBase);
+                ledContainer.Children.Add(ledBulb);
+                ledContainer.Children.Add(ledHL);
 
                 // 点击切换
-
                 ledContainer.MouseLeftButtonDown += (s, ev) => {
-
                     isOn = !isOn;
-
                     if (isOn)
-
                     {
-
-                        ledBulb.Fill = new RadialGradientBrush(onCol, Color.FromArgb(180, onCol.R, onCol.G, onCol.B));
-
+                        ledBulb.Background = new RadialGradientBrush(onCol, Color.FromArgb(180, onCol.R, onCol.G, onCol.B));
                         halo.Opacity = _style.ShadowOpacity;
-
                     }
-
                     else
-
                     {
-
-                        ledBulb.Fill = new SolidColorBrush(offCol);
-
+                        ledBulb.Background = new SolidColorBrush(offCol);
                         halo.Opacity = 0;
-
                     }
-
                 };
 
 
@@ -2567,7 +2536,7 @@ namespace ControlDesigner
 
                 // Pie Placeholder
 
-                var headerGrid = new Grid { Margin = new Thickness(0,0,0,12) };
+                var headerGrid = new Grid { Margin = new Thickness(0,0,0,12), Visibility = Visibility.Collapsed };
 
                 var titleStack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center };
 
@@ -3297,7 +3266,7 @@ namespace ControlDesigner
                     else
                     {
                         var txt = new TextBlock { 
-                            Text = string.IsNullOrEmpty(_style.IconButtonIconText) ? "🔘" : _style.IconButtonIconText, 
+                            Text = string.IsNullOrEmpty(_style.IconButtonIconText) ? "Icon" : _style.IconButtonIconText, 
                             FontSize = 14, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center 
                         };
                         iconContent.Children.Add(txt);
@@ -3349,7 +3318,7 @@ namespace ControlDesigner
 
                 // Gauge Placeholder
 
-                var gaugeGrid = new Grid { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 20, 0, 0) };
+                var gaugeGrid = new Grid { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 0, 0) };
 
                 gaugeGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
@@ -3357,7 +3326,7 @@ namespace ControlDesigner
 
 
 
-                var headerGrid = new StackPanel { Margin = new Thickness(0,0,0,20), HorizontalAlignment = HorizontalAlignment.Center };
+                var headerGrid = new StackPanel { Margin = new Thickness(0,0,0,8), HorizontalAlignment = HorizontalAlignment.Center, Visibility = Visibility.Collapsed };
 
                 headerGrid.Children.Add(new TextBlock { Text = _style.ChartTitle, FontFamily = new FontFamily(_style.FontFamily), FontSize = 16, FontWeight = FontWeights.Bold, Foreground = TryParseBrush(_style.FontColor, Brushes.Black), HorizontalAlignment = HorizontalAlignment.Center });
 
@@ -4006,6 +3975,14 @@ namespace ControlDesigner
 
                         <Grid Background=""Transparent"">
 
+                            <!-- Pressed state inset border (凹陷拟态层) -->
+                            <Border x:Name=""InsetBorder"" CornerRadius=""{{CornerRadius}}"" Visibility=""Collapsed"" Background=""{{ControlBackground}}"">
+                                <Grid>
+                                    <Border BorderThickness=""1.5,1.5,0,0"" BorderBrush=""#25000000"" CornerRadius=""{{CornerRadius}}""/>
+                                    <Border BorderThickness=""0,0,1.5,1.5"" BorderBrush=""White"" CornerRadius=""{{CornerRadius}}""/>
+                                </Grid>
+                            </Border>
+
                             <!-- Hover Overlay -->
 
                             <Border x:Name=""HoverOverlay"" CornerRadius=""{{CornerRadius}}"" Opacity=""0"">
@@ -4059,6 +4036,9 @@ namespace ControlDesigner
                     </Trigger>
 
                     <Trigger Property=""IsPressed"" Value=""True"">
+
+                        <Setter TargetName=""InsetBorder"" Property=""Visibility"" Value=""Visible""/>
+                        <Setter TargetName=""LightShadowBorder"" Property=""Visibility"" Value=""Collapsed""/>
 
                         <Trigger.EnterActions>
 
@@ -4450,7 +4430,7 @@ namespace ControlDesigner
 
             GroupBackground.Visibility = isSimple ? Visibility.Collapsed : Visibility.Visible;
 
-            GroupBorder.Visibility = isSimple ? Visibility.Collapsed : Visibility.Visible;
+            GroupBorder.Visibility = Visibility.Visible;
 
             // LED 显示阴影组（用于控制发光晕效果）
 
@@ -4719,125 +4699,70 @@ namespace ControlDesigner
 
 
 
-        private void ExportControl(bool exportAll)
-
+                private void ExportControl(bool exportAll)
         {
-
             // 读取并验证程序集名称
-
             string assemblyName = TxtControlName.Text.Trim();
-
             if (string.IsNullOrEmpty(assemblyName))
-
             {
-
                 MessageBox.Show("请输入程序集名称", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-
                 TxtControlName.Focus();
-
                 return;
-
             }
 
             if (!System.Text.RegularExpressions.Regex.IsMatch(assemblyName, @"^[A-Za-z_][A-Za-z0-9_]*$"))
-
             {
-
                 MessageBox.Show("程序集名称只能包含字母、数字和下划线，且不能以数字开头",
-
                     "名称无效", MessageBoxButton.OK, MessageBoxImage.Warning);
-
                 TxtControlName.Focus();
-
                 return;
-
             }
-
-
 
             string defaultFileName = exportAll ? "MyControlAll.dll" : assemblyName + ".dll";
 
-
-
             var dlg = new SaveFileDialog
-
             {
-
                 Title = exportAll ? "导出 DLL（包含全部控件）" : string.Format("导出 DLL（{0}）", _currentControlType),
-
                 Filter = "DLL 文件|*.dll",
-
                 FileName = defaultFileName,
-
             };
 
-
-
             try
-
             {
-
                 string defaultDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
                 if (Directory.Exists(defaultDir))
-
                     dlg.InitialDirectory = defaultDir;
-
             }
-
             catch { }
 
-
-
             if (dlg.ShowDialog() == true)
-
             {
-
                 TxtStatus.Text = exportAll ? "⏳ 正在编译所有控件..." : string.Format("⏳ 正在编译 {0}...", _currentControlType);
-
                 TxtStatus.Foreground = TryParseBrush("#FFD080", Brushes.Yellow);
 
-
-
                 var style = _style.Clone();
-
                 var outputPath = dlg.FileName;
-
                 string name = System.IO.Path.GetFileNameWithoutExtension(outputPath);
-
                 name = System.Text.RegularExpressions.Regex.Replace(name, @"[^A-Za-z0-9_]", "_");
-
                 if (name.Length > 0 && char.IsDigit(name[0])) name = "_" + name;
-
                 ControlType targetControl = _currentControlType;
 
-
-
                 System.Threading.Tasks.Task.Run(() =>
-
                 {
-
                     var result = exportAll ? _exporter.ExportAll(style, outputPath, name) : _exporter.Export(style, outputPath, name, targetControl);
-
                     Dispatcher.Invoke(new Action(() =>
-
                     {
-
                         if (result.Success)
-
                         {
-
                             try
-
                             {
-
                                 string infoPath = Path.ChangeExtension(outputPath, ".style.txt");
 
                                 
 
                                 // 1. 定义各控件的专有 API 说明
 
-                                var apiDocs = new Dictionary<ControlType, string>
+                                                                var apiDocs = new Dictionary<ControlType, string>
                                 {
                                      { ControlType.TextInput, @"  ▶ TextInputPanel (文本输入框)
     - Text      (属性) : 获取或设置内部文本内容
@@ -4896,19 +4821,23 @@ namespace ControlDesigner
  
                                      { ControlType.LedIndicator, @"  ▶ LedPanel (LED 指示灯)
     - IsOn        (属性) : 设为 true 开启亮灯，false 熄灭
+    - CornerRadius(属性) : 指示灯外廓与发光层的圆角半径 (如 14.0 为正圆, 6.0 为圆角矩形, 0 为方形)
     - ActiveColor (属性) : 亮灯点燃触发的核心球体主色 (**HEX**)
     - ActiveColorValue (属性) : 亮灯核心球体主色 (**数字，标准 RGB**)
     - LabelText   (属性) : 细粒度描述文本标签
+    - SetCornerRadius (方法) : 设置圆角半径
     - SetLabelVisible (方法) : 配置常驻抹平左侧标签占位框
     - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)" },
  
                                      { ControlType.ToggleSwitch, @"  ▶ ToggleSwitchPanel (开关)
     - IsOn        (属性) : 设为 true 开启，false 关闭
+    - CornerRadius(属性) : 开关滑轨与滑块的圆角半径 (如 13.0 为胶囊圆角, 0 为方块)
     - ActiveColor (属性) : 开状态对应的全景背景轨道主色 (**HEX**)
     - ActiveColorValue (属性) : 开状态轨道主色 (**数字，标准 RGB**)
     - InactiveColor (属性) : 关状态对应的全景背景轨道主色 (**HEX**)
     - InactiveColorValue (属性) : 关状态轨道主色 (**数字，标准 RGB**)
     - LabelText   (属性) : 开关左上翼绑定的标签文字说明
+    - SetCornerRadius (方法) : 设置圆角半径
     - SetLabelVisible (方法) : 高度剥离抹平文字对应的 label 外置区目
     - ValueChanged (事件) : 触发拨动后向 LabVIEW 抛出 -> (oldValue, newValue, newValueUTF8)
     - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)" },
@@ -4922,14 +4851,16 @@ namespace ControlDesigner
     - ClearItems   (方法) : 彻底洗净清除下拉弹窗中所拥有的多余条目
     - SetLabelVisible (方法) : 设置标签描述极高压制状态
     - ValueChanged (事件) : 选择项改变时抛出 -> (selectedIndex, selectedItem, selectedItemUTF8)
-
+ 
     - AddItemUTF8 (方法) : 添加选项 (UTF8 字节流方案)
     - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)" },
  
                                      { ControlType.ButtonInput, @"  ▶ ButtonPanel (按钮)
     - Value        (属性) : 按钮当前所释放的动作逻辑电平
+    - CornerRadius (属性) : 按钮圆角半径 (如 12.0)
     - Behavior     (属性) : 动作机制分立（按下、抬起释放、脉冲锁定、常亮等）
     - LabelText    (属性) : 横陈按钮中心表面最立端的标志性标题
+    - SetCornerRadius (方法) : 设置圆角半径
     - SetLabelVisible (方法) : 擦除中间浮现文字
     - Click        (事件) : 触发连环驱动的弹压节点
     - SetLabelTextUTF8 (方法) : 设置标签 (UTF8 字节流方案)" },
@@ -5003,7 +4934,7 @@ namespace ControlDesigner
     - GetHeaders    (方法) : 获取拉出现有的合法表头列表
     - GetAllData    (方法) : 读取对应真实的全局二维字符串数组镜像表
     - SetLabelTextUTF8 (方法) : 设置标题 (UTF8 方案)" },
-
+ 
                                      { ControlType.TreeDisplay, @"  ▶ TreePanel (树节点控件)
     - LabelText       (属性) : 面板左上方常驻主说明框标题
     - SetLabelVisible (方法) : 隐藏或者展平顶部的标签占位框
@@ -5031,7 +4962,7 @@ namespace ControlDesigner
     - NodeExpanding (事件) : 被惰性拨开或动态打开父节点时抛出 -> (NodeId)
     - NodeDoubleClicked (事件) : 元素连环遭点击确立时（双击）抛出 -> (NodeId, NodeText, NodeTextUTF8)
     - NodeMenuClicked (事件) : 右键菜单子项被唤起并勾击后抛出 -> (NodeId, MenuText, MenuTextUTF8)" },
-
+ 
                                      { ControlType.TreeListDisplay, @"  ▶ TreeListPanel (多列树控件)
     - LabelText       (属性) : 面板左上方常驻主说明框标题
     - SetLabelVisible (方法) : 隐藏或者展平顶部的标签占位框
@@ -5051,12 +4982,12 @@ namespace ControlDesigner
     - UpdateNodeIcon    (方法) : 更新节点图标
     - ExpandNode      (方法) : 展开指定节点
     - CollapseNode    (方法) : 折叠指定节点
-    - NodeSelected    (事件) : 选中项改变 -> (NodeId, NodeText)
+    - NodeSelected    (事件) : 选中项改变 -> (NodeId, NodeText, NodeTextUTF8)
     - NodeChecked     (事件) : 勾选状态改变 -> (NodeId, IsChecked)
     - NodeExpanding   (事件) : 节点展开中 -> (NodeId)
-    - NodeDoubleClicked (事件) : 节点双击 -> (NodeId, NodeText)
-    - NodeMenuClicked (事件) : 右键菜单点击 -> (NodeId, MenuText)" },
-
+    - NodeDoubleClicked (事件) : 节点双击 -> (NodeId, NodeText, NodeTextUTF8)
+    - NodeMenuClicked (事件) : 右键菜单点击 -> (NodeId, MenuText, MenuTextUTF8)" },
+ 
                                      { ControlType.SidebarNav, @"  ▶ SidebarNavPanel (侧边栏导航控件)
     - SelectedIndex (属性) : 被选中的菜单项索引 (从0开始)
     - LogoText      (属性) : 左上角显示的 Logo 文本标题
@@ -5080,7 +5011,7 @@ namespace ControlDesigner
     - SetCollapsed   (方法) : 切换展开或收缩状态
     - ItemSelected   (事件) : 选中项改变时触发 -> (index, label, tag)
     - StateChanged   (事件) : 展开/收缩状态改变时触发 -> (isCollapsed)" },
-
+ 
                                      { ControlType.TopbarNav, @"  ▶ TopbarNavPanel (顶边栏导航控件)
     - SelectedIndex (属性) : 被选中的菜单项索引 (从0开始)
     - LogoText      (属性) : 左上角显示的 Logo 文本标题
@@ -5090,15 +5021,17 @@ namespace ControlDesigner
     - AddItem       (方法) : 动态增入一个菜单项. 参数: (标题, 图标路径, 唯一标识Tag)
     - ClearItems    (方法) : 彻底洗净清除所有菜单项
     - ItemSelected  (事件) : 选中项改变时触发 -> (index, label, tag)" },
-
+ 
                                       { ControlType.IconButton, @"  ▶ IconButtonPanel (图标按钮)
     - Value        (属性) : 按钮当前所释放的动作逻辑电平 (True=按下)
+    - CornerRadius (属性) : 按钮圆角半径 (如 12.0)
     - LabelText    (属性) : 按钮显示的文字内容
     - IconText     (属性) : 按钮显示的图标字符/符号
     - IconPath     (属性) : 按钮显示的图片图标路径
     - UseImage     (属性) : 是否启用图片模式 (True=图片, False=文字/字符)
     - ActiveColor  (属性) : 图标的高亮激活颜色 (**HEX**)
     - ActiveColorValue (属性) : 图标的高亮激活颜色 (**数字，标准 RGB**)
+    - SetCornerRadius (方法) : 设置圆角半径
     - Click        (事件) : 触发点击动作逻辑" }
                                  };
 
@@ -5215,7 +5148,7 @@ namespace ControlDesigner
 
 
 
-                                File.WriteAllText(infoPath, info);
+                                File.WriteAllText(infoPath, info, System.Text.Encoding.UTF8);
 
 
 
@@ -5227,7 +5160,7 @@ namespace ControlDesigner
 
                                 json = json.Replace("\",\"", "\",\n  \"").Replace("{\"", "{\n  \"").Replace("\"}", "\"\n}");
 
-                                File.WriteAllText(jsonPath, json);
+                                File.WriteAllText(jsonPath, json, System.Text.Encoding.UTF8);
 
                             }
 
@@ -5245,7 +5178,7 @@ namespace ControlDesigner
 
                             string boxMsg = exportAll 
 
-                                ? string.Format("DLL 已导出：\n{0}\n\n━━ 包含 15 种控件 ━━\nTextInput · Numeric · ComboBox · Slider · Button\nLed · Toggle · ProgressBar · Chart · Pie\nGauge · DataGrid · Tree · Sidebar · Topbar\n\n📄 详细文档已同时生成", outputPath)
+                                ? string.Format("DLL 已导出：\n{0}\n\n━━ 包含 16 种控件 ━━\nTextInput · Numeric · ComboBox · Slider · Button\nLed · Toggle · ProgressBar · Chart · Pie\nGauge · DataGrid · Tree · TreeList · Sidebar · Topbar\n\n📄 详细文档已同时生成", outputPath)
 
                                 : string.Format("DLL 已导出：\n{0}\n\n📄 API 使用说明及配置已同时生成", outputPath);
 
@@ -5287,7 +5220,7 @@ namespace ControlDesigner
 
                                                     string.Format("【完整编译输出】\r\n{0}", result.BuildOutput);
 
-                                File.WriteAllText(logPath, logContent);
+                                File.WriteAllText(logPath, logContent, System.Text.Encoding.UTF8);
 
                                 errMsg += string.Format("\n\n👉 详细报错日志已保存至:\n{0}", logPath);
 

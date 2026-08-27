@@ -8,7 +8,7 @@ namespace WpfDashboard
 {
     [ToolboxItem(true)]
     [Description("综合仪表盘（多曲线趋势图）")]
-    public class DashboardPanel : Panel
+    public class DashboardPanel : WpfPanelBase
     {
         private ElementHost _host;
         private DashboardControl _wpfControl;
@@ -28,7 +28,6 @@ namespace WpfDashboard
             };
 
             _wpfControl = new DashboardControl();
-            _wpfControl.ToggleChanged += WpfControl_ToggleChanged;
             _host.Child = _wpfControl;
 
             this.Controls.Add(_host);
@@ -36,6 +35,13 @@ namespace WpfDashboard
             this.SizeChanged += delegate(object s, EventArgs e) { 
                 if (_host != null) _host.Invalidate(); 
             };
+        }
+
+        [Category("Appearance")]
+        public override string LabelText
+        {
+            get { return _wpfControl.PanelTitle; }
+            set { _wpfControl.PanelTitle = value; }
         }
 
         [Category("Appearance")]
@@ -59,5 +65,14 @@ namespace WpfDashboard
         {
             _wpfControl.UpdateSeriesData(seriesIndex, data);
         }
+
+        #region 运行时风格重绘
+
+        public override void ApplyStyleDictionary(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            base.ApplyStyleDictionary(style);
+        }
+
+        #endregion
     }
 }

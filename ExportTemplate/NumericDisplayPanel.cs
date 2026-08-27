@@ -8,7 +8,7 @@ namespace WpfTextInput
     /// <summary>
     /// 用于 LabVIEW .NET 容器的数值显示 WinForms 包装控件
     /// </summary>
-    public class NumericDisplayPanel : UserControl
+    public class NumericDisplayPanel : WpfPanelBase
     {
         private ElementHost _elementHost;
         private NumericDisplayControl _wpfControl;
@@ -27,7 +27,7 @@ namespace WpfTextInput
         [Browsable(true)]
         [Category("NumericDisplay")]
         [Description("标签名称")]
-        public string LabelText
+        public override string LabelText
         {
             get { return _wpfControl != null ? _wpfControl.LabelText : string.Empty; }
             set { if (_wpfControl != null) _wpfControl.LabelText = value; }
@@ -57,6 +57,30 @@ namespace WpfTextInput
             set { if (_wpfControl != null) _wpfControl.Unit = value; }
         }
 
+        /// <summary>
+        /// 获取或设置数值文本显示大小
+        /// </summary>
+        [Browsable(true)]
+        [Category("NumericDisplay")]
+        [Description("数值文本字号大小")]
+        public double ValueFontSize
+        {
+            get { return _wpfControl != null ? _wpfControl.ValueFontSize : 24.0; }
+            set { if (_wpfControl != null) _wpfControl.ValueFontSize = value; }
+        }
+
+        /// <summary>
+        /// 获取或设置单位文本显示大小
+        /// </summary>
+        [Browsable(true)]
+        [Category("NumericDisplay")]
+        [Description("单位文本字号大小")]
+        public double UnitFontSize
+        {
+            get { return _wpfControl != null ? _wpfControl.UnitFontSize : 14.0; }
+            set { if (_wpfControl != null) _wpfControl.UnitFontSize = value; }
+        }
+
         #endregion
 
         #region 隐藏继承的属性（LabVIEW 不显示）
@@ -81,9 +105,6 @@ namespace WpfTextInput
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public new bool AllowDrop { get { return base.AllowDrop; } set { base.AllowDrop = value; } }
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public new AutoValidate AutoValidate { get { return base.AutoValidate; } set { base.AutoValidate = value; } }
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public new BorderStyle BorderStyle { get { return base.BorderStyle; } set { base.BorderStyle = value; } }
@@ -127,7 +148,7 @@ namespace WpfTextInput
         /// <summary>
         /// 设置标签是否显示
         /// </summary>
-        public void SetLabelVisible(bool visible)
+        public override void SetLabelVisible(bool visible)
         {
             if (_wpfControl != null)
                 _wpfControl.SetLabelVisible(visible);
@@ -154,7 +175,7 @@ namespace WpfTextInput
         /// <summary>
         /// 设置标签文字 (UTF8 字节流方案，解决乱码)
         /// </summary>
-        public void SetLabelTextUTF8(byte[] bytes)
+        public override void SetLabelTextUTF8(byte[] bytes)
         {
             if (bytes == null) return;
             try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
@@ -167,6 +188,36 @@ namespace WpfTextInput
         {
             if (bytes == null) return;
             try { Unit = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
+        /// <summary>
+        /// 动态设置数值文本字号大小
+        /// </summary>
+        public void SetValueFontSize(double size)
+        {
+            if (_wpfControl != null)
+                _wpfControl.ValueFontSize = size;
+        }
+
+        /// <summary>
+        /// 动态设置单位文本字号大小
+        /// </summary>
+        public void SetUnitFontSize(double size)
+        {
+            if (_wpfControl != null)
+                _wpfControl.UnitFontSize = size;
+        }
+
+        /// <summary>
+        /// 同时设置数值与单位的字号大小
+        /// </summary>
+        public void SetFontSizes(double valueFontSize, double unitFontSize)
+        {
+            if (_wpfControl != null)
+            {
+                _wpfControl.ValueFontSize = valueFontSize;
+                _wpfControl.UnitFontSize = unitFontSize;
+            }
         }
 
         #endregion
@@ -205,6 +256,31 @@ namespace WpfTextInput
                 }
             }
             base.Dispose(disposing);
+        }
+
+        #endregion
+
+        #region 运行时风格重绘
+
+        public override void ApplyStyleDictionary(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            base.ApplyStyleDictionary(style);
+            if (style == null) return;
+            try
+            {
+                if (_wpfControl != null)
+                {
+                    if (!_wpfControl.Dispatcher.CheckAccess())
+                    {
+                        _wpfControl.Dispatcher.Invoke(new Action(() => _wpfControl.ApplyStyle(style)));
+                    }
+                    else
+                    {
+                        _wpfControl.ApplyStyle(style);
+                    }
+                }
+            }
+            catch { }
         }
 
         #endregion

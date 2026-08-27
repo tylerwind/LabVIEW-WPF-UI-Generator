@@ -16,10 +16,16 @@ namespace WpfComboBox
     /// </summary>
     [ToolboxItem(true)]
     [Description("带有新拟态样式的下拉框控件")]
-    public class ComboBoxPanel : Panel
+    public class ComboBoxPanel : WpfPanelBase
     {
         private ElementHost _host;
         private ComboBoxControl _wpfControl;
+
+        /// <summary>
+        /// 获取内部嵌入的 WPF 控件实例 (可测试性自检接口)
+        /// </summary>
+        [Browsable(false)]
+        public ComboBoxControl WpfControl { get { return _wpfControl; } }
 
         /// <summary>
         /// 当用户选择更改时触发
@@ -74,7 +80,7 @@ namespace WpfComboBox
         /// 获取或设置标签文本
         /// </summary>
         [Category("Appearance"), Description("下拉框左上方显示的标签文本")]
-        public string LabelText
+        public override string LabelText
         {
             get { return _wpfControl.LabelText; }
             set { _wpfControl.LabelText = value; }
@@ -154,7 +160,7 @@ namespace WpfComboBox
             _wpfControl.ClearItems();
         }
 
-        public void SetLabelVisible(bool visible)
+        public override void SetLabelVisible(bool visible)
         {
             _wpfControl.SetLabelVisible(visible);
         }
@@ -162,7 +168,7 @@ namespace WpfComboBox
         /// <summary>
         /// 设置标签文字 (UTF8 字节流方案，解决乱码)
         /// </summary>
-        public void SetLabelTextUTF8(byte[] bytes)
+        public override void SetLabelTextUTF8(byte[] bytes)
         {
             if (bytes == null) return;
             try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
@@ -191,5 +197,30 @@ namespace WpfComboBox
             }
             base.Dispose(disposing);
         }
+
+        #region 运行时风格重绘
+
+        public override void ApplyStyleDictionary(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            base.ApplyStyleDictionary(style);
+            if (style == null) return;
+            try
+            {
+                if (_wpfControl != null)
+                {
+                    if (!_wpfControl.Dispatcher.CheckAccess())
+                    {
+                        _wpfControl.Dispatcher.Invoke(new Action(() => _wpfControl.ApplyStyle(style)));
+                    }
+                    else
+                    {
+                        _wpfControl.ApplyStyle(style);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }

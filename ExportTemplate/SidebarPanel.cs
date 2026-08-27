@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -10,7 +12,7 @@ namespace {{Namespace}}
     public delegate void NavItemSelectedHandler(int index, string label, string tag);
     public delegate void SidebarStateChangedHandler(bool isCollapsed);
 
-    public class SidebarPanel : Panel
+    public class SidebarPanel : WpfPanelBase
     {
         private ElementHost _host;
         private SidebarControl _sidebar;
@@ -27,7 +29,11 @@ namespace {{Namespace}}
                 _sidebar = new SidebarControl();
                 _host.Child = _sidebar;
                 _host.Dock = DockStyle.Fill;
-                this.BackColor = System.Drawing.Color.Transparent; // Panel 也设为透明
+                try {
+                    this.BackColor = ColorTranslator.FromHtml("{{SidebarBackground}}");
+                } catch {
+                    this.BackColor = Color.White;
+                }
                 this.Controls.Add(_host);
 
                 _sidebar.ItemSelected += (index, label, tag) => {
@@ -57,6 +63,27 @@ namespace {{Namespace}}
             }
             catch { }
         }
+
+        #region 通用多态接口实现
+
+        [Category("Appearance")]
+        public override string LabelText
+        {
+            get { return LogoText; }
+            set { LogoText = value; }
+        }
+
+        public override void SetLabelVisible(bool visible)
+        {
+        }
+
+        public override void SetLabelTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { LogoText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
+        #endregion
 
         #region 核心属性
 
@@ -164,5 +191,31 @@ namespace {{Namespace}}
             else
                 action();
         }
+
+        #region 运行时风格重绘
+
+        public override void ApplyStyleDictionary(Dictionary<string, object> style)
+        {
+            base.ApplyStyleDictionary(style);
+            if (style == null) return;
+            try
+            {
+                if (style.ContainsKey("SidebarBackground"))
+                {
+                    string sb = style["SidebarBackground"] as string;
+                    if (!string.IsNullOrEmpty(sb))
+                    {
+                        this.BackColor = ColorTranslator.FromHtml(sb.StartsWith("#") ? sb : "#" + sb);
+                    }
+                }
+                if (_sidebar != null)
+                {
+                    InvokeOnUI(new Action(() => _sidebar.ApplyStyle(style)));
+                }
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }

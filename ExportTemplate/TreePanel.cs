@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using System.Drawing;
 
 namespace {{Namespace}}
 {
@@ -13,7 +14,7 @@ namespace {{Namespace}}
     public delegate void NodeDoubleClickedHandler(string nodeId, string nodeText, byte[] nodeTextUTF8);
     public delegate void NodeMenuClickedHandler(string nodeId, string menuText, byte[] menuTextUTF8);
 
-    public class TreePanel : Panel
+    public class TreePanel : WpfPanelBase
     {
         private ElementHost _host;
         private TreeControl _treeControl;
@@ -28,10 +29,18 @@ namespace {{Namespace}}
         {
             try
             {
-                _host = new ElementHost();
+                try {
+                    this.BackColor = ColorTranslator.FromHtml("{{ControlBackground}}");
+                } catch {
+                    this.BackColor = Color.White;
+                }
+                _host = new ElementHost
+                {
+                    Dock = DockStyle.Fill,
+                    BackColorTransparent = true
+                };
                 _treeControl = new TreeControl();
                 _host.Child = _treeControl;
-                _host.Dock = DockStyle.Fill;
                 this.Controls.Add(_host);
 
                 _treeControl.NodeExpanding += (s, e) => { if (NodeExpanding != null) NodeExpanding(e.NodeId); };
@@ -70,7 +79,7 @@ namespace {{Namespace}}
             catch { }
         }
 
-        public string LabelText
+        public override string LabelText
         {
             get
             {
@@ -92,7 +101,7 @@ namespace {{Namespace}}
             }
         }
 
-        public void SetLabelVisible(bool isVisible)
+        public override void SetLabelVisible(bool isVisible)
         {
             try
             {
@@ -105,7 +114,7 @@ namespace {{Namespace}}
         /// <summary>
         /// 设置标签文字 (UTF8 字节流方案，解决乱码)
         /// </summary>
-        public void SetLabelTextUTF8(byte[] bytes)
+        public override void SetLabelTextUTF8(byte[] bytes)
         {
             if (bytes == null) return;
             try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
@@ -166,6 +175,43 @@ namespace {{Namespace}}
                 return _treeControl.GetNode(id);
             }
             catch (Exception ex) { LogError(ex, "GetNode"); return null; }
+        }
+
+        public string GetNodeText(string id)
+        {
+            try
+            {
+                if (!_treeControl.Dispatcher.CheckAccess()) { return (string)_treeControl.Dispatcher.Invoke(new Func<string>(() => _treeControl.GetNodeText(id))); }
+                return _treeControl.GetNodeText(id);
+            }
+            catch (Exception ex) { LogError(ex, "GetNodeText"); return string.Empty; }
+        }
+
+        public byte[] GetNodeTextUTF8(string id)
+        {
+            string text = GetNodeText(id);
+            if (string.IsNullOrEmpty(text)) return new byte[0];
+            return System.Text.Encoding.UTF8.GetBytes(text);
+        }
+
+        public string GetParentNodeId(string id)
+        {
+            try
+            {
+                if (!_treeControl.Dispatcher.CheckAccess()) { return (string)_treeControl.Dispatcher.Invoke(new Func<string>(() => _treeControl.GetParentNodeId(id))); }
+                return _treeControl.GetParentNodeId(id);
+            }
+            catch (Exception ex) { LogError(ex, "GetParentNodeId"); return string.Empty; }
+        }
+
+        public TreeNode GetParentNode(string id)
+        {
+            try
+            {
+                if (!_treeControl.Dispatcher.CheckAccess()) { return (TreeNode)_treeControl.Dispatcher.Invoke(new Func<TreeNode>(() => _treeControl.GetParentNode(id))); }
+                return _treeControl.GetParentNode(id);
+            }
+            catch (Exception ex) { LogError(ex, "GetParentNode"); return null; }
         }
 
         public string[] GetCheckedNodes()
@@ -304,5 +350,30 @@ namespace {{Namespace}}
             }
             catch (Exception ex) { LogError(ex, "CollapseAll"); }
         }
+
+        #region 运行时风格重绘
+
+        public override void ApplyStyleDictionary(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            base.ApplyStyleDictionary(style);
+            if (style == null) return;
+            try
+            {
+                if (_treeControl != null)
+                {
+                    if (!_treeControl.Dispatcher.CheckAccess())
+                    {
+                        _treeControl.Dispatcher.Invoke(new Action(() => _treeControl.ApplyStyle(style)));
+                    }
+                    else
+                    {
+                        _treeControl.ApplyStyle(style);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }

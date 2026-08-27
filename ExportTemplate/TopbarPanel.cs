@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -9,7 +11,7 @@ namespace {{Namespace}}
 {
     public delegate void TopbarNavItemSelectedHandler(int index, string label, string tag);
 
-    public class TopbarPanel : Panel
+    public class TopbarPanel : WpfPanelBase
     {
         private ElementHost _host;
         private TopbarControl _topbar;
@@ -25,7 +27,11 @@ namespace {{Namespace}}
                 _topbar = new TopbarControl();
                 _host.Child = _topbar;
                 _host.Dock = DockStyle.Fill;
-                this.BackColor = System.Drawing.Color.Transparent; // Panel 也设为透明
+                try {
+                    this.BackColor = ColorTranslator.FromHtml("{{TopbarBackground}}");
+                } catch {
+                    this.BackColor = Color.White;
+                }
                 
                 int totalHeight = (int)({{TopbarHeight}}) + 20; // 基础高度 + 阴影缓冲
                 this.Height = totalHeight;
@@ -54,6 +60,27 @@ namespace {{Namespace}}
             }
             catch { }
         }
+
+        #region 通用多态接口实现
+
+        [Category("Appearance")]
+        public override string LabelText
+        {
+            get { return LogoText; }
+            set { LogoText = value; }
+        }
+
+        public override void SetLabelVisible(bool visible)
+        {
+        }
+
+        public override void SetLabelTextUTF8(byte[] bytes)
+        {
+            if (bytes == null) return;
+            try { LogoText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
+        }
+
+        #endregion
 
         #region 核心属性
 
@@ -126,5 +153,31 @@ namespace {{Namespace}}
             else
                 action();
         }
+
+        #region 运行时风格重绘
+
+        public override void ApplyStyleDictionary(Dictionary<string, object> style)
+        {
+            base.ApplyStyleDictionary(style);
+            if (style == null) return;
+            try
+            {
+                if (style.ContainsKey("TopbarBackground"))
+                {
+                    string tb = style["TopbarBackground"] as string;
+                    if (!string.IsNullOrEmpty(tb))
+                    {
+                        this.BackColor = ColorTranslator.FromHtml(tb.StartsWith("#") ? tb : "#" + tb);
+                    }
+                }
+                if (_topbar != null)
+                {
+                    InvokeOnUI(new Action(() => _topbar.ApplyStyle(style)));
+                }
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace {{Namespace}}
@@ -36,7 +37,7 @@ namespace {{Namespace}}
             DependencyProperty.Register("LogoImagePath", typeof(string), typeof(TopbarControl), new PropertyMetadata("", OnLogoChanged));
 
         public static readonly DependencyProperty LogoIconTextProperty =
-            DependencyProperty.Register("LogoIconText", typeof(string), typeof(TopbarControl), new PropertyMetadata("🌟", OnLogoChanged));
+            DependencyProperty.Register("LogoIconText", typeof(string), typeof(TopbarControl), new PropertyMetadata("Logo", OnLogoChanged));
 
         public static readonly DependencyProperty LogoUseImageProperty =
             DependencyProperty.Register("LogoUseImage", typeof(bool), typeof(TopbarControl), new PropertyMetadata(false, OnLogoChanged));
@@ -172,7 +173,7 @@ namespace {{Namespace}}
 
         public void SetLogoIconText(string text)
         {
-            LogoIconText = string.IsNullOrWhiteSpace(text) ? "🌟" : text;
+            LogoIconText = string.IsNullOrWhiteSpace(text) ? "Logo" : text;
             LogoUseImage = false;
         }
 
@@ -184,6 +185,111 @@ namespace {{Namespace}}
         public void SetSelectedIndex(int index)
         {
             SelectedIndex = index;
+        }
+
+        #endregion
+
+        #region 运行时风格重绘
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            try
+            {
+                // 1. 顶边栏背景底色
+                string tbColor = null;
+                if (style.ContainsKey("TopbarBackground")) tbColor = style["TopbarBackground"] as string;
+                else if (style.ContainsKey("ControlBackground")) tbColor = style["ControlBackground"] as string;
+                if (!string.IsNullOrEmpty(tbColor))
+                {
+                    try {
+                        var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(tbColor.StartsWith("#") ? tbColor : "#" + tbColor));
+                        this.Resources["TopbarBgBrush"] = b;
+                        if (mainBorder != null) mainBorder.Background = b;
+                    } catch { }
+                }
+
+                // 2. 文字颜色
+                if (style.ContainsKey("FontColor"))
+                {
+                    string fc = style["FontColor"] as string;
+                    if (!string.IsNullOrEmpty(fc))
+                    {
+                        try {
+                            var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(fc.StartsWith("#") ? fc : "#" + fc));
+                            this.Resources["TopbarFontBrush"] = b;
+                            if (logoTxt != null) logoTxt.Foreground = b;
+                        } catch { }
+                    }
+                }
+
+                // 3. 强调高亮色 (AccentColor)
+                if (style.ContainsKey("AccentColor"))
+                {
+                    string ac = style["AccentColor"] as string;
+                    if (!string.IsNullOrEmpty(ac))
+                    {
+                        try {
+                            var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(ac.StartsWith("#") ? ac : "#" + ac));
+                            this.Resources["TopbarAccentBrush"] = b;
+                            if (logoIconBorder != null) logoIconBorder.Background = b;
+                        } catch { }
+                    }
+                }
+
+                // 4. 按钮渐变色 (GradientStart/Mid/End)
+                if (style.ContainsKey("GradientStart") && style.ContainsKey("GradientMid") && style.ContainsKey("GradientEnd"))
+                {
+                    try {
+                        Color c1 = (Color)ColorConverter.ConvertFromString(style["GradientStart"] as string);
+                        Color c2 = (Color)ColorConverter.ConvertFromString(style["GradientMid"] as string);
+                        Color c3 = (Color)ColorConverter.ConvertFromString(style["GradientEnd"] as string);
+                        var g = new LinearGradientBrush { StartPoint = new Point(0,0), EndPoint = new Point(1,1) };
+                        g.GradientStops.Add(new GradientStop(c1, 0));
+                        g.GradientStops.Add(new GradientStop(c2, 0.5));
+                        g.GradientStops.Add(new GradientStop(c3, 1));
+                        this.Resources["TopbarBtnGradBrush"] = g;
+                    } catch { }
+                }
+
+                // 5. 控件底色 (ControlBackground)
+                if (style.ContainsKey("ControlBackground"))
+                {
+                    string cb = style["ControlBackground"] as string;
+                    if (!string.IsNullOrEmpty(cb))
+                    {
+                        try {
+                            var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(cb.StartsWith("#") ? cb : "#" + cb));
+                            this.Resources["TopbarCtrlBgBrush"] = b;
+                        } catch { }
+                    }
+                }
+
+                // 6. 圆角与字体
+                if (style.ContainsKey("CornerRadius") && mainBorder != null)
+                {
+                    try { mainBorder.CornerRadius = new CornerRadius(Convert.ToDouble(style["CornerRadius"])); } catch { }
+                }
+                if (style.ContainsKey("FontFamily"))
+                {
+                    var ff = new FontFamily(style["FontFamily"] as string);
+                    if (logoTxt != null) logoTxt.FontFamily = ff;
+                }
+
+                // 7. 阴影 (ShadowColor / ShadowBlur / ShadowOpacity)
+                var shadow = mainBorder != null ? mainBorder.Effect as System.Windows.Media.Effects.DropShadowEffect : null;
+                if (shadow != null)
+                {
+                    if (style.ContainsKey("ShadowBlur")) try { shadow.BlurRadius = Convert.ToDouble(style["ShadowBlur"]); } catch { }
+                    if (style.ContainsKey("ShadowDepth")) try { shadow.ShadowDepth = Convert.ToDouble(style["ShadowDepth"]); } catch { }
+                    if (style.ContainsKey("ShadowOpacity")) try { shadow.Opacity = Convert.ToDouble(style["ShadowOpacity"]); } catch { }
+                    if (style.ContainsKey("ShadowColor"))
+                    {
+                        try { shadow.Color = (Color)ColorConverter.ConvertFromString(style["ShadowColor"] as string); } catch { }
+                    }
+                }
+            }
+            catch { }
         }
 
         #endregion

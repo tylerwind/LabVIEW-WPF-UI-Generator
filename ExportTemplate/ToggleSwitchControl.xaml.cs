@@ -7,16 +7,16 @@ using System.Windows.Media.Animation;
 namespace WpfTextInput
 {
     /// <summary>
-    /// Toggle 开关事件委托
+    /// Toggle 寮€鍏充簨浠跺鎵?
     /// </summary>
     public delegate void ToggleChangedEventHandler(bool oldValue, bool newValue);
 
     /// <summary>
-    /// Toggle 开关控件
+    /// Toggle 寮€鍏虫帶浠?
     /// </summary>
     public partial class ToggleSwitchControl : UserControl
     {
-        #region 依赖属性
+        #region 渚濊禆灞炴€?
 
         public static readonly DependencyProperty LabelTextProperty =
             DependencyProperty.Register("LabelText", typeof(string), typeof(ToggleSwitchControl),
@@ -29,6 +29,16 @@ namespace WpfTextInput
         public static readonly DependencyProperty InactiveColorProperty =
             DependencyProperty.Register("InactiveColor", typeof(string), typeof(ToggleSwitchControl),
                 new PropertyMetadata("{{ToggleInactiveColor}}", OnColorPropertyChanged));
+
+        public static readonly DependencyProperty CornerRadiusProperty =
+            DependencyProperty.Register("CornerRadius", typeof(double), typeof(ToggleSwitchControl),
+                new PropertyMetadata(13.0, OnCornerRadiusChanged));
+
+        public double CornerRadius
+        {
+            get { return (double)GetValue(CornerRadiusProperty); }
+            set { SetValue(CornerRadiusProperty, value); }
+        }
 
         public string LabelText
         {
@@ -50,7 +60,7 @@ namespace WpfTextInput
 
         #endregion
 
-        #region 事件与状态
+        #region 浜嬩欢涓庣姸鎬?
 
         public event ToggleChangedEventHandler ValueChanged;
 
@@ -77,11 +87,11 @@ namespace WpfTextInput
         public ToggleSwitchControl()
         {
             InitializeComponent();
-            // 初始化为 OFF 状态
+            // 鍒濆鍖栦负 OFF 鐘舵€?
             UpdateToggleVisual(false);
         }
 
-        #region 公共方法
+        #region 鍏叡鏂规硶
 
         public void SetLabelVisible(bool visible)
         {
@@ -91,7 +101,7 @@ namespace WpfTextInput
 
         #endregion
 
-        #region 用户交互
+        #region 鐢ㄦ埛浜や簰
 
         private void UserControl_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -100,7 +110,7 @@ namespace WpfTextInput
 
         #endregion
 
-        #region 视觉更新
+        #region 瑙嗚鏇存柊
 
         private static void OnLabelTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -115,6 +125,21 @@ namespace WpfTextInput
             c.UpdateToggleVisual(true);
         }
 
+        private static void OnCornerRadiusChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var c = (ToggleSwitchControl)d;
+            if (c != null && e.NewValue is double)
+            {
+                c.UpdateCornerRadius((double)e.NewValue);
+            }
+        }
+
+        public void UpdateCornerRadius(double radius)
+        {
+            if (Track != null) Track.CornerRadius = new CornerRadius(radius);
+            if (Thumb != null) Thumb.CornerRadius = new CornerRadius(Math.Max(0, radius - 2.0));
+        }
+
         private Color ParseColor(string hex, Color fallback)
         {
             try { return (Color)ColorConverter.ConvertFromString(hex); }
@@ -125,7 +150,7 @@ namespace WpfTextInput
         {
             if (ThumbTranslate == null || TrackBrush == null) return;
 
-            // 把手滑动: OFF=0, ON=22 (48 - 22把手 - 4边距)
+            // 鎶婃墜婊戝姩: OFF=0, ON=22 (48 - 22鎶婃墜 - 4杈硅窛)
             double targetX = _value ? 22.0 : 0.0;
             
             Color activeCol = ParseColor(ActiveColor, (Color)ColorConverter.ConvertFromString("{{ToggleActiveColor}}"));
@@ -149,12 +174,41 @@ namespace WpfTextInput
 
         #endregion
 
-        #region 运行时风格重绘
+        #region 杩愯鏃堕鏍奸噸缁?
 
         /// <summary>
-        /// 获取当前应用的动态重绘配置
+        /// 鑾峰彇褰撳墠搴旂敤鐨勫姩鎬侀噸缁橀厤缃?
         /// </summary>
         public System.Collections.Generic.Dictionary<string, object> CurrentStyle { get; private set; }
+
+        private Color? ParseColor(object val)
+        {
+            if (val == null) return null;
+            string str = val as string;
+            if (string.IsNullOrEmpty(str)) return null;
+            try { return (Color)ColorConverter.ConvertFromString(str.StartsWith("#") ? str : "#" + str); }
+            catch { return null; }
+        }
+
+        private double? ParseDouble(object val)
+        {
+            if (val == null) return null;
+            try { return Convert.ToDouble(val); }
+            catch { return null; }
+        }
+
+        private FontWeight? ParseFontWeight(object val)
+        {
+            if (val == null) return null;
+            string str = val as string;
+            if (string.IsNullOrEmpty(str)) return null;
+            try
+            {
+                var converter = new FontWeightConverter();
+                return (FontWeight)converter.ConvertFromString(str);
+            }
+            catch { return null; }
+        }
 
         public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
         {
@@ -162,22 +216,64 @@ namespace WpfTextInput
             this.CurrentStyle = style;
             try
             {
+                // 0. 鎺т欢搴曡壊閲嶇粯
+                if (style.ContainsKey("ControlBackground"))
+                {
+                    Color? ctrlBg = ParseColor(style["ControlBackground"]);
+                    if (ctrlBg.HasValue)
+                    {
+                        this.Background = new SolidColorBrush(ctrlBg.Value);
+                    }
+                }
+
                 // 1. 开关颜色重绘
-                if (style.ContainsKey("ToggleColorOn"))
+                if (style.ContainsKey("ActiveColor"))
+                {
+                    this.ActiveColor = style["ActiveColor"] as string;
+                }
+                else if (style.ContainsKey("ToggleColorOn"))
                 {
                     this.ActiveColor = style["ToggleColorOn"] as string;
                 }
-                if (style.ContainsKey("ToggleColorOff"))
+
+                if (style.ContainsKey("InactiveColor"))
+                {
+                    this.InactiveColor = style["InactiveColor"] as string;
+                }
+                else if (style.ContainsKey("ToggleColorOff"))
                 {
                     this.InactiveColor = style["ToggleColorOff"] as string;
                 }
 
-                // 2. 标签字体及颜色重绘
+                // 2. 鏍囩瀛椾綋鍙婇鑹查噸缁?
                 if (LabelBlock != null)
                 {
                     if (style.ContainsKey("FontFamily")) LabelBlock.FontFamily = new FontFamily(style["FontFamily"] as string);
-                    if (style.ContainsKey("LabelColor")) LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(style["LabelColor"] as string));
-                    if (style.ContainsKey("LabelFontSize")) LabelBlock.FontSize = Convert.ToDouble(style["LabelFontSize"]);
+                    if (style.ContainsKey("LabelColor"))
+                    {
+                        Color? val = ParseColor(style["LabelColor"]);
+                        if (val.HasValue) LabelBlock.Foreground = new SolidColorBrush(val.Value);
+                    }
+                    if (style.ContainsKey("LabelFontSize"))
+                    {
+                        double? val = ParseDouble(style["LabelFontSize"]);
+                        if (val.HasValue) LabelBlock.FontSize = val.Value;
+                    }
+                    if (style.ContainsKey("FontWeight"))
+                    {
+                        FontWeight? val = ParseFontWeight(style["FontWeight"]);
+                        if (val.HasValue) LabelBlock.FontWeight = val.Value;
+                    }
+                }
+
+                // 3. 圆角重绘
+                if (style.ContainsKey("CornerRadius"))
+                {
+                    double? val = ParseDouble(style["CornerRadius"]);
+                    if (val.HasValue)
+                    {
+                        UpdateCornerRadius(val.Value);
+                    }
                 }
             }
             catch {}
@@ -186,3 +282,5 @@ namespace WpfTextInput
         #endregion
     }
 }
+
+

@@ -969,5 +969,106 @@ namespace WpfChart
                 YAxisCanvas.Children.Add(tb);
             }
         }
+
+        #region 运行时风格重绘
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            try
+            {
+                if (style.ContainsKey("ControlBackground"))
+                {
+                    string cb = style["ControlBackground"] as string;
+                    if (!string.IsNullOrEmpty(cb))
+                    {
+                        try { this.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(cb.StartsWith("#") ? cb : "#" + cb)); } catch { }
+                    }
+                }
+                if (style.ContainsKey("GradientStart") && style.ContainsKey("GradientMid") && style.ContainsKey("GradientEnd"))
+                {
+                    try
+                    {
+                        Color c1 = (Color)ColorConverter.ConvertFromString(style["GradientStart"] as string);
+                        Color c2 = (Color)ColorConverter.ConvertFromString(style["GradientMid"] as string);
+                        Color c3 = (Color)ColorConverter.ConvertFromString(style["GradientEnd"] as string);
+                        var brush = new LinearGradientBrush();
+                        brush.StartPoint = new Point(0, 0);
+                        brush.EndPoint = new Point(1, 1);
+                        brush.GradientStops.Add(new GradientStop(c1, 0));
+                        brush.GradientStops.Add(new GradientStop(c2, 0.5));
+                        brush.GradientStops.Add(new GradientStop(c3, 1));
+                        if (MainBorder != null) MainBorder.Background = brush;
+                        if (SeriesCardHost != null) SeriesCardHost.Background = brush;
+                    }
+                    catch { }
+                }
+                // 2. 边框与圆角
+                if (style.ContainsKey("BorderColor"))
+                {
+                    try
+                    {
+                        string bc = style["BorderColor"] as string;
+                        if (!string.IsNullOrEmpty(bc))
+                        {
+                            var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(bc.StartsWith("#") ? bc : "#" + bc));
+                            if (MainBorder != null) MainBorder.BorderBrush = brush;
+                            if (SeriesCardHost != null) SeriesCardHost.BorderBrush = brush;
+                        }
+                    }
+                    catch { }
+                }
+
+                if (style.ContainsKey("BorderThickness"))
+                {
+                    try
+                    {
+                        var th = new Thickness(Convert.ToDouble(style["BorderThickness"]));
+                        if (MainBorder != null) MainBorder.BorderThickness = th;
+                        if (SeriesCardHost != null) SeriesCardHost.BorderThickness = th;
+                    }
+                    catch { }
+                }
+
+                if (style.ContainsKey("CornerRadius"))
+                {
+                    try
+                    {
+                        var cr = new CornerRadius(Convert.ToDouble(style["CornerRadius"]));
+                        if (MainBorder != null) MainBorder.CornerRadius = cr;
+                        if (SeriesCardHost != null) SeriesCardHost.CornerRadius = cr;
+                    }
+                    catch { }
+                }
+
+                // 3. 字体与颜色
+                if (style.ContainsKey("FontFamily"))
+                {
+                    var ff = new FontFamily(style["FontFamily"] as string);
+                    if (LabelBlock != null) LabelBlock.FontFamily = ff;
+                    if (DescBlock != null) DescBlock.FontFamily = ff;
+                }
+                if (style.ContainsKey("FontColor") && LabelBlock != null)
+                {
+                    string fc = style["FontColor"] as string;
+                    if (!string.IsNullOrEmpty(fc))
+                    {
+                        try { LabelBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(fc.StartsWith("#") ? fc : "#" + fc)); } catch { }
+                    }
+                }
+                if (style.ContainsKey("LabelColor") && DescBlock != null)
+                {
+                    string lc = style["LabelColor"] as string;
+                    if (!string.IsNullOrEmpty(lc))
+                    {
+                        try { DescBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(lc.StartsWith("#") ? lc : "#" + lc)); } catch { }
+                    }
+                }
+                RedrawChart();
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }

@@ -33,9 +33,16 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+*.log
+*.log.txt
+run.log
+run_log.txt
+StyleUpdateError.txt
 
 # Visual Studio 2015/2017/2019 cache/options directory
 .vs/
+.agent/
+.cursor/
 
 # =========================
 # LabVIEW
@@ -51,9 +58,7 @@ bld/
 *.obj
 
 # =========================
-# Project Specific Output
+# Exclude UI Folder (User directive: do not upload UI folder)
 # =========================
-# You may want to commit generated DLLs in UI folder for 
-# a quick start, or you can choose to ignore them:
-# UI/*.dll
-# UI/*.style.json
+UI/
+UI/**

@@ -61,10 +61,10 @@ namespace ControlDesigner.Services
                 // 自动降级处理：如果 4.8 构建失败，降级到 4.0 再次尝试 (兼容极度古老的电脑)
                 if (result.ExitCode != 0)
                 {
-                    string csprojContent = File.ReadAllText(csproj);
+                    string csprojContent = File.ReadAllText(csproj, System.Text.Encoding.UTF8);
                     if (csprojContent.Contains("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>"))
                     {
-                        File.WriteAllText(csproj, csprojContent.Replace("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>", "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>"));
+                        File.WriteAllText(csproj, csprojContent.Replace("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>", "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>"), System.Text.Encoding.UTF8);
                         using (var proc2 = Process.Start(psi))
                         {
                             result.BuildOutput = proc2.StandardOutput.ReadToEnd();
@@ -170,10 +170,10 @@ namespace ControlDesigner.Services
                 // 自动降级处理：如果 4.8 构建失败，降级到 4.0 再次尝试 (兼容极度古老的电脑)
                 if (result.ExitCode != 0)
                 {
-                    string csprojContent = File.ReadAllText(csproj);
+                    string csprojContent = File.ReadAllText(csproj, System.Text.Encoding.UTF8);
                     if (csprojContent.Contains("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>"))
                     {
-                        File.WriteAllText(csproj, csprojContent.Replace("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>", "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>"));
+                        File.WriteAllText(csproj, csprojContent.Replace("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>", "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>"), System.Text.Encoding.UTF8);
                         using (var proc2 = Process.Start(psi))
                         {
                             result.BuildOutput = proc2.StandardOutput.ReadToEnd();

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 
 namespace WpfPie
@@ -20,17 +21,56 @@ namespace WpfPie
         private readonly List<PieSeries> _series = new List<PieSeries>();
         private bool _showSeriesCards = {{ChartShowSeriesCards}};
 
+        private Brush _currentControlBgBrush;
+        private Brush _currentCardGradientBrush;
+        private Brush _currentBorderBrush;
+        private Color _currentShadowColor;
+        private double _currentShadowBlur;
+        private double _currentShadowDepth;
+        private double _currentShadowOpacity;
+
         public PieControl()
         {
             InitializeComponent();
+            _currentControlBgBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("{{ControlBackground}}"));
+
+            var g = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+            g.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("{{GradientStart}}"), 0));
+            g.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("{{GradientMid}}"), 0.5));
+            g.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("{{GradientEnd}}"), 1));
+            _currentCardGradientBrush = g;
+
+            _currentBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("{{BorderColor}}"));
+            _currentShadowColor = (Color)ColorConverter.ConvertFromString("{{ShadowColor}}");
+            _currentShadowBlur = double.Parse("{{ShadowBlur}}");
+            _currentShadowDepth = double.Parse("{{ShadowDepth}}");
+            _currentShadowOpacity = double.Parse("{{ShadowOpacity}}");
+
             AddSeries("System A", 45, (Color)ColorConverter.ConvertFromString("{{ChartColor1}}"));
             AddSeries("System B", 30, (Color)ColorConverter.ConvertFromString("{{ChartColor2}}"));
             AddSeries("System C", 25, (Color)ColorConverter.ConvertFromString("{{ChartColor3}}"));
         }
 
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.Property == BackgroundProperty)
+            {
+                if (this.Background != null)
+                {
+                    _currentControlBgBrush = this.Background;
+                }
+                Redraw();
+            }
+        }
+
         public string LabelText { get { return LabelBlock.Text; } set { LabelBlock.Text = value; } }
         public string DescText { get { return DescBlock.Text; } set { DescBlock.Text = value; } }
-        public void SetLabelVisible(bool visible) { LabelBlock.Visibility = visible ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed; }
+        public void SetLabelVisible(bool visible)
+        {
+            LabelBlock.Visibility = visible ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            TitleArea.Visibility = visible ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+        }
 
         public bool ShowSeriesCards
         {
@@ -92,7 +132,7 @@ namespace WpfPie
         {
             if (PieCanvas == null) return;
             // Available height for pie (minus header/padding estimation)
-            double availH = this.ActualHeight - 60; 
+            double availH = this.ActualHeight - (TitleArea.Visibility == Visibility.Visible ? 60 : 16); 
             double availW = this.ActualWidth;
             if (ShowSeriesCards) availW -= 240; // account for card width and margins
 
@@ -121,23 +161,26 @@ namespace WpfPie
 
             double w = PieCanvas.ActualWidth;
             double h = PieCanvas.ActualHeight;
-            if (w <= 0 || h <= 0) return;
+            if (w <= 0 || double.IsNaN(w)) w = PieCanvas.Width;
+            if (h <= 0 || double.IsNaN(h)) h = PieCanvas.Height;
+            if (w <= 0 || h <= 0 || double.IsNaN(w) || double.IsNaN(h)) return;
 
-            double radius = Math.Min(w, h) * 0.38;
+            double radius = Math.Min(w, h) * 0.45;
             Point center = new Point(w / 2.0, h / 2.0);
 
-            // 外部框架 (增加层次感)
-            var bgGradient = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
-            bgGradient.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("{{GradientStart}}"), 0));
-            bgGradient.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("{{GradientMid}}"), 0.5));
-            bgGradient.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("{{GradientEnd}}"), 1));
-
+            // 外部框架 (圆环外圈拟态卡片背景与阴影，随主题动态切换)
             var outerRim = new Ellipse { 
                 Width = radius * 2 + 20, Height = radius * 2 + 20, 
-                Fill = bgGradient, 
-                Stroke = new SolidColorBrush(Color.FromArgb(15, 0,0,0)), 
+                Fill = _currentCardGradientBrush ?? new SolidColorBrush(Colors.Transparent), 
+                Stroke = _currentBorderBrush ?? new SolidColorBrush(Color.FromArgb(15, 0, 0, 0)), 
                 StrokeThickness = 1,
-                Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 10, ShadowDepth = 3, Opacity = 0.15, Color = Colors.Gray } 
+                Effect = new DropShadowEffect { 
+                    BlurRadius = _currentShadowBlur, 
+                    ShadowDepth = _currentShadowDepth, 
+                    Opacity = _currentShadowOpacity, 
+                    Color = _currentShadowColor, 
+                    Direction = 315 
+                } 
             };
             Canvas.SetLeft(outerRim, center.X - outerRim.Width / 2);
             Canvas.SetTop(outerRim, center.Y - outerRim.Height / 2);
@@ -152,18 +195,15 @@ namespace WpfPie
                 start += sweep;
             }
 
-            var hole = new Ellipse { Width = radius * 0.85, Height = radius * 0.85, Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("{{ChartPlotBackground}}")) };
+            // 中心圆孔 (动态取 UserControl.Background，若无则取当前控制背景色，彻底与前面板/控件背景融合)
+            var hole = new Ellipse { 
+                Width = radius * 0.85, 
+                Height = radius * 0.85, 
+                Fill = (this.Background != null ? this.Background : _currentControlBgBrush) 
+            };
             Canvas.SetLeft(hole, center.X - hole.Width / 2);
             Canvas.SetTop(hole, center.Y - hole.Height / 2);
             PieCanvas.Children.Add(hole);
-
-            // 移除中心数值显示
-            // var txt = new TextBlock { Text = total.ToString("0.##"), FontSize = LabelBlock.FontSize + 2, FontWeight = FontWeights.Bold, Foreground = LabelBlock.Foreground };
-            // txt.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            // Canvas.SetLeft(txt, center.X - txt.DesiredSize.Width / 2);
-            // Canvas.SetTop(txt, center.Y - txt.DesiredSize.Height / 2);
-            // PieCanvas.Children.Add(txt);
-            
         }
 
         private Path BuildSlice(Point center, double radius, double startAngle, double sweepAngle, Color color)
@@ -274,5 +314,133 @@ namespace WpfPie
                 SeriesPanel.Children.Add(row);
             }
         }
+
+        #region 运行时风格重绘
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            try
+            {
+                // 0. 控件背景色
+                if (style.ContainsKey("ControlBackground"))
+                {
+                    string cb = style["ControlBackground"] as string;
+                    if (!string.IsNullOrEmpty(cb))
+                    {
+                        try { 
+                            var bg = new SolidColorBrush((Color)ColorConverter.ConvertFromString(cb.StartsWith("#") ? cb : "#" + cb));
+                            this.Background = bg;
+                            _currentControlBgBrush = bg;
+                        } catch { }
+                    }
+                }
+
+                // 1. 数值卡片与饼图底座背景渐变
+                if (style.ContainsKey("GradientStart") && style.ContainsKey("GradientMid") && style.ContainsKey("GradientEnd"))
+                {
+                    try
+                    {
+                        Color c1 = (Color)ColorConverter.ConvertFromString(style["GradientStart"] as string);
+                        Color c2 = (Color)ColorConverter.ConvertFromString(style["GradientMid"] as string);
+                        Color c3 = (Color)ColorConverter.ConvertFromString(style["GradientEnd"] as string);
+                        var brush = new LinearGradientBrush();
+                        brush.StartPoint = new Point(0, 0);
+                        brush.EndPoint = new Point(1, 1);
+                        brush.GradientStops.Add(new GradientStop(c1, 0));
+                        brush.GradientStops.Add(new GradientStop(c2, 0.5));
+                        brush.GradientStops.Add(new GradientStop(c3, 1));
+                        _currentCardGradientBrush = brush;
+                        if (SeriesCardHost != null) SeriesCardHost.Background = brush;
+                    }
+                    catch { }
+                }
+
+                // 2. 数值卡片与饼图底座边框与圆角
+                if (style.ContainsKey("BorderColor"))
+                {
+                    try
+                    {
+                        string bc = style["BorderColor"] as string;
+                        if (!string.IsNullOrEmpty(bc))
+                        {
+                            var bBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(bc.StartsWith("#") ? bc : "#" + bc));
+                            _currentBorderBrush = bBrush;
+                            if (SeriesCardHost != null) SeriesCardHost.BorderBrush = bBrush;
+                        }
+                    }
+                    catch { }
+                }
+
+                if (SeriesCardHost != null && style.ContainsKey("BorderThickness"))
+                {
+                    try { SeriesCardHost.BorderThickness = new Thickness(Convert.ToDouble(style["BorderThickness"])); } catch { }
+                }
+
+                if (SeriesCardHost != null && style.ContainsKey("CornerRadius"))
+                {
+                    try { SeriesCardHost.CornerRadius = new CornerRadius(Convert.ToDouble(style["CornerRadius"])); } catch { }
+                }
+
+                // 3. 阴影
+                if (style.ContainsKey("ShadowBlur")) try { _currentShadowBlur = Convert.ToDouble(style["ShadowBlur"]); } catch { }
+                if (style.ContainsKey("ShadowDepth")) try { _currentShadowDepth = Convert.ToDouble(style["ShadowDepth"]); } catch { }
+                if (style.ContainsKey("ShadowOpacity")) try { _currentShadowOpacity = Convert.ToDouble(style["ShadowOpacity"]); } catch { }
+                if (style.ContainsKey("ShadowColor"))
+                {
+                    try { _currentShadowColor = (Color)ColorConverter.ConvertFromString(style["ShadowColor"] as string); } catch { }
+                }
+                if (SeriesCardHost != null)
+                {
+                    SeriesCardHost.Effect = new DropShadowEffect
+                    {
+                        BlurRadius = _currentShadowBlur,
+                        ShadowDepth = _currentShadowDepth,
+                        Color = _currentShadowColor,
+                        Opacity = _currentShadowOpacity,
+                        Direction = 315
+                    };
+                }
+
+                // 4. 字体与文字颜色
+                if (style.ContainsKey("FontFamily"))
+                {
+                    var ff = new FontFamily(style["FontFamily"] as string);
+                    if (LabelBlock != null) LabelBlock.FontFamily = ff;
+                    if (DescBlock != null) DescBlock.FontFamily = ff;
+                }
+                if (style.ContainsKey("FontColor"))
+                {
+                    string fc = style["FontColor"] as string;
+                    if (!string.IsNullOrEmpty(fc))
+                    {
+                        try
+                        {
+                            var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(fc.StartsWith("#") ? fc : "#" + fc));
+                            if (LabelBlock != null) LabelBlock.Foreground = brush;
+                        }
+                        catch { }
+                    }
+                }
+                if (style.ContainsKey("LabelColor"))
+                {
+                    string lc = style["LabelColor"] as string;
+                    if (!string.IsNullOrEmpty(lc))
+                    {
+                        try
+                        {
+                            var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(lc.StartsWith("#") ? lc : "#" + lc));
+                            if (DescBlock != null) DescBlock.Foreground = brush;
+                        }
+                        catch { }
+                    }
+                }
+
+                Redraw();
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }

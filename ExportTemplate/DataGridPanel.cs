@@ -9,7 +9,7 @@ namespace WpfDataGrid
 {
     [ToolboxItem(true)]
     [Description("极简圆角玻璃态数据表格")]
-    public class DataGridPanel : Panel
+    public class DataGridPanel : WpfPanelBase
     {
         private ElementHost _host;
         private DataGridControl _wpfControl;
@@ -50,9 +50,13 @@ namespace WpfDataGrid
             _wpfControl.SetData(data);
         }
 
-        public void AddRow(string[] rowData)
+        public int AddRow(string[] rowData)
         {
-            _wpfControl.AddRow(rowData);
+            if (_wpfControl != null)
+            {
+                return _wpfControl.AddRow(rowData);
+            }
+            return -1;
         }
 
         public void Clear()
@@ -68,7 +72,7 @@ namespace WpfDataGrid
 
         [Category("外观")]
         [Description("获取或设置控件标题文字")]
-        public string LabelText
+        public override string LabelText
         {
             get { return _wpfControl.LabelText; }
             set { _wpfControl.LabelText = value; }
@@ -88,6 +92,14 @@ namespace WpfDataGrid
         {
             get { return _wpfControl.RowHeight; }
             set { _wpfControl.RowHeight = value; }
+        }
+
+        [Category("外观")]
+        [Description("获取或设置状态徽章字号大小")]
+        public double BadgeFontSize
+        {
+            get { return _wpfControl.BadgeFontSize; }
+            set { _wpfControl.BadgeFontSize = value; }
         }
 
         [Category("外观")]
@@ -119,7 +131,7 @@ namespace WpfDataGrid
             }
         }
 
-        public void SetLabelVisible(bool visible)
+        public override void SetLabelVisible(bool visible)
         {
             _wpfControl.SetLabelVisible(visible);
         }
@@ -127,7 +139,7 @@ namespace WpfDataGrid
         /// <summary>
         /// 设置标签文字 (UTF8 字节流方案，解决乱码)
         /// </summary>
-        public void SetLabelTextUTF8(byte[] bytes)
+        public override void SetLabelTextUTF8(byte[] bytes)
         {
             if (bytes == null) return;
             try { LabelText = System.Text.Encoding.UTF8.GetString(bytes); } catch { }
@@ -145,10 +157,50 @@ namespace WpfDataGrid
             return _wpfControl.GetAllData();
         }
 
+        [Description("将文字和颜色值格式化为嵌入颜色标签的字符串以供 Badge 渲染")]
+        public static string FormatBadge(string text, int colorValue)
+        {
+            return DataGridControl.FormatBadge(text, colorValue);
+        }
+
+        [Description("动态更新特定单元格的内容和背景色")]
+        public void UpdateCell(int rowIndex, int colIndex, string value)
+        {
+            if (_wpfControl != null)
+            {
+                _wpfControl.UpdateCell(rowIndex, colIndex, value);
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing && _host != null) _host.Dispose();
             base.Dispose(disposing);
         }
+
+        #region 运行时风格重绘
+
+        public override void ApplyStyleDictionary(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            base.ApplyStyleDictionary(style);
+            if (style == null) return;
+            try
+            {
+                if (_wpfControl != null)
+                {
+                    if (!_wpfControl.Dispatcher.CheckAccess())
+                    {
+                        _wpfControl.Dispatcher.Invoke(new Action(() => _wpfControl.ApplyStyle(style)));
+                    }
+                    else
+                    {
+                        _wpfControl.ApplyStyle(style);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }

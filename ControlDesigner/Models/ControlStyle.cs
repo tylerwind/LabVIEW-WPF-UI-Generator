@@ -232,7 +232,7 @@ namespace ControlDesigner.Models
         private string _sidebarLogoText = "WPF SIDEBAR";
         public string SidebarLogoText { get { return _sidebarLogoText; } set { Set(ref _sidebarLogoText, value); } }
 
-        private string _sidebarLogoIconText = "🚀";
+        private string _sidebarLogoIconText = "Logo";
         public string SidebarLogoIconText { get { return _sidebarLogoIconText; } set { Set(ref _sidebarLogoIconText, value); } }
 
         private string _sidebarLogoImagePath = "";
@@ -244,7 +244,7 @@ namespace ControlDesigner.Models
         private string _sidebarLogoMargin = "4,0,12,0";
         public string SidebarLogoMargin { get { return _sidebarLogoMargin; } set { Set(ref _sidebarLogoMargin, value); } }
 
-        private double _sidebarItemHeight = 40;
+        private double _sidebarItemHeight = 56;
         public double SidebarItemHeight { get { return _sidebarItemHeight; } set { Set(ref _sidebarItemHeight, value); } }
 
         private double _sidebarItemSpacing = 2;
@@ -256,7 +256,7 @@ namespace ControlDesigner.Models
         private string _topbarLogoText = "WPF TOPBAR";
         public string TopbarLogoText { get { return _topbarLogoText; } set { Set(ref _topbarLogoText, value); } }
 
-        private string _topbarLogoIconText = "🌟";
+        private string _topbarLogoIconText = "Logo";
         public string TopbarLogoIconText { get { return _topbarLogoIconText; } set { Set(ref _topbarLogoIconText, value); } }
 
         private string _topbarLogoImagePath = "";
@@ -278,7 +278,7 @@ namespace ControlDesigner.Models
         private string _iconButtonText = "图标按钮";
         public string IconButtonText { get { return _iconButtonText; } set { Set(ref _iconButtonText, value); } }
 
-        private string _iconButtonIconText = "🎯";
+        private string _iconButtonIconText = "Icon";
         public string IconButtonIconText { get { return _iconButtonIconText; } set { Set(ref _iconButtonIconText, value); } }
 
         private string _iconButtonIconPath = "";

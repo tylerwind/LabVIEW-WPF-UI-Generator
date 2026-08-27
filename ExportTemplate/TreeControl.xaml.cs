@@ -54,7 +54,7 @@ namespace {{Namespace}}
             // Add TextBlock
             var textBlockFactory = new FrameworkElementFactory(typeof(TextBlock));
             textBlockFactory.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding("Text"));
-            textBlockFactory.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("{{FontColor}}")));
+            textBlockFactory.SetResourceReference(TextBlock.ForegroundProperty, "TreeFontBrush");
             textBlockFactory.SetValue(TextBlock.FontFamilyProperty, new FontFamily("{{FontFamily}}"));
             textBlockFactory.SetValue(TextBlock.FontSizeProperty, (double){{FontSize}});
             textBlockFactory.SetValue(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center);
@@ -267,6 +267,36 @@ namespace {{Namespace}}
             }
         }
 
+        public string GetNodeText(string id)
+        {
+            TreeNode node;
+            if (_nodeDictionary.TryGetValue(id, out node))
+            {
+                return node.Text ?? string.Empty;
+            }
+            return string.Empty;
+        }
+
+        public string GetParentNodeId(string id)
+        {
+            TreeNode node;
+            if (_nodeDictionary.TryGetValue(id, out node) && node.ParentNode != null)
+            {
+                return node.ParentNode.Id ?? string.Empty;
+            }
+            return string.Empty;
+        }
+
+        public TreeNode GetParentNode(string id)
+        {
+            TreeNode node;
+            if (_nodeDictionary.TryGetValue(id, out node))
+            {
+                return node.ParentNode;
+            }
+            return null;
+        }
+
         public void UpdateNodeIcon(string id, string iconPath)
         {
             TreeNode node;
@@ -358,6 +388,113 @@ namespace {{Namespace}}
         {
             if (NodeChecked != null) NodeChecked(this, new NodeCheckedEventArgs { NodeId = node.Id, IsChecked = node.IsChecked });
         }
+
+        #region 运行时风格重绘
+
+        public void ApplyStyle(System.Collections.Generic.Dictionary<string, object> style)
+        {
+            if (style == null) return;
+            try
+            {
+                // 1. 树节点文字颜色 (FontColor)
+                if (style.ContainsKey("FontColor"))
+                {
+                    string fc = style["FontColor"] as string;
+                    if (!string.IsNullOrEmpty(fc))
+                    {
+                        try {
+                            var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(fc.StartsWith("#") ? fc : "#" + fc));
+                            this.Resources["TreeFontBrush"] = b;
+                            if (InnerTree != null) InnerTree.Foreground = b;
+                        } catch { }
+                    }
+                }
+
+                // 2. 树卡片主体背景色 (TreeBackground / ControlBackground)
+                string tbColor = null;
+                if (style.ContainsKey("TreeBackground")) tbColor = style["TreeBackground"] as string;
+                else if (style.ContainsKey("ControlBackground")) tbColor = style["ControlBackground"] as string;
+                if (!string.IsNullOrEmpty(tbColor))
+                {
+                    try { 
+                        var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(tbColor.StartsWith("#") ? tbColor : "#" + tbColor));
+                        this.Resources["TreeBgBrush"] = b;
+                        if (CardBackgroundBorder != null) CardBackgroundBorder.Background = b;
+                    } catch { }
+                }
+
+                // 3. 边框颜色与粗细
+                if (style.ContainsKey("BorderColor"))
+                {
+                    string bc = style["BorderColor"] as string;
+                    if (!string.IsNullOrEmpty(bc))
+                    {
+                        try {
+                            var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(bc.StartsWith("#") ? bc : "#" + bc));
+                            this.Resources["TreeBorderBrush"] = b;
+                            if (CardBorder != null) CardBorder.BorderBrush = b;
+                        } catch { }
+                    }
+                }
+                if (style.ContainsKey("BorderThickness") && CardBorder != null)
+                {
+                    try { CardBorder.BorderThickness = new Thickness(Convert.ToDouble(style["BorderThickness"])); } catch { }
+                }
+
+                // 4. 强调色 (AccentColor)
+                if (style.ContainsKey("AccentColor"))
+                {
+                    string ac = style["AccentColor"] as string;
+                    if (!string.IsNullOrEmpty(ac))
+                    {
+                        try {
+                            this.Resources["TreeAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(ac.StartsWith("#") ? ac : "#" + ac));
+                        } catch { }
+                    }
+                }
+
+                // 5. 圆角
+                if (style.ContainsKey("CornerRadius"))
+                {
+                    try {
+                        var cr = new CornerRadius(Convert.ToDouble(style["CornerRadius"]));
+                        if (CardBackgroundBorder != null) CardBackgroundBorder.CornerRadius = cr;
+                        if (CardBorder != null) CardBorder.CornerRadius = cr;
+                    } catch { }
+                }
+
+                // 6. 标签颜色与字体
+                if (style.ContainsKey("FontFamily"))
+                {
+                    string ff = style["FontFamily"] as string;
+                    if (!string.IsNullOrEmpty(ff))
+                    {
+                        var fontFamily = new FontFamily(ff);
+                        if (MainLabel != null) MainLabel.FontFamily = fontFamily;
+                        if (InnerTree != null) InnerTree.FontFamily = fontFamily;
+                    }
+                }
+                if (style.ContainsKey("FontSize") && InnerTree != null)
+                {
+                    try { InnerTree.FontSize = Convert.ToDouble(style["FontSize"]); } catch { }
+                }
+                if (style.ContainsKey("LabelColor"))
+                {
+                    string lc = style["LabelColor"] as string;
+                    if (!string.IsNullOrEmpty(lc))
+                    {
+                        try {
+                            var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(lc.StartsWith("#") ? lc : "#" + lc));
+                            this.Resources["TreeLabelBrush"] = b;
+                            if (MainLabel != null) MainLabel.Foreground = b;
+                        } catch { }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        #endregion
     }
 
     public class TreeNode : INotifyPropertyChanged
@@ -371,7 +508,7 @@ namespace {{Namespace}}
         private string _iconPath;
         private string[] _contextMenuItems;
         
-        internal TreeNode ParentNode { get; set; }
+        public TreeNode ParentNode { get; internal set; }
 
         public ObservableCollection<TreeNode> Children { get; private set; }
 
